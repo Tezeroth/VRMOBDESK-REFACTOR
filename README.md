@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 xr-starter-kit
 =============
 
@@ -111,3 +112,4 @@ Here is an example of how it works, with a navmesh from a green plane and exclud
   visible="true"
 ></a-plane>
 ```
+
