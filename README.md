@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-xr-starter-kit
-=============
+
 
 A boiler plate project for getting started with VR and AR with AFrame
 
