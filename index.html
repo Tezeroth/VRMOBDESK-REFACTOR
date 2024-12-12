@@ -93,7 +93,7 @@
      <a-asset-item id="wall" src="../Assets/walls/walls.gltf"> </a-asset-item>
    
 
-      
+      <!--follow this up, a very interesting way of doing things i like it-->
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
 
       
@@ -413,7 +413,7 @@
       
       <!-- Inline script controlling the thumbstick behavior -->
       <script>
-        let movementType = 'teleport';
+        let movementType = 'move';
         function toggleThumbstick(detail) {
           const rayPointers = ['[data-right="ray"]', '[data-left="ray"]'].map(s => document.querySelector(s));
           const type = detail.value;
