@@ -393,6 +393,7 @@
     Shows a title and settings panel. The settings allow toggling between 
     teleportation and movement controls via thumbstick. Also includes an exit button.
   -->
+    <!--
   <div id="dom-overlay">
     <h1>
       Tezzeroths Virtual Venue Demo
@@ -401,17 +402,49 @@
       <section style="display: inline-block; background: lavenderblush; color: #333333; border-radius: 1em; padding: 1em; margin:0; accent-color: hotpink;" id="my-interface">
         <h2>Settings</h2>
         <fieldset style="border:none;">
-          <legend>Thumbstick Behaviour</legend>
+          <legend>Thumbstick Behaviour</legend> 
+    
+    CHANGEBACK IF IF IT BREAKS      -->
+
+
           <!-- Radio buttons to toggle movement type:
                Teleport or continuous movement.
           -->
+               <!--
           <input onclick="toggleThumbstick(this)" type="radio" id="thumbstick-teleport" name="thumbstick" value="teleport" checked><label for="thumbstick-teleport"> Teleport</label>
           <input onclick="toggleThumbstick(this)" type="radio" id="thumbstick-move" name="thumbstick" value="move"><label for="thumbstick-move"> Move</label>
         </fieldset>
         <button onclick="AFRAME.scenes[0].exitVR()" style="display: block;">Exit Immersive</button>
+
+      CHANGE BACK IF IT BREAKS-->
+
       </section>
       
+
+
       <!-- Inline script controlling the thumbstick behavior -->
+
+      <script>
+        // Enable continuous movement controls only
+        const cameraRig = document.querySelector('#cameraRig'); // Ensure this matches your camera rig ID
+        const sceneEl = document.querySelector("a-scene");
+    
+        // Always enable movement controls
+        cameraRig.setAttribute('movement-controls', 'enabled', true);
+    
+        // Handle entering and exiting VR
+        sceneEl.addEventListener("enter-vr", function() {
+            cameraRig.setAttribute('movement-controls', 'enabled', true);
+        });
+    
+        sceneEl.addEventListener("exit-vr", function() {
+            cameraRig.setAttribute('movement-controls', 'enabled', true);
+        });
+    </script>
+
+
+
+      <!-- CHANGE BACK IF IT BREAKS
       <script>
         let movementType = 'move';
         function toggleThumbstick(detail) {
@@ -441,9 +474,10 @@
           cameraRig.setAttribute('movement-controls', 'enabled', true);
         });
       </script>
+
       <div id="dom-overlay-message">Enter AR or VR to start.</div>
     </div>
-  </div>
+  </div>-->
   
  </script>
 </body>
