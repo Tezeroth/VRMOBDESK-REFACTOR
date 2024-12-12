@@ -45,8 +45,10 @@ AFRAME.registerComponent('navigate-on-click', {
         });
 
         // Handle navigation on mouse click (non-VR)
-        this.el.addEventListener('click', () => {
+        this.el.addEventListener('click', (event) => {
             this.navigate();
+            // Stop the event from propagating to underlying objects
+            event.stopPropagation();
         });
 
         // Handle navigation via VR controller trigger (VR)
@@ -55,6 +57,8 @@ AFRAME.registerComponent('navigate-on-click', {
             const intersected = controller.components.raycaster.intersectedEls[0];
             if (intersected === this.el) {
                 this.navigate();
+                // Stop the event from propagating to underlying objects
+                event.stopPropagation();
             }
         });
     },

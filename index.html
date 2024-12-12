@@ -1,13 +1,13 @@
 <html>
 
 <head>
-  <script>
+  
     // WebXR requires a secure context (i.e. https:), so if the page is not served 
     // over HTTPS (and is not localhost), we redirect it to use HTTPS.
     // if (location.hostname !== 'localhost' && window.location.protocol === 'http:') window.location.protocol = 'https:';
-  </script >
+w
 
-  <!-- 
+<!--
     Load external A-Frame libraries and components:
     - AFrame core library (1.6.0)
     - AFrame Environment component for quick scene setup
@@ -18,6 +18,7 @@
     - AFrame HTML Mesh component (aframe-html) for rendering HTML elements as textures in 3D
     - Local scripts: ar-shadow-helper, ar-cursor, simple-navmesh-constraint, model-utils, and main.js for additional logic
   -->
+
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/components/sphere-collider.min.js"></script>
@@ -27,8 +28,8 @@
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
-  <script src="ar-shadow-helper.js"></script>
-  <script src="ar-cursor.js"></script>
+  <!--<script src="ar-shadow-helper.js"></script>-->
+  <!--<script src="ar-cursor.js"></script>-->
   <script src="simple-navmesh-constraint.js"></script>
   <script src="model-utils.js"></script>
   <script src="raycaster-listen.js"></script>
@@ -126,7 +127,7 @@
       position="0 0 -1"
       geometry="primitive: sphere; radius: 0.005; segmentsWidth: 4; segmentsHeight: 4"
       material="color: #0FFF00; shader: flat; opacity: 0.5"
-      raycaster="objects: .clickable">
+      raycaster="objects: .clickable, .blocker ">
   </a-cursor>
     </a-entity>
       
@@ -319,7 +320,7 @@
         A wall model
         A simple wall model with -->
       
-        <a-gltf-model id="wall" src="#wall" position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:dynamic;mass:2;"></a-gltf-model>
+        <a-gltf-model class="blocker" id="wall" src="#wall" position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:dynamic;mass:2;"></a-gltf-model>
 
  
       
