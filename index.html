@@ -309,7 +309,7 @@
 
 
       <!-- A stew pot model with physics and handles that can be grabbed -->
-      <a-gltf-model  id="pot" toggle-physics shadow="receive:false;" src="#stew-gltf" position="-2 1.2 0.8" physx-body-from-model="type:dynamic;mass:2;">
+      <a-gltf-model class="blocker"  id="pot" toggle-physics shadow="receive:false;" src="#stew-gltf" position="-2 1.2 0.8" physx-body-from-model="type:dynamic;mass:2;">
         <!-- Handles with magnet ranges set, allowing them to be grabbed by left or right hand magnets -->
         <a-entity id="stew-handle-1" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 -0.35" rotation="0 90 0"></a-entity>
         <a-entity id="stew-handle-2" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 0.35" rotation="0 90 0"></a-entity>
