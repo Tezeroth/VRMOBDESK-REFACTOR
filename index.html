@@ -320,7 +320,15 @@
         A wall model
         A simple wall model with class="blocker" -->
       
-        <a-gltf-model class="blocker" id="wall" src=#wall position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:static;mass:2;" visible="true"></a-gltf-model>
+        <a-gltf-model 
+        class="blocker" 
+        id="wall" 
+        src="#wall" 
+        position="-10 0 0" 
+        shadow="receive:false;cast:true;" 
+        physx-body-from-model="type: static; mass: 2;" 
+        visible="true">
+      </a-gltf-model>
 
  
       
@@ -346,8 +354,8 @@
       <!-- 
         Ladder:
         Set up so hands can "grab" it and climb. Uses linear constraints to simulate ladder rungs.
-      -->
-      <a-gltf-model id="ladder" ladder="grabbables:#ladder-left-hand,#ladder-right-hand;cameraRig:#cameraRig;" shadow src="#ladder-gltf" position="-4.98177 -0.01925 -2.97802" rotation="-4.9623 -62.929 0.6165" physx-body-from-model="type: static;">
+      
+      <a-gltf-model id="ladder" ladder="grabbables:#ladder-left-hand,#ladder-right-hand;cameraRig:#cameraRig;" shadow src="#ladder-gltf" position="-4.98177 -0.01925 -2.97802" rotation="-4.9623 -62.929 0.6165" physx-body-from-model="type: static;">-->
         <a-plane rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
         <!-- Left hand grabbing spot -->
         <a-entity position="-0.25 0.07 0" linear-constraint="target:#left-no-magnet;axis:0 1 0;min:0;max:2.4;step:0.2;">
@@ -358,7 +366,7 @@
           <a-entity id="ladder-right-hand" data-magnet-range="0.2,0.15,360,300" class="magnet-right" rotation="0 -90 0" linear-constraint="target:#right-no-magnet;axis:1 0 0;max:0.5;"></a-entity>
         </a-entity>
       </a-gltf-model>
-      
+    
       <!-- A dynamic clock model (heavy mass) that can be pushed around -->
       <a-gltf-model id="clock" shadow="receive:true;" src="#clock-gltf" position="-5 0 1.8" rotation="0 51 0" physx-body-from-model="type:dynamic;mass:15;"></a-gltf-model>
       
@@ -417,9 +425,9 @@
         </fieldset>
         <button onclick="AFRAME.scenes[0].exitVR()" style="display: block;">Exit Immersive</button>
 
-      CHANGE BACK IF IT BREAKS-->
+      CHANGE BACK IF IT BREAKS
 
-      </section>
+      </section>-->
       
 
 
