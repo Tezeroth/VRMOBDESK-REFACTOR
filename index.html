@@ -2,10 +2,8 @@
 
 <head>
   
-    // WebXR requires a secure context (i.e. https:), so if the page is not served 
-    // over HTTPS (and is not localhost), we redirect it to use HTTPS.
-    // if (location.hostname !== 'localhost' && window.location.protocol === 'http:') window.location.protocol = 'https:';
-w
+
+
 
 <!--
     Load external A-Frame libraries and components:
@@ -77,6 +75,7 @@ w
       Asset management system:
       Preload models and images before the scene is displayed.
     -->
+
     <a-assets>
       <!-- Various 3D models and textures used in the scene -->
      <a-asset-item id="building-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/venue.glb?v=1644331843500"></a-asset-item>
@@ -92,7 +91,7 @@ w
      <!-- <a-asset-item id="ladder-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/ladder.glb?v=1648465045608"></a-asset-item>-->
 
      <a-asset-item id="wall" src="../Assets/walls/walls.gltf"> </a-asset-item>
-   
+    
 
       <!--follow this up, a very interesting way of doing things i like it-->
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
@@ -315,12 +314,13 @@ w
         <a-entity id="stew-handle-1" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 -0.35" rotation="0 90 0"></a-entity>
         <a-entity id="stew-handle-2" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 0.35" rotation="0 90 0"></a-entity>
       </a-gltf-model>
-w
-      <!-- 
+
+     
+        <!-- 
         A wall model
         A simple wall model with class="blocker" -->
       
-        <a-gltf-model  id="wall" src=#wall position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:static;mass:2;"></a-gltf-model>
+        <a-gltf-model  id="wall" src=#wall position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:static;mass:2;" visible="true"></a-gltf-model>
 
  
       
