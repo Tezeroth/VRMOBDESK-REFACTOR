@@ -318,7 +318,8 @@
      
         <!-- 
         A wall model
-        A simple wall model with class="blocker" -->
+        A simple wall model with class="blocker"   physx-body-from-model="type: static; mass: 2;" 
+        visible="true" -->
       
         <a-gltf-model 
         class="blocker" 
@@ -326,8 +327,7 @@
         src="#wall" 
         position="-10 0 0" 
         shadow="receive:false;cast:true;" 
-        physx-body-from-model="type: static; mass: 2;" 
-        visible="true">
+      >
       </a-gltf-model>
 
  
