@@ -1,10 +1,6 @@
 <html>
 
 <head>
-  
-
-<!-- WORKING VERSION. OMIT ALL SCRIPTS AND ASSETS YOU ARE NOT USING, THEN CREATE A SIMPLE BOILERPLATE FROM SCRATCH-->
-
 <!--
     Load external A-Frame libraries and components:
     - AFrame core library (1.6.0)
@@ -16,29 +12,21 @@
     - AFrame HTML Mesh component (aframe-html) for rendering HTML elements as textures in 3D
     - Local scripts: ar-shadow-helper, ar-cursor, simple-navmesh-constraint, model-utils, and main.js for additional logic
   -->
-
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/components/sphere-collider.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.controls.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/dist/physx.min.js"></script>
-  <!--<script src="https://cdn.jsdelivr.net/npm/aframe-blink-controls@0.4.3/dist/aframe-blink-controls.min.js"></script>-->
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
-  <!--<script src="ar-shadow-helper.js"></script>-->
-  <!--<script src="ar-cursor.js"></script>-->
   <script src="simple-navmesh-constraint.js"></script>
   <script src="model-utils.js"></script>
   <script src="raycaster-listen.js"></script>
   
   <!-- Our custom behavior code -->
   <script src="main.js"></script>
-  
-  <!-- Metadata for social sharing and styling -->
   <title>Simplified Boilerplate</title>
-
-
 <body>
   <!-- 
     The main A-Frame scene element:
@@ -55,20 +43,21 @@
         gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;" --DOSENT SEEM TO DO ANYTHING
 ar-cursor raycaster="objects: #my-ar-objects a-sphere .clickable, .blocker" --DOSENT SEEM TO DO ANYTHING
 ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT SEEM TO DO ANYTHING
-
   -->
   <a-scene
   stats
+  environment="
+  preset: forest;
+  lightColor: #85856f;     /* Override the default greenish color */
+  lightIntensity: 0.1;     /* Lower intensity so baked lighting dominates */
+"
     physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: false;"
     webxr="overlayElement:#dom-overlay;"
-    background="color:skyblue;"
+  
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:true;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
     shadow="type: pcfsoft"
     xr-mode-ui="XRMode:vr">
-
-
-
 
     <!-- 
       Asset management system:
@@ -160,6 +149,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
     </a-entity>
     
    
+    <a-entity light="type: ambient; color: #d4d4ba;"></a-entity>
 
       <!-- A piano model:
            "Dusty Piano" model from Sketchfab (attribution given)
@@ -170,30 +160,18 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       </a-gltf-model>
 
 
-    <!-- 
-      Directional light casting shadows:
-      shadow-camera-automatic adjusts camera frustum for AR objects,
-      intensity defines brightness, castShadow is enabled for realism.
-    -->
-    <a-light id="dirlight" shadow-camera-automatic="[ar-shadow-helper],#table,#ladder" intensity="0.8" light="castShadow:true;type:directional" position="0 3 -6"></a-light>
-    
-    <!-- 
-      ar-shadow-helper:
-      A helper that creates a plane only visible in AR mode, allowing objects placed on real surfaces 
-      to cast appropriate shadows WORKOUT HOW THE FUCK THE PIANO IS DEFINED AS AN AR SHADOW OBJECT.
-    -->
-    <a-entity ar-shadow-helper="target:#my-ar-objects;light:#dirlight;" visible="false">
-      <a-plane rotation="-90 0 0" shadow="cast:false;receive:true;" position="0 0.01 0" material="shader:shadow; depthWrite:false; opacity:0.9;"></a-plane>
-    </a-entity>
+ 
+
+
+
 
     <!-- 
       hide-on-enter-ar entities:
       Certain environment or large building geometry is visible only in VR/Desktop mode and hidden in AR.
       environment="preset: osiris" sets a stylized sky and ground in VR mode.
     -->
-      <!--WTF DOES HIDE ON ENTER AR DO? IT ROYALLY FUCKS THE SCENE TO DEATH WITHOUT IT-->
-    <a-entity hide-on-enter-ar position="0 -0.2 0" environment="lighting:none;shadow:true;preset: osiris;"></a-entity>
-s
+
+
       <!-- 
         A large invisible box as a static physics body representing the floor/walls.
         This ensures objects dropped won't fall indefinitely.
@@ -221,9 +199,8 @@ s
         <a-entity id="stew-handle-2" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 0.35" rotation="0 90 0"></a-entity>
       </a-gltf-model>
 
-     
         <!-- 
-        A wall model
+        A wooden wall model
         A simple wall model with class="blocker"   physx-body-from-model="type: static; mass: 2;" 
         visible="true" -->
       
@@ -236,8 +213,6 @@ s
       >
       </a-gltf-model>
 
- 
-      
       <!-- A table model: static physics body to place items on -->
       <a-gltf-model id="table" shadow="receive:true;" src="#table-gltf" position="-2 0 0.8" rotation="0 51 0" scale="1.5 1.5 1.5" physx-body-from-model="type: static;">
         <a-plane rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
@@ -278,6 +253,7 @@ s
         lightmap="src:#bake;intensity: 1.5; filter:Window,Ceiling,floor;"
         depthwrite="true"
         shadow="cast:false;receive:true;"
+        position="0 0.1 0"
       ></a-gltf-model>
   </a-scene>
 
