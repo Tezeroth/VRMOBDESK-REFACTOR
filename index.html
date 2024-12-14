@@ -48,9 +48,11 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
   stats
   environment=
   "
-  preset: forest;
-  lightColor: #85856f;     /* Override the default greenish color */
-  lightIntensity: 0.1;     /* Lower intensity so baked lighting dominates */
+  preset: default; // you can leave this as default and use a skybox instead
+  skytype: color;
+  skyColor: #85856f; // these two will allow you to change the ambient color shading
+  lightColor: ;     /* Override the default greenish color */
+  lightIntensity: 10;     /* Lower intensity so baked lighting dominates */
 "
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: false;"
