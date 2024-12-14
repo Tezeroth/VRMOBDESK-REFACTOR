@@ -48,10 +48,8 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
   stats
   environment=
   "
-  preset: default; // you can leave this as default and use a skybox instead
-  skytype: color;
-  skyColor: #85856f; // these two will allow you to change the ambient color shading
-  lightColor: ;     /* Override the default greenish color */
+  preset: default;
+  lightColor: #85856f;     /* Override the default greenish color */
   lightIntensity: 10;     /* Lower intensity so baked lighting dominates */
 "
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
@@ -219,7 +217,8 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
       <!-- A table model: static physics body to place items on -->
       <a-gltf-model id="table" shadow="receive:true;" src="#table-gltf" position="-2 0 0.8" rotation="0 51 0" scale="1.5 1.5 1.5" physx-body-from-model="type: static;">
-        <a-plane rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
+        <!-- A navmesh-hole plane is used to exclude the area beneath it from navigation, use the inspector to assign position or rotations etc -->
+        <a-plane id="tablenavmesh" rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
       </a-gltf-model>
       
       <!-- 
@@ -235,8 +234,16 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
           <a-cylinder radius="0.09" height="0.2" position="0 -0.1 0" color="hotpink"></a-cylinder>
         </a-entity>
       </a-box>
-  
-
+   <!--Here is an event listener for the button-->
+   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const buttonEl = document.querySelector('#teleport-button');
+      buttonEl.addEventListener('press', () => {
+        window.location.href = 'Scenes/newRoom.html';
+        // or 'https://my-other-site.com'
+      });
+    });
+  </script>
       
 
     
