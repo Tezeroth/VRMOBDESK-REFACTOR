@@ -153,6 +153,16 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
    
     <a-entity light="type: ambient; color: #d4d4ba;"></a-entity>
 
+    <!--<a-light id="dirlight" shadow-camera-automatic="[ar-shadow-helper],#table,#ladder" intensity="0.8" light="castShadow:true;type:directional" position="0 3 -6"></a-light>
+    <a-entity ar-shadow-helper="target:#my-ar-objects;light:#dirlight;" visible="false">
+      <a-plane rotation="-90 0 0" shadow="cast:false;receive:true;" position="0 0.01 0" material="shader:shadow; depthWrite:false; opacity:0.9;"></a-plane>
+    </a-entity>-->
+
+
+
+
+
+
       <!-- A piano model:
            "Dusty Piano" model from Sketchfab (attribution given)
            A navmesh-hole plane is used to exclude the area beneath it from navigation. shadow="receive:false;cast:true;" will give it realtime shadows dependant on arshadowhelper.
@@ -179,6 +189,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         This ensures objects dropped won't fall indefinitely.
       -->
       <a-box 
+        id="physics-container"
         position="-5.148 -0.1 -0.355"
         visible="false"
         geometry="width:33.67;height:0.2;depth:19.06"
