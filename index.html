@@ -225,11 +225,11 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         A box with a cylinder that can move up and down.
         linear-constraint: The cylinder moves along one axis and triggers "press" event when pushed down, "release" when let go.
       -->
-      <a-box id="teleport-button" position="-1.657 0.893 0.421" width="0.2" height="0.2" depth="0.2" color="grey"
+      <a-box  position="-1.657 0.893 0.421" width="0.2" height="0.2" depth="0.2" color="grey"
           animation__press="startEvents:press;property:components.material.material.color;type:color;to:green;dur:100;"
           animation__release="startEvents:release;property:components.material.material.color;type:color;to:grey;dur:100;"
       >
-        <a-entity position="0 0.12 0" linear-constraint="target:[data-no-magnet];axis:0 1 0;min:0;max:0.18;radius:0.1;useFixedValueIfOutOfRange:true;valueIfOutOfRange:0.18;downEventName:press;downEventThreshold:0;upEventName:release;upEventThreshold:0.18;">
+        <a-entity id="teleport-button" position="0 0.12 0" linear-constraint="target:[data-no-magnet];axis:0 1 0;min:0;max:0.18;radius:0.1;useFixedValueIfOutOfRange:true;valueIfOutOfRange:0.18;downEventName:press;downEventThreshold:0;upEventName:release;upEventThreshold:0.18;">
           <a-cylinder radius="0.09" height="0.2" position="0 -0.1 0" color="hotpink"></a-cylinder>
         </a-entity>
       </a-box>
