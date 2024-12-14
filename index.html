@@ -40,17 +40,19 @@
     - gltf-model: Specifies a Draco decoder path for compressed 3D model loading
     - ar-cursor: A cursor that appears in AR mode for object interaction
     - xr-mode-ui: A UI component that shows VR/AR mode toggles
-        gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;" --DOSENT SEEM TO DO ANYTHING
+         --DOSENT SEEM TO DO ANYTHING
 ar-cursor raycaster="objects: #my-ar-objects a-sphere .clickable, .blocker" --DOSENT SEEM TO DO ANYTHING
 ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT SEEM TO DO ANYTHING
   -->
   <a-scene
   stats
-  environment="
+  environment=
+  "
   preset: forest;
   lightColor: #85856f;     /* Override the default greenish color */
   lightIntensity: 0.1;     /* Lower intensity so baked lighting dominates */
 "
+    gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: false;"
     webxr="overlayElement:#dom-overlay;"
   
