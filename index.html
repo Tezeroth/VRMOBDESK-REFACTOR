@@ -64,10 +64,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
     background="color:skyblue;"
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:true;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
-    
     shadow="type: pcfsoft"
-
-    
     xr-mode-ui="XRMode:vr">
 
 
@@ -84,26 +81,13 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <a-asset-item id="navmesh-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"></a-asset-item>
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
       <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>
-    <!--  <a-asset-item id="watch-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/watch.glb?v=1645016979219"></a-asset-item>-->
-     <!-- <a-asset-item id="sword-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/katana.glb?v=1648465043810"></a-asset-item>-->
-     <!-- <a-asset-item id="watergun-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/watergun.glb?v=1646916260646"></a-asset-item>-->
       <a-asset-item id="stew-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/model.gltf?v=1690887932932"></a-asset-item>
       <a-asset-item id="table-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/small_wooden_table_01_1k-v1.glb?v=1647263187998"></a-asset-item>
       <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189"></a-asset-item>
-     <!-- <a-asset-item id="ladder-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/ladder.glb?v=1648465045608"></a-asset-item>-->
-
      <a-asset-item id="wall" src="Assets/walls/walls.gltf" crossorigin="anonymous"> </a-asset-item>
-    
-
       <!--follow this up, a very interesting way of doing things i like it-->
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
 
-      
-      <!-- Mixins for animations and controls -->
-      <a-mixin id="animations" animation__click="property: components.material.material.color; type: color; to: blue; startEvents: click; dur: 500;"></a-mixin>
-      <!-- The "blink" mixin sets up blink-controls with certain parameters for teleportation -->
-      <a-mixin id="blink" blink-controls="rotateOnTeleport:false;cameraRig: #cameraRig; teleportOrigin: #head; collisionEntities:.navmesh;"></a-mixin>
-      <a-mixin id="handle-visual" geometry="width:0.05;height:0.05;depth:0.2"></a-mixin>
     </a-assets>
 
     <!-- 
@@ -132,45 +116,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
   </a-cursor>
     </a-entity>
       
-      <!-- 
-        xr-follow entity:
-        Items that should move along with the camera rig. Holds objects like swords and waterguns 
-        that can be picked up (parented to rig so they follow the user).
-      --
-      <a-entity xr-follow>
-        -- A sword model that can be picked up and is set to return to a default position if put down --
-        <a-gltf-model
-          id="sword" src="#sword-gltf" shadow="receive:false;"
-          data-pick-up class="magnet-left magnet-right"
-          position="-0.2 -0.4 0" rotation="-30 180 0" scale="0.6,0.6,1"
-          animation__restore_position="startEvents:putdown;pauseEvents:pickup;property:position;to:-0.2 -0.4 0;easing:easeOutBack;"
-          animation__restore_rotation="startEvents:putdown;pauseEvents:pickup;property:rotation;to:-30 180 0;easing:easeOutBack;"
-        >
-          -- Invisible box collider for the sword body used by PhysX --
-          <a-box physx-body="type: kinematic;" width="0.03" height="0.03" depth="0.790" rotation="-16 0 0" position="0 -0.062 -0.331" visible="false"></a-box>
-        </a-gltf-model>
-        
-        -- A watergun model that can also be picked up, with a slider constraint --
-        <a-gltf-model 
-          shadow="receive:false;" id="watergun" src="#watergun-gltf"
-          physx-body-from-model="type: kinematic;"
-          class="magnet-left magnet-right" data-pick-up 
-          position="0.2 -0.4 0" rotation="30 180 0"
-          linear-constraint="axis:0 1 0;min:-0.15;max:0;part:Slider;"
-          animation__restore_position="startEvents:putdown;pauseEvents:pickup;property:position;to:0.2 -0.4 0;easing:easeOutBack;"
-          animation__restore_rotation="startEvents:putdown;pauseEvents:pickup;property:rotation;to:30 180 0;easing:easeOutBack;"
-        >
-          -- A helper entity that can attach to the slider part of the gun --
-          <a-entity id="watergun-slider-magnet" rotation="-74 0 0" attach-to-model="Slider"></a-entity>
-        </a-gltf-model>
-      </a-entity>
-    -->
-      
-      <!-- Hand tracking setup:
-           handy-controls creates an articulated hand model. It can track right and left hands, 
-           and attach objects or handle input gestures (pose detection).
-           Material override: uses gold color for the hands.
-      -->
+
       <a-entity handy-controls="right:#right-gltf;materialOverride:right;" material="color:gold;metalness:1;roughness:0;">
         
         <!-- 
@@ -182,47 +128,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:green" data-none="screen-1"></a-torus>
         <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:red" data-none="screen-2"></a-torus>
         
-        <!-- 
-          A watch model placed on the wrist (data-left="wrist"):
-          The sphere within is invisible and used as a collider area to detect finger-tip touches to trigger exit-on event (like exiting VR/AR).
-        
-        <a-gltf-model src="#watch-gltf" data-left="wrist" position="-1000 0 0">
-          <a-sphere radius="0.02" position="0 0.02 0" sphere-collider="radius:0.02;objects:[data-right$=-tip];" exit-on="hitend" visible="false"></a-sphere>
-        </a-gltf-model>-->
-        
-        <!-- 
-          A decorative golden ring on the ring-finger (proximal phalanx).
-          data-left="ring-finger-phalanx-proximal" attaches it to that joint of the left hand.
-        
-        <a-entity data-left="ring-finger-phalanx-proximal">
-          <a-torus position="0 0 -0.03" radius="0.008" radius-tubular="0.001" scale="1 1 1.5" material="color:gold;metalness:1;roughness:0;"></a-torus>
-        </a-entity>
-        -->
-        <!-- 
-          Teleportation triggers:
-          Using Blink controls on the fingertip when the user points (pose_point_fuseShort and pose_point_fuseLong events).
-          Both left and right index fingertips are set with blink controls for teleportation.
-        
-        <a-entity data-right="index-finger-tip" mixin="blink" blink-controls="snapTurn:false;startEvents:pose_point_fuseShort;endEvents:pose_point_fuseLong;cancelEvents:pose_cancel_point;"></a-entity>
-        <a-entity data-left="index-finger-tip"  mixin="blink" blink-controls="snapTurn:false;startEvents:pose_point_fuseShort;endEvents:pose_point_fuseLong;cancelEvents:pose_cancel_point;"></a-entity>
--->
-        <!-- 
-          Ray entities from each hand:
-          Used for UI interaction, pointing, and teleportation in VR.
-          Each has a child text entity for displaying labels (hidden by default).
-        
-        <a-entity data-right="ray" mixin="blink" cursor="" raycaster="objects:[html];far:0.3;showLine:false;lineColor:black;">
-          <a-entity position="0 0 -0.22" visible="false" class="pose-label" text="value: Hello World; align: center;"></a-entity>
-        </a-entity>
-        <a-entity data-left="ray" mixin="blink" cursor="" raycaster="objects:[html];far:0.3;showLine:false;lineColor:black;">
-          <a-entity position="0 0 -0.22" visible="false" class="pose-label" text="value: Hello World; align: center;"></a-entity>
-        </a-entity>
-        -->
-        <!-- 
-          Magnet targets: 
-          These allow grabbing of objects with the hand grips.
-          data-magnet attributes link them to objects that have magnet-left or magnet-right classes.
-        -->
+  
         <a-entity id="left-magnet" data-left="grip"  data-magnet="magnet-left"  grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#left-no-magnet;"></a-entity>
         <a-entity id="right-magnet" data-right="grip" data-magnet="magnet-right" grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#right-no-magnet;"></a-entity>
     
@@ -253,19 +159,16 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       </a-entity>
     </a-entity>
     
-    <!-- 
-      Group of AR objects (my-ar-objects):
-      Placed at a certain position and can be used as a reference point for AR hit testing.
-    -->
-    <a-entity id="my-ar-objects" position="-6 0 1">
+   
+
       <!-- A piano model:
            "Dusty Piano" model from Sketchfab (attribution given)
-           A navmesh-hole plane is used to exclude the area beneath it from navigation.
+           A navmesh-hole plane is used to exclude the area beneath it from navigation. shadow="receive:false;cast:true;" will give it realtime shadows dependant on arshadowhelper.
       -->
       <a-gltf-model id="piano" rotation="0 100 0" shadow="receive:false;cast:true;" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118">
-        <a-plane rotation="-90 0 0" width="1.5" height="0.6" class="navmesh-hole" visible="false"></a-plane>
+        <a-plane rotation="-90 0 0" width="1.5" height="0.6" class="navmesh-hole" visible="false" crossorigin="anonymous"></a-plane>
       </a-gltf-model>
-    </a-entity>
+
 
     <!-- 
       Directional light casting shadows:
@@ -277,7 +180,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
     <!-- 
       ar-shadow-helper:
       A helper that creates a plane only visible in AR mode, allowing objects placed on real surfaces 
-      to cast appropriate shadows.
+      to cast appropriate shadows WORKOUT HOW THE FUCK THE PIANO IS DEFINED AS AN AR SHADOW OBJECT.
     -->
     <a-entity ar-shadow-helper="target:#my-ar-objects;light:#dirlight;" visible="false">
       <a-plane rotation="-90 0 0" shadow="cast:false;receive:true;" position="0 0.01 0" material="shader:shadow; depthWrite:false; opacity:0.9;"></a-plane>
@@ -288,8 +191,9 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       Certain environment or large building geometry is visible only in VR/Desktop mode and hidden in AR.
       environment="preset: osiris" sets a stylized sky and ground in VR mode.
     -->
+      <!--WTF DOES HIDE ON ENTER AR DO? IT ROYALLY FUCKS THE SCENE TO DEATH WITHOUT IT-->
     <a-entity hide-on-enter-ar position="0 -0.2 0" environment="lighting:none;shadow:true;preset: osiris;"></a-entity>
-    <a-entity rotation="0 -50 0" position="0 0 0" hide-on-enter-ar>
+s
       <!-- 
         A large invisible box as a static physics body representing the floor/walls.
         This ensures objects dropped won't fall indefinitely.
@@ -353,21 +257,9 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         </a-entity>
       </a-box>
   
-      <!-- 
-        Ladder:
-        Set up so hands can "grab" it and climb. Uses linear constraints to simulate ladder rungs.
+
       
-      <a-gltf-model id="ladder" ladder="grabbables:#ladder-left-hand,#ladder-right-hand;cameraRig:#cameraRig;" shadow src="#ladder-gltf" position="-4.98177 -0.01925 -2.97802" rotation="-4.9623 -62.929 0.6165" physx-body-from-model="type: static;">-->
-        <a-plane rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
-        <!-- Left hand grabbing spot -->
-        <a-entity position="-0.25 0.07 0" linear-constraint="target:#left-no-magnet;axis:0 1 0;min:0;max:2.4;step:0.2;">
-          <a-entity id="ladder-left-hand" data-magnet-range="0.2,0.15,360,300" class="magnet-left" rotation="0 90 0" linear-constraint="target:#left-no-magnet;axis:1 0 0;max:0.5;"></a-entity>
-        </a-entity>
-        <!-- Right hand grabbing spot -->
-        <a-entity position="-0.25 0.07 0" linear-constraint="target:#right-no-magnet;axis:0 1 0;max:2.5;step:0.2;">
-          <a-entity id="ladder-right-hand" data-magnet-range="0.2,0.15,360,300" class="magnet-right" rotation="0 -90 0" linear-constraint="target:#right-no-magnet;axis:1 0 0;max:0.5;"></a-entity>
-        </a-entity>
-      </a-gltf-model>
+
     
       <!-- A dynamic clock model (heavy mass) that can be pushed around -->
       <a-gltf-model id="clock" shadow="receive:true;" src="#clock-gltf" position="-5 0 1.8" rotation="0 51 0" physx-body-from-model="type:dynamic;mass:15;"></a-gltf-model>
@@ -385,53 +277,9 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         id="building"
         lightmap="src:#bake;intensity: 1.5; filter:Window,Ceiling,floor;"
         depthwrite="true"
-        window-replace="Glass"
-        no-tonemapping="Light"
         shadow="cast:false;receive:true;"
       ></a-gltf-model>
-    </a-entity>
-
-    <!-- A small invisible sphere acting as a cursor for VR/AR interactions -->
-    <!--<a-sphere color="black" radius="0.005" id="cursor" material="shader:flat" visible="false"></a-sphere>-->
-<!--COPYING TO SEE IF IT WORKS IN CAMERA RIG-->
-
-
   </a-scene>
-
-  <!-- 
-    dom-overlay:
-    HTML overlay displayed outside the VR/AR scene.
-    Shows a title and settings panel. The settings allow toggling between 
-    teleportation and movement controls via thumbstick. Also includes an exit button.
-  -->
-    <!--
-  <div id="dom-overlay">
-    <h1>
-      Tezzeroths Virtual Venue Demo
-    </h1>
-    <div class="overlay-footer">
-      <section style="display: inline-block; background: lavenderblush; color: #333333; border-radius: 1em; padding: 1em; margin:0; accent-color: hotpink;" id="my-interface">
-        <h2>Settings</h2>
-        <fieldset style="border:none;">
-          <legend>Thumbstick Behaviour</legend> 
-    
-    CHANGEBACK IF IF IT BREAKS      -->
-
-
-          <!-- Radio buttons to toggle movement type:
-               Teleport or continuous movement.
-          -->
-               <!--
-          <input onclick="toggleThumbstick(this)" type="radio" id="thumbstick-teleport" name="thumbstick" value="teleport" checked><label for="thumbstick-teleport"> Teleport</label>
-          <input onclick="toggleThumbstick(this)" type="radio" id="thumbstick-move" name="thumbstick" value="move"><label for="thumbstick-move"> Move</label>
-        </fieldset>
-        <button onclick="AFRAME.scenes[0].exitVR()" style="display: block;">Exit Immersive</button>
-
-      CHANGE BACK IF IT BREAKS
-
-      </section>-->
-      
-
 
       <!-- Inline script controlling the thumbstick behavior -->
 
@@ -452,45 +300,5 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
             cameraRig.setAttribute('movement-controls', 'enabled', true);
         });
     </script>
-
-
-
-      <!-- CHANGE BACK IF IT BREAKS
-      <script>
-        let movementType = 'move';
-        function toggleThumbstick(detail) {
-          const rayPointers = ['[data-right="ray"]', '[data-left="ray"]'].map(s => document.querySelector(s));
-          const type = detail.value;
-          movementType = type;
-          if (type === 'move') {
-            // Enable continuous movement controls
-            cameraRig.setAttribute('movement-controls', 'enabled', true);
-            for (const p of rayPointers) p.removeAttribute('mixin');
-          }
-          if (type === 'teleport') {
-            // Disable continuous movement and enable teleportation (blink) again
-            cameraRig.setAttribute('movement-controls', 'enabled', false);
-            for (const p of rayPointers) p.setAttribute('mixin', 'blink');
-          }
-        }
-        // On entering VR, if teleport is chosen, disable movement controls
-        const sceneEl = document.querySelector("a-scene");
-        sceneEl.addEventListener("enter-vr", function() {
-          if (movementType === 'teleport') {
-            cameraRig.setAttribute('movement-controls', 'enabled', false);
-          }
-        });
-        // On exiting VR, re-enable movement controls (for desktop mode)
-        sceneEl.addEventListener("exit-vr", function() {
-          cameraRig.setAttribute('movement-controls', 'enabled', true);
-        });
-      </script>
-
-      <div id="dom-overlay-message">Enter AR or VR to start.</div>
-    </div>
-  </div>-->
-  
-
 </body>
-
 </html>
