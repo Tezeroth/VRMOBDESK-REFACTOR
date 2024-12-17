@@ -49,12 +49,12 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
   -->
   <a-scene
   stats
-  environment=
-  "
-  preset: default;
+  environment=  "
+  preset: osiris;     /* Use the Osiris environment preset */
   lightColor: #85856f;     /* Override the default greenish color */
   lightIntensity: 10;     /* Lower intensity so baked lighting dominates */
 "
+
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: false;"
     webxr="overlayElement:#dom-overlay;"
@@ -154,12 +154,12 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
     </a-entity>
     
    
-    <a-entity light="type: ambient; color: #d4d4ba;"></a-entity>
-
-    <!--<a-light id="dirlight" shadow-camera-automatic="[ar-shadow-helper],#table,#ladder" intensity="0.8" light="castShadow:true;type:directional" position="0 3 -6"></a-light>
-    <a-entity ar-shadow-helper="target:#my-ar-objects;light:#dirlight;" visible="false">
+    <a-entity id="AMBIENT-LIGHT" light="type: ambient; color: #d4d4ba;"></a-entity>
+    //TODO
+    <a-light id="dirlight" shadow-camera-automatic="[ar-shadow-helper],#table,#ladder,#piano " intensity="0.8" light="castShadow:true;type:directional" position="0 3 -6"></a-light>
+    <a-entity ar-shadow-helper="target:#my-ar-objects;light:#dirlight;" visible="true">
       <a-plane rotation="-90 0 0" shadow="cast:false;receive:true;" position="0 0.01 0" material="shader:shadow; depthWrite:false; opacity:0.9;"></a-plane>
-    </a-entity>-->
+    </a-entity>
 
 
 
@@ -234,6 +234,17 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         <a-plane id="tablenavmesh" rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
       </a-gltf-model>
       
+
+      <a-gltf-model id="table2" shadow="receive:true;" src="#table-gltf" position=" -2 0 3" rotation="0 128 0" scale="1.5 1.5 1.5" physx-body-from-model="type: static;">
+        <!-- A navmesh-hole plane is used to exclude the area beneath it from navigation, use the inspector to assign position or rotations etc -->
+        <a-plane id="tablenavmesh" rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
+      </a-gltf-model>
+
+
+
+
+
+
       <!-- 
         A test button:
         A box with a cylinder that can move up and down.
@@ -243,8 +254,8 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
           animation__press="startEvents:press;property:components.material.material.color;type:color;to:green;dur:100;"
           animation__release="startEvents:release;property:components.material.material.color;type:color;to:grey;dur:100;"
       >
-        <a-entity id="teleport-button" position="0 0.12 0" linear-constraint="target:[data-no-magnet];axis:0 1 0;min:0;max:0.18;radius:0.1;useFixedValueIfOutOfRange:true;valueIfOutOfRange:0.18;downEventName:press;downEventThreshold:0;upEventName:release;upEventThreshold:0.18;">
-          <a-cylinder radius="0.09" height="0.2" position="0 -0.1 0" color="hotpink"></a-cylinder>
+        <a-entity  id="teleport-button" position="0 0.12 0" linear-constraint="target:[data-no-magnet];axis:0 1 0;min:0;max:0.18;radius:0.1;useFixedValueIfOutOfRange:true;valueIfOutOfRange:0.18;downEventName:press;downEventThreshold:0;upEventName:release;upEventThreshold:0.18;">
+          <a-cylinder class="clickable" radius="0.09" height="0.2" position="0 -0.1 0" color="hotpink" navigate-on-click="target: Scenes/room2.html"></a-cylinder>
         </a-entity>
       </a-box>
    <!--Here is an event listener for the button-->
