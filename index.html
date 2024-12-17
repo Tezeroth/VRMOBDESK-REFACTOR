@@ -95,7 +95,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       id="cameraRig"
       simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
       movement-controls="speed:0.15;camera:#head;"
-      position="-1 0 1" rotation="0 45 0" origin-on-ar-start
+      position="-1 0 1" rotation="0 120 0" origin-on-ar-start
     >
       <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
       <a-entity id="head"
@@ -179,12 +179,12 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
 
       
-<a-gltf-model id="buddy" scale="0.15 0.15 0.15"position="-2.20 1.6 3.2" rotation="0 -77.3 0" src="#buddy" shadow="receive:false;cast:true;" physx-body-from-model="type:dynamic;mass:2;">
+<a-gltf-model id="buddy" scale="0.15 0.15 0.15"position="-2.20 1.0 3.2" rotation="0 -77.3 0" src="#buddy" shadow="receive:false;cast:true;" physx-body-from-model="type:dynamic;mass:2;">
 
   <a-entity id="buddyhandleright" data-magnet-range="0.1,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
-  position="-2.72 1.74 0.06" rotation="0 90 0"></a-entity>
+  position="-2.9 1.9 -1.5" rotation="0 90 0"></a-entity>
   <a-entity id="buddyhandleleft" data-magnet-range="0.1,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
-  position="-2 0 3 " rotation="0 90 0"></a-entity>
+  position="0.4 1.9 -2.7 " rotation="0 90 0"></a-entity>
 
 </a-gltf-model>
  
