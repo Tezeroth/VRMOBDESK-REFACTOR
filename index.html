@@ -21,12 +21,13 @@
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
+  <!-- Our custom behavior code -->
+  <script src="main.js"></script>
   <script src="simple-navmesh-constraint.js"></script>
   <script src="model-utils.js"></script>
   <script src="raycaster-listen.js"></script>
-  
-  <!-- Our custom behavior code -->
-  <script src="main.js"></script>
+  <script src="ar-shadow-helper.js"></script>
+
   </head>
   <title>Simplified Boilerplate</title>
 <body>
@@ -275,6 +276,11 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
         id="building"
         lightmap="src:#bake;intensity: 1.5; filter:Window,Ceiling,floor;"
         depthwrite="true"
+
+        window-replace="Glass"
+        no-tonemapping="Light"
+
+
         shadow="cast:false;receive:true;"
         position="0 0.001 0"
       ></a-gltf-model>
