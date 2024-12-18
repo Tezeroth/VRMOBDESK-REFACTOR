@@ -183,27 +183,44 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <!--physx-body-from-model="type:dynamic; mass:2;scale: "0.5 0.5 0.5;"-->
       <!--physx-body="type: dynamic; shape: cylinder;"-->
 
-<a-gltf-model id="buddy" opacity="0.5" scale="0.15 0.15 0.15"position="-1.9 1.150 3.2" rotation="0 -50.3 0" src="#buddy" shadow="receive:false;cast:true;"  physx-body-from-model="type:dynamic; mass:2;">
-  <a-cylinder
-  position="0 1 0"    
-  radius="1.8"      
-  height="4.6"        
-  color="red"         
-  opacity="0.3"
-  visible="true"
-  
-  parent="true">
+      <a-entity id="buddy-container"
+      physx-body="type: dynamic; shape: cylinder; mass: 2;"
+      visble="true"
+      position="-1.9 1.150 3.2"
+      rotation="0 -50.3 0">
 
-  
-  <a-entity id="buddyhandleright" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
-  position="-2.1 -1 0" rotation="0 90 0"><a-box scale="0.5 3 0.5"></a-box></a-entity>
-  <a-entity id="buddyhandleleft" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
-  position="2.1 -1 0 " rotation="0 90 0"><a-box scale="0.5 3 0.5"></a-box></a-entity>
-</a-cylinder>
-
-
-
+<!-- The statue as a child of the cylinder collider parent -->
+<a-gltf-model id="buddy"
+src="#buddy"
+opacity="0.5"
+scale="0.15 0.15 0.15"
+shadow="receive:false;cast:true;">
 </a-gltf-model>
+
+<!-- Add your handles (magnets) inside the same parent.
+   data-pick-up="parent" tells the magnet system to move the parent entity. -->
+<a-entity id="buddyhandleright"
+class="magnet-left magnet-right"
+data-magnet-range="0.2,0.1,360,180"
+data-pick-up="parent"
+position="-0.35 0 0"
+rotation="0 90 0"
+scale="0.2 0.2 0.2">
+<a-box></a-box>
+</a-entity>
+
+<a-entity id="buddyhandleleft"
+class="magnet-left magnet-right"
+data-magnet-range="0.2,0.1,360,180"
+data-pick-up="parent"
+position="0.35 0 0"
+rotation="0 90 0"
+scale="0.2 0.2 0.2">
+<a-box ></a-box>
+</a-entity>
+
+</a-entity>
+
 
 
 
