@@ -179,25 +179,31 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
 <!--SORT OUT CYLINDER MESH COLLIDER. WHAT A FUCKING PAIN IN THE ARSE-->
 
-      
-<a-gltf-model id="buddy" opacity="0.5" scale="0.15 0.15 0.15"position="-2.20 1.0 3.2" rotation="0 -77.3 0" src="#buddy" shadow="receive:false;cast:true;" physx-body-from-model="type:dynamic; mass:2;scale: 0.5 0.5 0.5;">  
+      <!--alter the scale of the cylinder and then wrap it around the handles using the inspector-->
+      <!--physx-body-from-model="type:dynamic; mass:2;scale: "0.5 0.5 0.5;"-->
+
+<a-gltf-model id="buddy" opacity="0.5" scale="0.15 0.15 0.15"position="-1.9 1.150 3.2" rotation="0 -50.3 0" src="#buddy" shadow="receive:false;cast:true;"  >
   <a-cylinder
   position="0 1 0"    
-  radius="0.4"      
-  height="1.5"        
+  radius="1.8"      
+  height="4.6"        
   color="red"         
   opacity="0.3"
   visible="true"
-  physx-body="type: dynamic; shape: cylinder;">
+  physx-body="type: dynamic; shape: cylinder;"
+  parent="true">
+
+  
+  <a-entity id="buddyhandleright" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
+  position="-2.1 -1 0" rotation="0 90 0"><a-box scale="0.5 3 0.5"></a-box></a-entity>
+  <a-entity id="buddyhandleleft" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
+  position="2.1 -1 0 " rotation="0 90 0"><a-box scale="0.5 3 0.5"></a-box></a-entity>
 </a-cylinder>
 
-  <a-entity id="buddyhandleright" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
-  position="-2.9 1.9 -1.5" rotation="0 90 0"><a-box></a-box></a-entity>
-  <a-entity id="buddyhandleleft" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" class="magnet-left magnet-right" 
-  position="0.4 1.9 -2.7 " rotation="0 90 0"><a-box></a-box></a-entity>
+
 
 </a-gltf-model>
- 
+
 
 
 
