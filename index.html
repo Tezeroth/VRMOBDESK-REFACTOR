@@ -181,8 +181,9 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
       <!--alter the scale of the cylinder and then wrap it around the handles using the inspector-->
       <!--physx-body-from-model="type:dynamic; mass:2;scale: "0.5 0.5 0.5;"-->
+      <!--physx-body="type: dynamic; shape: cylinder;"-->
 
-<a-gltf-model id="buddy" opacity="0.5" scale="0.15 0.15 0.15"position="-1.9 1.150 3.2" rotation="0 -50.3 0" src="#buddy" shadow="receive:false;cast:true;"  >
+<a-gltf-model id="buddy" opacity="0.5" scale="0.15 0.15 0.15"position="-1.9 1.150 3.2" rotation="0 -50.3 0" src="#buddy" shadow="receive:false;cast:true;"  physx-body-from-model="type:dynamic; mass:2;">
   <a-cylinder
   position="0 1 0"    
   radius="1.8"      
@@ -190,7 +191,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
   color="red"         
   opacity="0.3"
   visible="true"
-  physx-body="type: dynamic; shape: cylinder;"
+  
   parent="true">
 
   
