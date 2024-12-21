@@ -27,6 +27,7 @@
   <script src="model-utils.js"></script>
   <script src="raycaster-listen.js"></script>
   <script src="ar-shadow-helper.js"></script>
+<script src="show-bounding-box.js"></script>
 
   </head>
   <title>Simplified Boilerplate</title>
@@ -48,7 +49,7 @@ ar-cursor raycaster="objects: #my-ar-objects a-sphere .clickable, .blocker" --DO
 ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT SEEM TO DO ANYTHING
   -->
   <a-scene
-  
+  inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
   stats
   environment=  "
   preset: osiris;     /* Use the Osiris environment preset */
@@ -183,43 +184,49 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <!--physx-body-from-model="type:dynamic; mass:2;scale: "0.5 0.5 0.5;"-->
       <!--physx-body="type: dynamic; shape: cylinder;"-->
 
-      <a-entity id="buddy-container"
+      <!--<a-entity id="buddy-container"
       physx-body="type: dynamic; shape: cylinder; mass: 2;"
       visble="true"
+      color="red"
       position="-1.9 1.150 3.2"
-      rotation="0 -50.3 0">
+      rotation="0 -50.3 0">-->
 
 <!-- The statue as a child of the cylinder collider parent -->
-<a-gltf-model id="buddy"
+<a-gltf-model 
+show-bounding-box
+id="buddy"
 src="#buddy"
+class="magnet-left magnet-right"
+rotation="0 -50.3 0"
+position="-1.9 1.150 3.2"
 opacity="0.5"
 scale="0.15 0.15 0.15"
 shadow="receive:false;cast:true;">
 </a-gltf-model>
 
 <!-- Add your handles (magnets) inside the same parent.
-   data-pick-up="parent" tells the magnet system to move the parent entity. -->
+   data-pick-up="parent" tells the magnet system to move the parent entity. 
 <a-entity id="buddyhandleright"
-class="magnet-left magnet-right"
+
 data-magnet-range="0.2,0.1,360,180"
 data-pick-up="parent"
 position="-0.35 0 0"
 rotation="0 90 0"
-scale="0.2 0.2 0.2">
+scale="0.1 0.7 0.1">
 <a-box></a-box>
-</a-entity>
-
+</a-entity>-->
+<!--
 <a-entity id="buddyhandleleft"
 class="magnet-left magnet-right"
 data-magnet-range="0.2,0.1,360,180"
 data-pick-up="parent"
 position="0.35 0 0"
 rotation="0 90 0"
-scale="0.2 0.2 0.2">
+scale="0.1 0.7 0.1">
 <a-box ></a-box>
-</a-entity>
+</a-entity>-->
+<!--</a-entity>-->
 
-</a-entity>
 
 
 
