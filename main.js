@@ -152,28 +152,22 @@ AFRAME.registerComponent("physx-body-from-model", {
  * On 'putdown', it removes that state and applies the captured linear and angular velocities
  * from the user's hand controllers (if available) to make the object continue with realistic motion.
  */
+/* Turn physics off and on when object is grabbed then released */
 AFRAME.registerComponent("toggle-physics", {
   events: {
     pickup: function() {
-      // Add a 'grabbed' state so physics can respond accordingly (like making it kinematic)
       this.el.addState('grabbed');
     },
     putdown: function(e) {
-      // Remove the 'grabbed' state, return to dynamic behavior.
       this.el.removeState('grabbed');
-      
-      // If we have frame and inputSource details, we can extract pose velocities to apply them to the object.
       if (e.detail.frame && e.detail.inputSource) {
         const referenceSpace = this.el.sceneEl.renderer.xr.getReferenceSpace();
         const pose = e.detail.frame.getPose(e.detail.inputSource.gripSpace, referenceSpace);
-
         if (pose && pose.angularVelocity) {
-          // Set the object's angular velocity based on the user's hand movement when releasing.
-          this.el.components['physx-body'].rigidBody.setAngularVelocity(pose.angularVelocity, true);
+          this.el.components['physx-body'].rigidBody.setAngularVelocity(pose.angularVelocity);
         }
         if (pose && pose.linearVelocity) {
-          // Set the object's linear velocity to simulate throwing or letting go with some momentum.
-          this.el.components['physx-body'].rigidBody.setLinearVelocity(pose.linearVelocity, true);
+          this.el.components['physx-body'].rigidBody.setLinearVelocity(pose.linearVelocity);
         }
       }
     }

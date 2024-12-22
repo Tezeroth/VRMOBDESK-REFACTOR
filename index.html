@@ -114,7 +114,10 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
     </a-entity>
       
 
-      <a-entity handy-controls="right:#right-gltf;materialOverride:right;" material="color:gold;metalness:1;roughness:0;">
+      <a-entity 
+      handy-controls="right:#right-gltf;materialOverride:right;"
+      handy-controls="left:#left-gltf;" 
+      material="color:gold;metalness:1;roughness:0;">
         
         <!-- 
           Screen space inputs (for devices without hand tracking or fallback):
@@ -205,7 +208,9 @@ rotation="0 -50.3 0"
 physx-body-from-model="type:dynamic; shape: box; mass:2;"
 scale="0.15 0.15 0.15"
 toggle-physics 
-shadow="receive:false;cast:true;">
+shadow="receive:false;cast:true;"
+
+>
 
 </a-gltf-model>
 
