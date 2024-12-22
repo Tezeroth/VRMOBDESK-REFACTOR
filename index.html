@@ -82,6 +82,10 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189"></a-asset-item>
      <a-asset-item id="wall" src="Assets/walls/walls.gltf" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="buddy" src="Assets/buddy.gltf" crossorigin="anonymous"> </a-asset-item>
+     <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
+
+
+
       <!--follow this up, a very interesting way of doing things i like it-->
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
 
@@ -196,8 +200,6 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
 <!-- The statue as a child of the cylinder collider parent -->
 <a-gltf-model 
-
-
 id="buddy"
 src="#buddy"
 data-pick-up
@@ -208,11 +210,19 @@ rotation="0 -50.3 0"
 physx-body-from-model="type:dynamic; shape: box; mass:2;"
 scale="0.15 0.15 0.15"
 toggle-physics 
-shadow="receive:false;cast:true;"
-
->
-
+shadow="receive:false;cast:true;">
 </a-gltf-model>
+
+<a-gltf-model id="coin01" 
+src="#coinmesh"
+data-pick-up class="magnet-left magnet-right"
+data-magnet-range="0.2,0.1,360,180"
+position="-2 1.3 2">
+</a-gltf-model>
+
+
+
+
 
 <!-- Add your handles (magnets) inside the same parent.
    data-pick-up="parent" tells the magnet system to move the parent entity. 
