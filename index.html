@@ -49,6 +49,7 @@ ar-cursor raycaster="objects: #my-ar-objects a-sphere .clickable, .blocker" --DO
 ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT SEEM TO DO ANYTHING
   -->
   <a-scene
+  renderer="dracoDecoderPath: https://cdn.jsdelivr.net/npm/three@0.118.3/examples/js/libs/draco/;"
   inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
   stats
   environment=  "
@@ -81,7 +82,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <a-asset-item id="table-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/small_wooden_table_01_1k-v1.glb?v=1647263187998"></a-asset-item>
       <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189"></a-asset-item>
      <a-asset-item id="wall" src="Assets/walls/walls.gltf" crossorigin="anonymous"> </a-asset-item>
-     <a-asset-item id="buddy" src="Assets/buddy1.glb" crossorigin="anonymous"> </a-asset-item>
+     <a-asset-item id="buddy" src="Assets/buddy2.glb" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset=item id="greenbox" src="Assets/greenbox.glb" crossorigin="anonymous"></a-asset-item>
 
@@ -226,6 +227,7 @@ physx-body-from-model="type: dynamic; shape: box; mass:2;"
 toggle-physics>
 </a-gltf-model>
 
+<!--
 <a-gltf-model
 id="greenbox"
 src="#greenbox"
@@ -237,7 +239,7 @@ position="-1.5 1.3 3.3"
 physx-body-from-model="type: dynamic; shape: box; mass:2;"
 toggle-physics>
 </a-gltf-model>
-
+-->
 
 
 <!-- Add your handles (magnets) inside the same parent.
