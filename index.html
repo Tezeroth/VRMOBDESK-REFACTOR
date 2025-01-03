@@ -83,6 +83,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
      <a-asset-item id="wall" src="Assets/walls/walls.gltf" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="buddy" src="Assets/buddy1.glb" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset=item id="greenbox" src="Assets/greenbox.glb" crossorigin="anonymous"></a-asset-item>
 
 
 
@@ -207,7 +208,7 @@ class="magnet-left magnet-right"
 data-magnet-range="0.2,0.1,360,180"
 position="-2 1.3 3.3"
 rotation="0 -50.3 0"
-physx-body-from-model="type:dynamic; shape: box; mass:2;"
+physx-body-from-model="type: dynamic; shape: box; mass:2;"
 scale="1 1 1"
 toggle-physics 
 >
@@ -221,11 +222,21 @@ data-pick-up
 class="magnet-left magnet-right"
 data-magnet-range="0.2,0.1,360,180"
 position="-2 1.3 2.9"
-physx-body-from-model="type:dynamic; shape: box; mass:2;"
+physx-body-from-model="type: dynamic; shape: box; mass:2;"
 toggle-physics>
 </a-gltf-model>
 
-
+<a-gltf-model
+id="greenbox"
+src="#greenbox"
+data-pick-up 
+class="magnet-left magnet-right"
+data-magnet-range="0.2,0.1,360,180"
+position="-2 1.3 2.9"
+scale="0.5 0.5 0.5"
+physx-body-from-model="type: dynamic; shape: box; mass:2;"
+toggle-physics>
+</a-gltf-model>
 
 
 
