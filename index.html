@@ -103,7 +103,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       id="cameraRig"
       simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
       movement-controls="speed:0.15;camera:#head;"
-      position="-1 0 1" rotation="0 120 0" origin-on-ar-start
+      position="-1 0 1" rotation="0 180 0" origin-on-ar-start
     >
       <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
       <a-entity id="head"
@@ -207,7 +207,7 @@ src="#buddy"
 data-pick-up
 class="magnet-left magnet-right"
 data-magnet-range="0.2,0.1,360,180"
-position="-2 1.3 3.3"
+position="-2 1.3 3"
 
 physx-body="type: dynamic; shape:box; mass:2;"
 scale="1 1 1"
@@ -222,7 +222,7 @@ src="#coinmesh"
 data-pick-up 
 class="magnet-left magnet-right"
 data-magnet-range="0.2,0.1,360,180"
-position="-2 1.3 2.6"
+position="-2.3 1.3 2.6"
 physx-body-from-model="type: dynamic; shape: box; mass:2;"
 toggle-physics>
 </a-gltf-model>
