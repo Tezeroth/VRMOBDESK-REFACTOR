@@ -22,12 +22,12 @@
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
   <!-- Our custom behavior code -->
-  <script src="main.js"></script>
-  <script src="simple-navmesh-constraint.js"></script>
-  <script src="model-utils.js"></script>
-  <script src="raycaster-listen.js"></script>
-  <script src="ar-shadow-helper.js"></script>
-<script src="show-bounding-box.js"></script>
+  <script src="main.js"></script><!--hers-->
+  <script src="simple-navmesh-constraint.js"></script><!--hers-->
+  <script src="model-utils.js"></script><!--hers-->
+ <!--<script src="raycaster-listen.js"></script>--> 
+  <script src="ar-shadow-helper.js"></script><!--hers-->
+  <script src="ar-cursor.js"></script><!--hers-->
 
   </head>
   <title>Simplified Boilerplate</title>
@@ -208,8 +208,7 @@ data-pick-up
 class="magnet-left magnet-right"
 data-magnet-range="0.2,0.1,360,180"
 position="-2 1.3 3"
-
-physx-body="type: dynamic; shape:box; mass:2;"
+physx-body-from-model="type: dynamic; shape:box; mass:2;"
 scale="1 1 1"
 toggle-physics 
 >
