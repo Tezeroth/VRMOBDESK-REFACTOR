@@ -29,6 +29,80 @@
   <script src="ar-shadow-helper.js"></script><!--hers-->
   <script src="ar-cursor.js"></script><!--hers-->
 
+
+  <!--DEBUGGING DEBUGGING DEBUGGING DEBUGGING DEBUGGING DEBUGGING DEBUGGING DEBUGGING DEBUGGING DEBUGGING -->
+  <script>
+    AFRAME.registerComponent('debug-magnet', {
+      init: function () {
+        const object3D = this.el.object3D;
+        const boxHelper = new THREE.BoxHelper(object3D, 0xff0000); // Red color for the box
+        this.el.sceneEl.object3D.add(boxHelper);
+  
+        console.log(`Debugging magnet range for ${this.el.id}`);
+      }
+    });
+  
+    // Apply the debug-magnet component to your magnets
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('#left-magnet').setAttribute('debug-magnet', '');
+      document.querySelector('#right-magnet').setAttribute('debug-magnet', '');
+    });
+  </script>
+
+<script>
+  AFRAME.registerComponent('show-magnet-range', {
+    schema: {
+      range: {type: 'vec2', default: {x: 0.2, y: 0.1}}, // Radial and vertical range
+    },
+    init: function () {
+      const rangeX = this.data.range.x; // Radial range
+      const rangeY = this.data.range.y; // Vertical range
+
+      // Create a visual helper (wireframe sphere or cylinder)
+      const geometry = new THREE.CylinderGeometry(rangeX, rangeX, rangeY * 2, 32);
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00, // Green color
+        wireframe: true,
+        transparent: true,
+        opacity: 0.5
+      });
+
+      const rangeHelper = new THREE.Mesh(geometry, material);
+
+      // Rotate cylinder to align vertically
+      rangeHelper.rotation.x = Math.PI / 2;
+
+      // Add the helper to the model
+      this.el.object3D.add(rangeHelper);
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add the component to your grabbable objects
+    const grabbables = document.querySelectorAll('[class~="magnet-left"], [class~="magnet-right"]');
+    grabbables.forEach(el => {
+      el.setAttribute('show-magnet-range', 'range: 0.2 0.1'); // Set the desired range here
+    });
+
+    console.log('Magnet range visualization added.');
+  });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   </head>
   <title>Simplified Boilerplate</title>
 <body>
@@ -199,7 +273,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       color="red"
       position="-1.9 1.150 3.2"
       rotation="0 -50.3 0">-->
-
+  
 <!-- The statue as a child of the cylinder collider parent -->
 <a-gltf-model 
 id="buddy"
