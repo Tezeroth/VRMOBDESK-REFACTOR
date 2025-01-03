@@ -12,7 +12,7 @@
     - AFrame HTML Mesh component (aframe-html) for rendering HTML elements as textures in 3D
     - Local scripts: ar-shadow-helper, ar-cursor, simple-navmesh-constraint, model-utils, and main.js for additional logic
   -->
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm"></script>
+  <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@latest/dist/physx.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/components/sphere-collider.min.js"></script>
@@ -49,7 +49,7 @@ ar-cursor raycaster="objects: #my-ar-objects a-sphere .clickable, .blocker" --DO
 ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT SEEM TO DO ANYTHING
   -->
   <a-scene
-  renderer="dracoDecoderPath: https://cdn.jsdelivr.net/npm/three@0.118.3/examples/js/libs/draco/;"
+  renderer="draco-decoder-path: https://cdn.jsdelivr.net/npm/three@0.125.0/examples/js/libs/draco/"
   inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
   stats
   environment=  "
@@ -406,6 +406,31 @@ scale="0.1 0.7 0.1">
         sceneEl.addEventListener("exit-vr", function() {
             cameraRig.setAttribute('movement-controls', 'enabled', true);
         });
+    </script>
+    <script>
+const el = document.querySelector('#buddy');
+
+// Wait for the model to load
+el.addEventListener('model-loaded', () => {
+  // Access the loaded mesh
+  const object3D = el.getObject3D('mesh'); // Safely get the actual mesh
+
+  if (object3D) {
+    // Compute the bounding box
+    const box = new THREE.Box3().setFromObject(object3D);
+    console.log('Bounding Box:', box);
+
+    // Get and log size (width, height, depth)
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    console.log('Size (width, height, depth):', size);
+  } else {
+    console.error('Mesh not found in object3D');
+  }
+});
+
+
+
     </script>
 </body>
 </html>
