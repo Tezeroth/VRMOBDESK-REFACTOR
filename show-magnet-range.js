@@ -1,4 +1,4 @@
-<script>
+
 AFRAME.registerComponent('magnet-range-debug', {
   schema: {
     range: {type: 'vec2', default: {x: 0.2, y: 0.1}} // radial (X), vertical (Y)
@@ -49,4 +49,4 @@ AFRAME.registerComponent('magnet-range-debug', {
     }
   }
 });
-</script>
+
