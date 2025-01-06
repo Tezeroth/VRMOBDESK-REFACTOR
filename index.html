@@ -22,7 +22,8 @@
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.2.0/dist/aframe-particle-system-component.min.js"></script>
+  <!--snow
+  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.2.0/dist/aframe-particle-system-component.min.js"></script>-->
 
   <!-- Our custom behavior code -->
   <script src="main.js"></script><!--hers-->
@@ -106,11 +107,10 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
    
 
-   <!-- docs for particle system: https://www.npmjs.com/package/@c-frame/aframe-particle-system-component-->
-
+   <!-- docs for particle system: https://www.npmjs.com/package/@c-frame/aframe-particle-system-component
 
     <a-entity position="0 2.25 -15" particle-system="preset: rain" particle-count="100000" maxAge="30"maxParticleCount="250000" ></a-entity>
-    <a-entity position="0 2.25 -10" particle-system="preset: snow" particle-count="100000" maxAge="30"maxParticleCount="250000" ></a-entity>
+    <a-entity position="0 2.25 -10" particle-system="preset: snow" particle-count="100000" maxAge="30"maxParticleCount="250000" ></a-entity>-->
 
 
 
@@ -238,7 +238,7 @@ toggle-physics
 
 <a-gltf-model class="blocker"  id="buddy" toggle-physics shadow="receive:false;" src="#buddy" position="-1.5 1.3 3.3" physx-body-from-model="type:dynamic;mass:2;">
   <!-- Handles with magnet ranges set, allowing them to be grabbed by left or right hand magnets -->
-  <a-entity id="buddy-handle-1" data-magnet-range="0.2,0.1,360,180" magnet-range-debug="range:0.2,0.1;" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 -0" rotation="0 180 0"><box></box></a-entity>
+  <a-entity id="buddy-handle-1" data-magnet-range="0.2,0.1,360,180" magnet-range-debug="range:0.2,0.1;" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 -0" rotation="90 180 0"><box></box></a-entity>
 
   <!--remove one handle for testing
   <a-entity id="buddy-handle-2" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" magnet-range-debug="range:0.2,0.1" class="magnet-left magnet-right" position="0 0.35 0.35" rotation="0 0SS 0"><box></box></a-entity>-->
@@ -282,8 +282,8 @@ toggle-physics>
 
 <a-gltf-model class="blocker"  id="greenbox" toggle-physics shadow="receive:false;" src="#greenbox" position="-1.5 1.3 3.3" physx-body-from-model="type:dynamic;mass:2;" scale="0.5 0.5 0.5">
   <!-- Handles with magnet ranges set, allowing them to be grabbed by left or right hand magnets -->
-  <a-entity id="box-handle-1" data-magnet-range="0.2,0.1,360,180" magnet-range-debug="range:0.2,0.1" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 -0.35" rotation="0 90 0"><box></box></a-entity>
-  <a-entity id="box-handle-2" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" magnet-range-debug="range:0.2,0.1" class="magnet-left magnet-right" position="0 0.35 0.35" rotation="0 90 0"><box></box></a-entity>
+  <a-entity id="box-handle-1" data-magnet-range="0.2,0.1,360,180" magnet-range-debug="range:0.2,0.1" data-pick-up="parent" class="magnet-left magnet-right" position="0 0.35 -0.35" rotation="0 90 0" scale="0.5 0.5 0.5"><box></box></a-entity>
+  <a-entity id="box-handle-2" data-magnet-range="0.2,0.1,360,180" data-pick-up="parent" magnet-range-debug="range:0.2,0.1" class="magnet-left magnet-right" position="0 0.35 0.35" rotation="0 90 0" scale="0.5 0.5 0.5"><box></box></a-entity>
 </a-gltf-model>
 
 
