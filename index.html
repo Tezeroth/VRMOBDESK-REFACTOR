@@ -21,6 +21,9 @@
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.2.0/dist/aframe-particle-system-component.min.js"></script>
+
   <!-- Our custom behavior code -->
   <script src="main.js"></script><!--hers-->
   <script src="simple-navmesh-constraint.js"></script><!--hers-->
@@ -74,6 +77,8 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       Preload models and images before the scene is displayed.
     -->
 
+   
+
     <a-assets>
       <!-- Various 3D models and textures used in the scene -->
      <a-asset-item id="building-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/venue.glb?v=1644331843500"></a-asset-item>
@@ -98,6 +103,16 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
 
     </a-assets>
+
+   
+
+   <!-- docs for particle system: https://www.npmjs.com/package/@c-frame/aframe-particle-system-component-->
+
+
+    <a-entity position="0 2.25 -15" particle-system="preset: rain" particle-count="100000" maxAge="30"maxParticleCount="250000" ></a-entity>
+    <a-entity position="0 2.25 -10" particle-system="preset: snow" particle-count="100000" maxAge="30"maxParticleCount="250000" ></a-entity>
+
+
 
     <!-- 
       cameraRig entity:
