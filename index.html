@@ -99,11 +99,13 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
      <a-asset-item id="greenbox" src="Assets/greenbox01.glb" crossorigin="anonymous"></a-asset-item>
 
      <!--testing nested manual static physx x colliders-->
-     <a-asset-item id="sofa" src="Assets/Sofa/sofa1.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset-item id="sofa" src="Assets/Sofa/this.glb" crossorigin="anonymous"></a-asset-item>
+     <!--
      <a-asset-item id="sofabase" src="Assets/Sofa/sofacolliderbase.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset-item id="sofaback" src="Assets/Sofa/sofacolliderback.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset-item id="sofaleft" src="Assets/Sofa/sofacolliderarmL.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset-item id="sofaright" src="Assets/Sofa/sofacolliderarmR.glb" crossorigin="anonymous"></a-asset-item>
+     -->
 
 
       <!--follow this up, a very interesting way of doing things i like it-->
@@ -210,49 +212,22 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
            "Dusty Piano" model from Sketchfab (attribution given)
            A navmesh-hole plane is used to exclude the area beneath it from navigation. shadow="receive:false;cast:true;" will give it realtime shadows dependant on arshadowhelper.
       -->
-      <a-gltf-model id="piano" rotation="0 100 0" position="0 0 4.5" shadow="receive:false;cast:true;" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118">
-        <a-plane rotation="-90 0 0" width="1.5" height="0.6" class="navmesh-hole" visible="false" crossorigin="anonymous" physx-body-from-model="type:dynamic;mass:2;""></a-plane>
+      <a-gltf-model id="piano" rotation="0 100 0" position="0 0 4.5" shadow="receive:false;cast:true;" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118" physx-body="type: static;">
+        <a-plane rotation="-90 0 0" width="1.5" height="0.6" class="navmesh-hole" visible="false" crossorigin="anonymous" ></a-plane>
       </a-gltf-model>
+w
 
 
-<!--SORT OUT CYLINDER MESH COLLIDER. WHAT A FUCKING PAIN IN THE ARSE-->
+<a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;"" src="Assets/Sofa/this.glb" crossorigin="anonymous" physx-body="type: static;"></a-gltf-model>
 
-      <!--alter the scale of the cylinder and then wrap it around the handles using the inspector-->
-      <!--physx-body-from-model="type:dynamic; mass:2;scale: "0.5 0.5 0.5;"-->
-      <!--physx-body="type: dynamic; shape: cylinder;"-->
-
-      <!--<a-entity id="buddy-container"
-      physx-body="type: dynamic; shape: cylinder; mass: 2;"
-      visble="true"
-      color="red"
-      position="-1.9 1.150 3.2"
-      rotation="0 -50.3 0">-->
-  
-<!-- The statue as a child of the cylinder collider parent 
-<a-gltf-model 
-id="buddy"
-src="#buddy"
-data-pick-up
-class="magnet-left magnet-right"
-data-magnet-range="0.2,0.1,360,90"
-magnet-range-debug="range: 0.2 0.1"
-position="-2 1.3 3"
-physx-body-from-model="type: dynamic; mass:2;"
-scale="1 1 1"
-toggle-physics 
->
-</a-gltf-model>-->
-
-
-<a-gltf-model id="sofa" src="#sofa" position ="0 0.5 8" rotation="0 180 0" shadow="receive:true;cast:true;">
-
-  <a-plane id="sofanavmesh" rotation="0 0 0" size="1 1 1" class="navmesh-hole" visible="true"></a-plane>
+  <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" visible="false" crossorigin="anonymous"></a-plane>
+</a-gltf-model>
 
 <!--w<a-gltf-model id="sofabase" src="#sofabase" position ="0 0 0" physx-body-from-model="type: static;" class="navmesh-hole"></a-gltf-model>
 <a-gltf-model id="sofaback" src="#sofaback" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>
-<a-gltf-model id="sofaleft" src="#sofaleft" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>
+<a-gltf-model id="sofaleft" src="#sofaleft" position ="0 0 0"whysx-body-from-model="type: static;"></a-gltf-model>
 <a-gltf-model id="sofaright" src="#sofaright" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>-->
-</a-gltf-model>
+
 
 
 
