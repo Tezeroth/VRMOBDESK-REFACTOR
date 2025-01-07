@@ -29,7 +29,7 @@
   <script src="main.js"></script><!--hers-->
   <script src="simple-navmesh-constraint.js"></script><!--hers-->
   <script src="model-utils.js"></script><!--hers-->
- <!--<script src="raycaster-listen.js"></script>--> 
+ <script src="raycaster-listen.js"></script>
   <script src="ar-shadow-helper.js"></script><!--hers-->
   <script src="ar-cursor.js"></script><!--hers-->
 <script src="show-magnet-range.js"></script>
@@ -65,7 +65,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 "
 
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: false;"
+    physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: True;"
     webxr="overlayElement:#dom-overlay;"
   
     reflection="directionalLight:#dirlight;"
@@ -97,7 +97,13 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
      <a-asset-item id="buddy" src="Assets/buddy2.glb" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset-item id="greenbox" src="Assets/greenbox01.glb" crossorigin="anonymous"></a-asset-item>
-     <aa-asset-item id="sofa" src="Assets/sofa1.glb" crossorigin="anonymous"></a-asset-item>
+
+     <!--testing nested manual static physx x colliders-->
+     <a-asset-item id="sofa" src="Assets/Sofa/sofa1.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset-item id="sofabase" src="Assets/Sofa/sofacolliderbase.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset-item id="sofaback" src="Assets/Sofa/sofacolliderback.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset-item id="sofaleft" src="Assets/Sofa/sofacolliderarmL.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset-item id="sofaright" src="Assets/Sofa/sofacolliderarmR.glb" crossorigin="anonymous"></a-asset-item>
 
 
       <!--follow this up, a very interesting way of doing things i like it-->
@@ -125,6 +131,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
       movement-controls="speed:0.15;camera:#head;"
       position="-1 0 1" rotation="0 180 0" origin-on-ar-start
+   
     >
       <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
       <a-entity id="head"
@@ -237,7 +244,16 @@ toggle-physics
 </a-gltf-model>-->
 
 
-<a-gltf-model id="sofa" src="#sofa" position ="0 0.5 8" rotation="0 180 0" shadow="receive:false;cast:true;" class="navmesh-hole" physx-body-from-model="type: static;""></a-gltf-model>
+<a-gltf-model id="sofa" src="#sofa" position ="0 0.5 8" rotation="0 180 0" shadow="receive:true;cast:true;">
+
+  <a-plane id="sofanavmesh" rotation="0 0 0" size="1 1 1" class="navmesh-hole" visible="true"></a-plane>
+
+<!--w<a-gltf-model id="sofabase" src="#sofabase" position ="0 0 0" physx-body-from-model="type: static;" class="navmesh-hole"></a-gltf-model>
+<a-gltf-model id="sofaback" src="#sofaback" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>
+<a-gltf-model id="sofaleft" src="#sofaleft" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>
+<a-gltf-model id="sofaright" src="#sofaright" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>-->
+</a-gltf-model>
+
 
 
 
@@ -367,19 +383,14 @@ scale="0.1 0.7 0.1">
         A simple wall model with class="blocker"   physx-body-from-model="type: static; mass: 2;" 
         visible="true" -->
       
-        <a-gltf-model 
-        class="blocker" 
-        id="wall" 
-        src="#wall" 
-        position="-10 0 0" 
-        shadow="receive:false;cast:true;" 
-      >
-      </a-gltf-model>
+        <a-gltf-model class="blocker" id="wall" src="#wall" position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:static;mass:2;">
+          <a-plane id="wallnavmesh" rotation="-90 0 0" width="x" height="z" class="navmesh-hole" visible="true"></a-plane>
+        </a-gltf-model>
 
       <!-- A table model: static physics body to place items on -->
       <a-gltf-model id="table" shadow="receive:true;" src="#table-gltf" position="-2 0 0.8" rotation="0 51 0" scale="1.5 1.5 1.5" physx-body-from-model="type: static;">
         <!-- A navmesh-hole plane is used to exclude the area beneath it from navigation, use the inspector to assign position or rotations etc -->
-        <a-plane id="tablenavmesh" rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="false"></a-plane>
+        <a-plane id="tablenavmesh" rotation="-90 0 0" width="1.2" height="0.6" class="navmesh-hole" visible="true"></a-plane>
       </a-gltf-model>
       
 
