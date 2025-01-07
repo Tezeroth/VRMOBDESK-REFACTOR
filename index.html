@@ -103,10 +103,11 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
    
      <a-asset-item id="sofabase" src="Assets/Sofa/sofabase.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset-item id="sofaback" src="Assets/Sofa/sofaback.glb" crossorigin="anonymous"></a-asset-item>
-       <!--
-     <a-asset-item id="sofaleft" src="Assets/Sofa/sofacolliderarmL.glb" crossorigin="anonymous"></a-asset-item>
-     <a-asset-item id="sofaright" src="Assets/Sofa/sofacolliderarmR.glb" crossorigin="anonymous"></a-asset-item>
-     -->
+
+       
+     <a-asset-item id="sofaleft" src="Assets/Sofa/sofaarmL.glb" crossorigin="anonymous"></a-asset-item>
+     <a-asset-item id="sofaright" src="Assets/Sofa/sofaarmR.glb" crossorigin="anonymous"></a-asset-item>
+     
 
 
       <!--follow this up, a very interesting way of doing things i like it-->
@@ -216,23 +217,28 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
       <a-gltf-model id="piano" rotation="0 100 0" position="0 0 4.5" shadow="receive:false;cast:true;" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118" physx-body="type: static;">
         <a-plane rotation="-90 0 0" width="1.5" height="0.6" class="navmesh-hole" visible="false" crossorigin="anonymous" ></a-plane>
       </a-gltf-model>
-w
 
+
+<!-- NESTED COLLIDERS IN MODEL, WAS BUILT AS SINGLE FILE IN BLENDER,(model with cubes as the colliders etc) AND THEN THE SEPERATE NAVMESHES IMPORTED IN and set visable to false. ORIGIN MUST ALWAYS BE SET TOO BLENDER WORLD ORIGIN-->
+
+<!-- BE AWARE THE MODEL IS SHITTY AND NOT BEEN RETOPOED YET-->
 
 <a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;"" src="Assets/Sofa/this.glb" crossorigin="anonymous"></a-gltf-model>
 
-<a-gltf-model id="sofabase" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;"" src="#sofabase" crossorigin="anonymous" physx-body="type:static" visible="true" physx-body-from-model="type: static;"></a-gltf-model>
+<a-gltf-model id="sofabase" position ="0 0 8" rotation="0 180 0"  src="#sofabase" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
 
-<a-gltf-model id="sofaback" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;"" src="#sofaback" crossorigin="anonymous" physx-body="type:static" visible="true" physx-body-from-model="type: static;"></a-gltf-model>
+<a-gltf-model id="sofaback" position ="0 0 8" rotation="0 180 0" src="#sofaback" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
+
+<a-gltf-model id="sofaleft" position ="0 0 8" rotation="0 180 0" src="#sofaleft" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
+
+<a-gltf-model id="sofaright" position ="0 0 8" rotation="0 180 0" src="#sofaright" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
 
 
   <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" visible="false" crossorigin="anonymous"></a-plane>
 </a-gltf-model>
 
-<!--w<a-gltf-model id="sofabase" src="#sofabase" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>
-<a-gltf-model id="sofaback" src="#sofaback" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>
-<a-gltf-model id="sofaleft" src="#sofaleft" position ="0 0 0"whysx-body-from-model="type: static;"></a-gltf-model>
-<a-gltf-model id="sofaright" src="#sofaright" position ="0 0 0" physx-body-from-model="type: static;"></a-gltf-model>-->
+<!-- END OF SOFA MODEL-->
+
 
 
 
