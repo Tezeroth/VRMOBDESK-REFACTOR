@@ -93,7 +93,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOSENT 
 
       <a-asset-item id="table-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/small_wooden_table_01_1k-v1.glb?v=1647263187998"></a-asset-item>
       <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189"></a-asset-item>
-     <a-asset-item id="wall" src="Assets/walls/walls.gltf" crossorigin="anonymous"> </a-asset-item>
+     <a-asset-item id="wall" src="Assets/walls/walls1.glb" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="buddy" src="Assets/buddy2.glb" crossorigin="anonymous"> </a-asset-item>
      <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
      <a-asset-item id="greenbox" src="Assets/greenbox01.glb" crossorigin="anonymous"></a-asset-item>
@@ -383,8 +383,8 @@ scale="0.1 0.7 0.1">
         A simple wall model with class="blocker"   physx-body-from-model="type: static; mass: 2;" 
         visible="true" -->
       
-        <a-gltf-model class="blocker" id="wall" src="#wall" position="-10 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:static;mass:2;">
-          <a-plane id="wallnavmesh" rotation="-90 0 0" width="x" height="z" class="navmesh-hole" visible="true"></a-plane>
+        <a-gltf-model class="blocker" id="wall" src="#wall" position="-7 0 0" shadow="receive:false;cast:true;"physx-body-from-model="type:static;mass:2;">
+          <a-plane id="wallnavmesh" rotation="-90 0 0" width="5.5" position="0.047 0 0" height="0.6" class="navmesh-hole" visible="true"></a-plane>
         </a-gltf-model>
 
       <!-- A table model: static physics body to place items on -->
