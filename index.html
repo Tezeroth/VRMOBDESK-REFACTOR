@@ -218,14 +218,9 @@
     </a-entity>
 
     <!-- A piano model -->
-    <a-gltf-model
-      id="piano"
-      rotation="0 100 0"
-      position="0 0 4.5"
-      shadow="receive:false;cast:true;"
-      src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118"
-      physx-body="type: static;"
-    >
+    <a-gltf-model id="piano"  rotation="0 100 0"  position="0 0 4.5"  shadow="receive:false;cast:true;"
+    src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118"
+    physx-body="type: static;">
       <a-plane
         rotation="-90 0 0"
         width="1.5"
@@ -238,15 +233,16 @@
 
     <!-- NESTED COLLIDERS IN MODEL, WAS BUILT AS SINGLE FILE IN BLENDER,(model with cubes as the colliders etc) AND THEN THE SEPERATE NAVMESHES IMPORTED IN and set visable to false. ORIGIN MUST ALWAYS BE SET TOO BLENDER WORLD ORIGIN-->
 <!-- BE AWARE THE MODEL IS SHITTY AND NOT BEEN RETOPOED YET-->
-<a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;" src="Assets/Sofa/this.glb" crossorigin="anonymous"></a-gltf-model>
+<a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;" src="Assets/Sofa/this.glb" crossorigin="anonymous" physx-body="type: static;">
 
-<a-gltf-model id="sofabase" position ="0 0 8" rotation="0 180 0"  src="#sofabase" crossorigin="anonymous" physx-body="type:static" visible="false"></a-gltf-model>
-<a-gltf-model id="sofaback" position ="0 0 8" rotation="0 180 0" src="#sofaback" crossorigin="anonymous" physx-body="type:static" visible="false" ></a-gltf-model>
-<a-gltf-model id="sofaleft" position ="0 0 8" rotation="0 180 0" src="#sofaleft" crossorigin="anonymous" physx-body="type:static" visible="false"></a-gltf-model>
-<a-gltf-model id="sofaright" position ="0 0 8" rotation="0 180 0" src="#sofaright" crossorigin="anonymous" physx-body="type:static" visible="false" ></a-gltf-model>
+<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"physx-body="type:static"visible="false"></a-gltf-model>
+<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"physx-body="type:static"visible="false" ></a-gltf-model>
+<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"physx-body="type:static"visible="false"></a-gltf-model>
+<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body="type:static"visible="false" ></a-gltf-model>
 
-  <a-plane id="sofanavmesh" rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" visible="false" crossorigin="anonymous"></a-plane>
+</a-gltf-model>
 
+<a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
 <!-- END OF SOFA MODEL-->
 
 
