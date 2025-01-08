@@ -235,10 +235,10 @@
 <!-- BE AWARE THE MODEL IS SHITTY AND NOT BEEN RETOPOED YET-->
 <a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;" src="Assets/Sofa/this.glb" crossorigin="anonymous">
 
-<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"physx-body="type:static"visible="false"></a-gltf-model>
-<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"physx-body="type:static"visible="false" ></a-gltf-model>
-<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"physx-body="type:static"visible="false"></a-gltf-model>
-<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body="type:static"visible="false" ></a-gltf-model>
+<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"physx-body-from-model="type:static"visible="true"></a-gltf-model>
+<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"physx-body-from-model="type:static"visible="true" ></a-gltf-model>
+<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"physx-body-from-model="type:static"visible="true"></a-gltf-model>
+<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body-from-model="type:static"visible="true" ></a-gltf-model>
 </a-gltf-model>
 <!--dont know why it insists on it not being nested. remember -90 on the rotation means it faces up. always double click the item in the inspector to see where it is-->
 <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
