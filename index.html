@@ -62,7 +62,7 @@
       lightIntensity: 10;     /* Lower intensity so baked lighting dominates */
     "
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    physx="autoLoad: true; delay: 1000; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/wasm/physx.release.wasm; useDefaultScene: true;"
+    physx="autoLoad: true; delay: 1000; useDefaultScene: true;"
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:true;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
@@ -169,8 +169,9 @@
           no-magnet entities:
           These are reference points on the hand where we attach HTML interfaces or define constraints.
         -->
+            <!-- Renders an HTML interface from #my-interface as a texture in 3D space, positioned relative to the hand -->
         <a-entity id="left-no-magnet" data-left="grip" data-no-magnet>
-          <!-- Renders an HTML interface from #my-interface as a texture in 3D space, positioned relative to the hand -->
+        
           <a-entity
             html="html:#my-interface;cursor:#cursor"
             position="-0.142 -0.0166 -0.02928"
@@ -239,17 +240,16 @@
 <!-- BE AWARE THE MODEL IS SHITTY AND NOT BEEN RETOPOED YET-->
 <a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;" src="Assets/Sofa/this.glb" crossorigin="anonymous"></a-gltf-model>
 
-<a-gltf-model id="sofabase" position ="0 0 8" rotation="0 180 0"  src="#sofabase" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
+<a-gltf-model id="sofabase" position ="0 0 8" rotation="0 180 0"  src="#sofabase" crossorigin="anonymous" physx-body="type:static" visible="false"></a-gltf-model>
+<a-gltf-model id="sofaback" position ="0 0 8" rotation="0 180 0" src="#sofaback" crossorigin="anonymous" physx-body="type:static" visible="false" ></a-gltf-model>
+<a-gltf-model id="sofaleft" position ="0 0 8" rotation="0 180 0" src="#sofaleft" crossorigin="anonymous" physx-body="type:static" visible="false"></a-gltf-model>
+<a-gltf-model id="sofaright" position ="0 0 8" rotation="0 180 0" src="#sofaright" crossorigin="anonymous" physx-body="type:static" visible="false" ></a-gltf-model>
 
-<a-gltf-model id="sofaback" position ="0 0 8" rotation="0 180 0" src="#sofaback" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
-<a-gltf-model id="sofaleft" position ="0 0 8" rotation="0 180 0" src="#sofaleft" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
-<a-gltf-model id="sofaright" position ="0 0 8" rotation="0 180 0" src="#sofaright" crossorigin="anonymous" physx-body="type:static" visible="false" physx-body-from-model="type: static;"></a-gltf-model>
-
-
-  <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" visible="false" crossorigin="anonymous"></a-plane>
-</a-gltf-model>
+  <a-plane id="sofanavmesh" rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" visible="false" crossorigin="anonymous"></a-plane>
 
 <!-- END OF SOFA MODEL-->
+
+
     <a-gltf-model
       class="blocker"
       id="buddy"
@@ -277,11 +277,11 @@
           magnet-range-debug="range:0.2,0.1"
           class="magnet-left magnet-right"
           position="0 0.35 0.35"
-          rotation="0 0 0"  <!-- corrected "0SS" to "0" in the comment -->
+          rotation="0 0 0"
         >
           <box></box>
-        </a-entity>
-      -->
+        </a-entity>-->
+      
     </a-gltf-model>
 
     <!-- TESTING EASE OF ADDING HANDLE TO NEW TEDDY OBJECT -->
@@ -316,7 +316,7 @@
       rotation="30 0 0"
       position="-2.3 2 2.6"
       magnet-range-debug="range:0.2,0.1"
-      physx-body-from-model="type: dynamic; shape: box; mass:4;" <!-- Removed second 'mass:2;' to avoid conflict -->
+      physx-body-from-model="type: dynamic; shape: box; mass:4;" 
       toggle-physics
     >
     </a-gltf-model>
@@ -363,7 +363,7 @@
       visible="false"
       geometry="width:33.67;height:0.2;depth:19.06"
       physx-body="type: static;"
-      physx-restitution="1.5"
+      physx-restitution="0.5"
     >
     </a-box>
 
