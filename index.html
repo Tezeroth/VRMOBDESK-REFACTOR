@@ -106,7 +106,7 @@
     </a-assets>
 
     <!-- Simple test box in the world -->
-    <a-box position="0 0.5 0" color="red" scale="0.2 0.2 0.2"></a-box>
+    <a-box position="0 0.5 0" color="red" scale="0.2 0.2 0.2" material="opacity: 0.5; transparent: true;"></a-box>
 
     <!-- 
       cameraRig entity:
@@ -228,17 +228,59 @@
         class="navmesh-hole"
         visible="false"
         crossorigin="anonymous"
+       
       ></a-plane>
     </a-gltf-model>
+
+<!--SCRIPT TO ALLOW GLTF MODELS TO BECOME TRANSPARENT-->
+
+    <script>
+      AFRAME.registerComponent('make-transparent', {
+        init: function () {
+          this.el.addEventListener('model-loaded', (e) => {
+            const object3D = e.detail.model;
+
+            // Traverse the GLTF model and make all materials transparent
+            object3D.traverse((node) => {
+              if (node.isMesh && node.material) {
+                node.material.transparent = true; // Enable transparency
+                node.material.opacity = 0;      // Set desired opacity
+                node.material.depthWrite = false; // Prevent depth issues
+              }
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     <!-- NESTED COLLIDERS IN MODEL, WAS BUILT AS SINGLE FILE IN BLENDER,(model with cubes as the colliders etc) AND THEN THE SEPERATE NAVMESHES IMPORTED IN and set visable to false. ORIGIN MUST ALWAYS BE SET TOO BLENDER WORLD ORIGIN-->
 <!-- BE AWARE THE MODEL IS SHITTY AND NOT BEEN RETOPOED YET-->
 <a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;" src="Assets/Sofa/this.glb" crossorigin="anonymous">
 
-<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"physx-hidden-collision visible="false"></a-gltf-model>
-<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"physx-body-from-model="type:static"visible="true" ></a-gltf-model>
-<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"physx-hidden-collision visible="false"></a-gltf-model>
-<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body-from-model="type:static"visible="true" ></a-gltf-model>
+<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"physx-body="type:static" make-transparent></a-gltf-model>
+<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"physx-body="type:static" make-transparent></a-gltf-model>
+<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 </a-gltf-model>
 <!--dont know why it insists on it not being nested. remember -90 on the rotation means it faces up. always double click the item in the inspector to see where it is-->
 <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
@@ -388,6 +430,7 @@
       src="#stew-gltf"
       position="-2 1.2 0.8"
       physx-body-from-model="type:dynamic;mass:2;"
+  
     >
       <a-entity
         id="stew-handle-1"
