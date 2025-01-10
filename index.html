@@ -110,6 +110,11 @@
       <a-asset-item id="sofaleft" src="Assets/Sofa/sofaarmL.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="sofaright" src="Assets/Sofa/sofaarmR.glb" crossorigin="anonymous"></a-asset-item>
 
+      <!--Shelves with with nested static Physx colliders-->
+      <a-asset-item id="shelves" src="Assets/shelves/shelves.glb" crossorigin="anonymous"></a-asset-item>
+
+
+
       <!-- A very interesting way of doing things, I like it -->
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
     </a-assets>
@@ -241,7 +246,25 @@
       ></a-plane>
     </a-gltf-model>
 
+<!-- Shelves model-->
 
+<a-gltf-model id="shelves"  rotation="0 90 0"  position=" 4.5 0 5"  shadow="receive:false;cast:true;"
+src="#shelves"
+physx-body="type: static;">
+  <a-plane
+    rotation="-90 0 0"
+    width="1.5"
+    height="0.6"
+    class="navmesh-hole"
+    visible="false"
+    crossorigin="anonymous"
+    scale="3.5 1.5 5"
+    >
+   
+  ></a-plane>
+  <a-gltf-model id="topshelfcollider"src="#topshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+</a-gltf-model>
 
 
 
@@ -336,7 +359,7 @@
     toggle-physics
     shadow="receive:false;"
     src="#Hanyamask"
-    position="3 1.3 6"
+    position="4.3 1.3 6"
     scale="2 2 2"
     physx-body-from-model="type:dynamic;mass:2;"
     >
@@ -616,6 +639,7 @@
       no-tonemapping="Light"
       shadow="cast:false;receive:true;"
       position="0 0.001 0"
+      
     >
     </a-gltf-model>
   </a-scene>
