@@ -112,6 +112,8 @@
 
       <!--Shelves with with nested static Physx colliders-->
       <a-asset-item id="shelves" src="Assets/shelves/shelves.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="topshelfcollider" src="Assets/shelves/topshelfcollider.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="bottomshelfcollider" src="Assets/shelves/bottomshelfcollider.glb" crossorigin="anonymous"></a-asset-item>
 
 
 
@@ -252,19 +254,17 @@
 <!--Removed physx-body="type: static" from original model"-->
 <a-gltf-model id="shelves"  rotation="0 90 0"  position=" 4.5 0 5"  shadow="receive:false;cast:true;"
 src="#shelves"
-physx-body="type: static;">
-  <a-plane
-    rotation="-90 0 0"
-    width="1.5"
-    class="navmesh-hole"
-    visible="false"
-    crossorigin="anonymous"
-    scale="1.6 1.4 5"
-    >
-   
-  ></a-plane>
-  <a-gltf-model id="topshelfcollider"src="#topshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+>
+<a-gltf-model id="topshelfcollider"src="#topshelfcollider" position="0 0.9 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+<a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+<a-plane
+rotation="-90 0 0"
+width="1.5"
+class="navmesh-hole"
+visible="false"
+crossorigin="anonymous"
+scale="1.6 1.4 5"
+></a-plane>
 </a-gltf-model>
 
 
