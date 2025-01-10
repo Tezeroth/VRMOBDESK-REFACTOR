@@ -16,7 +16,7 @@
       - AFrame HTML Mesh component (aframe-html) for rendering HTML elements as textures in 3D
       - Local scripts: ar-shadow-helper, ar-cursor, simple-navmesh-constraint, model-utils, and main.js for additional logic
     -->
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@latest/dist/physx.min.js"></script>
+    <script id="physxsrc" src="https://cdn.jsdelivr.net/gh/c-frame/physx@latest/dist/physx.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/components/sphere-collider.min.js"></script>
@@ -64,7 +64,7 @@
     environment="
       preset: osiris;     /* Use the Osiris environment preset */
       lightColor: #85856f;     /* Override the default greenish color */
-      lightIntensity: 10;     /* Lower intensity so baked lighting dominates */
+      lightIntensity: 5w;     /* Lower intensity so baked lighting dominates */
     "
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physx="autoLoad: true; delay: 1000; useDefaultScene: true;"
@@ -83,6 +83,7 @@
     <a-assets>
       <!-- Various 3D models and textures used in the scene -->
       <!-- Duplicate stew-gltf from Glitch removed to avoid ID collision -->
+       <!--original navmesh src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"-->
       <a-asset-item id="navmesh-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"></a-asset-item>
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
       <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>
@@ -121,8 +122,12 @@
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
     </a-assets>
 
+
+     <!-- The navmesh model -->
+     <a-gltf-model class="navmesh" src="#navmesh-glb" visible="true"></a-gltf-model>
+
     <!-- Simple test box in the world -->
-    <a-box position="0 0.5 0" color="red" scale="0.2 0.2 0.2" material="opacity: 0.5; transparent: true;"></a-box>
+    <a-box id="spawn"position="0 0.5 0" color="red" scale="0.2 0.2 0.2" material="opacity: 0.5; transparent: true;"></a-box>
 
     <!-- 
       cameraRig entity:
@@ -214,7 +219,7 @@
       </a-entity>
     </a-entity>
 
-    <a-entity id="AMBIENT-LIGHT" light="type: ambient; color: #d4d4ba;"></a-entity>
+   <!-- <a-entity id="AMBIENT-LIGHT" light="type: ambient; color: #d4d4ba;"></a-entity> for testing light colours-->
 
     <a-light
       id="dirlight"
@@ -628,8 +633,7 @@ scale="1.6 1.4 5"
     >
     </a-gltf-model>
 
-    <!-- The navmesh model -->
-    <a-gltf-model class="navmesh" src="#navmesh-glb" visible="false"></a-gltf-model>
+   
 
     <!-- The main building geometry -->
     <a-gltf-model
