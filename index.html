@@ -129,7 +129,7 @@
 
 
      <!-- The navmesh model -->
-     <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="true"></a-gltf-model>
+     <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
 
     <!-- Simple test box in the world -->
     <a-box id="spawn"position="0 0.5 0" color="red" scale="0.2 0.2 0.2" material="opacity: 0.5; transparent: true;"></a-box>
@@ -653,9 +653,10 @@ scale="1.6 1.4 5"
       
     >
   
-  </a-gltf-model> 
-<!--collider for the venue -->
-  <a-gltf-model id="venuecollider"src="#venuecollider" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static"  ></a-gltf-model>
+  </a-gltf-model>
+
+<!--colliders for the venue -->
+  <a-gltf-model id="venuecollider"src="#venuecollider" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
  
   </a-scene>
 
