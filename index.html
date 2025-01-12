@@ -87,6 +87,9 @@
       <!-- Duplicate stew-gltf from Glitch removed to avoid ID collision -->
        <!--original navmesh src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"-->
       <a-asset-item id="navmesh-glb" src="Assets/navmesh/navmesh.glb"></a-asset-item>
+
+<a-asset-item id="venuecollider" src="Assets/venue/B_axis_collider_2.glb" crossorigin="anonymous"></a-asset-item>
+
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
       <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>
       
@@ -649,7 +652,11 @@ scale="1.6 1.4 5"
       position="0 0.001 0"
       
     >
-    </a-gltf-model>
+  
+  </a-gltf-model> 
+<!--collider for the venue -->
+  <a-gltf-model id="venuecollider"src="#venuecollider" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static"  ></a-gltf-model>
+ 
   </a-scene>
 
   <!-- Inline script controlling the thumbstick behavior -->
