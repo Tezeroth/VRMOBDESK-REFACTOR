@@ -4,6 +4,8 @@
 <!-- Sort out SSH key and go private soon-->
 
 
+<!--IN FUTURE READ THIS ARTICLE ABOUT GLTF AND GLB FILE FORMATS FOR OPTIMIZATION https://www.donmccurdy.com/2024/03/10/data-urls-in-3d-models/-->
+<!--always use metal rough workflow for PBR-->
 
   <!--
       Load external A-Frame libraries and components:
@@ -124,7 +126,7 @@
 
 
      <!-- The navmesh model -->
-     <a-gltf-model class="navmesh" src="#navmesh-glb" visible="true"></a-gltf-model>
+     <a-gltf-model class="navmesh" src="#navmesh-glb" visible="false"></a-gltf-model>
 
     <!-- Simple test box in the world -->
     <a-box id="spawn"position="0 0.5 0" color="red" scale="0.2 0.2 0.2" material="opacity: 0.5; transparent: true;"></a-box>
@@ -267,7 +269,7 @@ src="#shelves"
 rotation="-90 0 0"
 width="1.5"
 class="navmesh-hole"
-visible="false"
+visible="true"
 crossorigin="anonymous"
 scale="1.6 1.4 5"
 ></a-plane>
