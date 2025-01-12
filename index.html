@@ -88,7 +88,7 @@
        <!--original navmesh src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"-->
       <a-asset-item id="navmesh-glb" src="Assets/navmesh/navmesh.glb"></a-asset-item>
 
-<a-asset-item id="venuecollider" src="Assets/venue/B_axis_collider_2.glb" crossorigin="anonymous"></a-asset-item>
+
 
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
       <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>
@@ -121,18 +121,108 @@
       <a-asset-item id="topshelfcollider" src="Assets/shelves/topshelfcollider.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="bottomshelfcollider" src="Assets/shelves/bottomshelfcollider.glb" crossorigin="anonymous"></a-asset-item>
 
+      <!--WALL COLLIDERS-->
+
+      <!--give em ids so you can see em in the inspector for bug testing-->
+
+      <!--from blenders x-axis-->
+      <a-asset-item id="venuecolliderB1" src="Assets/venue/B_axis_collider_1.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB2" src="Assets/venue/B_axis_collider_2.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB3" src="Assets/venue/B_axis_collider_3.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB4" src="Assets/venue/B_axis_collider_4.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB5" src="Assets/venue/B_axis_collider_5.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB6" src="Assets/venue/B_axis_collider_6.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB7" src="Assets/venue/B_axis_collider_7.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB8" src="Assets/venue/B_axis_collider_8.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderB9" src="Assets/venue/B_axis_collider_9.glb" crossorigin="anonymous"></a-asset-item>
+
+      <!--From blenders y-axis-->
+
+      <a-asset-item id="venuecolliderA1" src="Assets/venue/A_axis_collider_1.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA2" src="Assets/venue/A_axis_collider_2.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA3" src="Assets/venue/A_axis_collider_3.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA4" src="Assets/venue/A_axis_collider_4.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA5" src="Assets/venue/A_axis_collider_5.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA6" src="Assets/venue/A_axis_collider_6.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA7" src="Assets/venue/A_axis_collider_7.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA8" src="Assets/venue/A_axis_collider_8.glb" crossorigin="anonymous"></a-asset-item>
+    
+
+
 
 
       <!-- A very interesting way of doing things, I like it -->
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
     </a-assets>
 
+    <!--BUILDING, NAVMESH, and COLLIDERS--------------------------------------------------------------------------------------------------->
+    <!-- The main building geometry -->
+    <a-gltf-model
+      src="#building-glb"
+      id="building"
+      lightmap="src:#bake;intensity: 1.5; filter:Window,Ceiling,floor;"
+      depthwrite="true"
+      window-replace="Glass"
+      no-tonemapping="Light"
+      shadow="cast:false;receive:true;"
+      position="0 0.001 0"
+      
+    >
+  
+  </a-gltf-model>
 
-     <!-- The navmesh model -->
+<!--colliders for the venue get this WHEN BATCH EXPORT IS AVAILABLE https://blendermarket.com/products/simple-collider?search_id=35761983 -->
+
+<!--WALL COLLIDERS parallel with BLENDERS X-AXIS - Then exported to gltf with y=up -->
+  <a-gltf-model id="venuecolliderB1"src="#venuecolliderB1" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB2"src="#venuecolliderB2" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB3"src="#venuecolliderB3" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB4"src="#venuecolliderB4" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB5"src="#venuecolliderB5" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB6"src="#venuecolliderB6" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB7"src="#venuecolliderB7" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB8"src="#venuecolliderB8" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB9"src="#venuecolliderB9" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+
+  <!--WALL COLLIDERS paraller with BLENDERS Y-AXIS - Then exported to gltf with y=up -->
+
+  <a-gltf-model id="venuecolliderA1"src="#venuecolliderA1" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA2"src="#venuecolliderA2" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA3"src="#venuecolliderA3" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA4"src="#venuecolliderA4" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA5"src="#venuecolliderA5" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA6"src="#venuecolliderA6" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA7"src="#venuecolliderA7" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA8"src="#venuecolliderA8" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+
+
+
+
+     <!-- The navmesh model FOR PLAYER TRAVERSAL, take notice of Camera righ -->
      <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
 
-    <!-- Simple test box in the world -->
+   <!-- A large invisible box to stop things falling through the floor -->
+    <a-box
+    id="physics-container"
+    position="-5.148 -0.1 -0.355"
+    visible="false"
+    geometry="width:33.67;height:0.2;depth:19.06"
+    physx-body="type: static;"
+    physx-restitution="0.5"
+  >
+  </a-box>
+
+<!--------------------------------------------------------------------------------------------------------------------BUILDING, NAVMESH, and COLLIDERS->
+
+
+
+
+
+
+    <!-- Simple SPAWN test box in the world -->
     <a-box id="spawn"position="0 0.5 0" color="red" scale="0.2 0.2 0.2" material="opacity: 0.5; transparent: true;"></a-box>
+
+
 
     <!-- 
       cameraRig entity:
@@ -301,25 +391,6 @@ scale="1.6 1.4 5"
         }
       });
     </script>
-  </body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     <!-- NESTED COLLIDERS IN MODEL, WAS BUILT AS SINGLE FILE IN BLENDER,(model with cubes as the colliders etc) AND THEN THE SEPERATE NAVMESHES IMPORTED IN and set visable to false. ORIGIN MUST ALWAYS BE SET TOO BLENDER WORLD ORIGIN-->
@@ -471,16 +542,7 @@ scale="1.6 1.4 5"
       </a-entity>
     </a-gltf-model>
 
-    <!-- A large invisible box as a static physics body representing the floor/walls. -->
-    <a-box
-      id="physics-container"
-      position="-5.148 -0.1 -0.355"
-      visible="false"
-      geometry="width:33.67;height:0.2;depth:19.06"
-      physx-body="type: static;"
-      physx-restitution="0.5"
-    >
-    </a-box>
+
 
     <!-- NAV TEST -->
     <a-box
@@ -638,26 +700,7 @@ scale="1.6 1.4 5"
     >
     </a-gltf-model>
 
-   
-
-    <!-- The main building geometry -->
-    <a-gltf-model
-      src="#building-glb"
-      id="building"
-      lightmap="src:#bake;intensity: 1.5; filter:Window,Ceiling,floor;"
-      depthwrite="true"
-      window-replace="Glass"
-      no-tonemapping="Light"
-      shadow="cast:false;receive:true;"
-      position="0 0.001 0"
-      
-    >
   
-  </a-gltf-model>
-
-<!--colliders for the venue -->
-  <a-gltf-model id="venuecollider"src="#venuecollider" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
- 
   </a-scene>
 
   <!-- Inline script controlling the thumbstick behavior -->
