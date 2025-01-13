@@ -77,13 +77,13 @@
     lightColor: #85856f;     /* Override the default greenish color */
     lightIntensity: 5;     /* Lower intensity so baked lighting dominates */
   "
-
+highRefreshRate="true"
   >
  <!--
 
  stats
 
- 
+ HOLY FUCK HIGH REFRESH RATE SORTED IT OUT
  
  
  -->
@@ -127,7 +127,7 @@
       <a-asset-item id="sofaleft" src="Assets/Sofa/sofaarmL.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="sofaright" src="Assets/Sofa/sofaarmR.glb" crossorigin="anonymous"></a-asset-item>
 
-      <!--Shelves with with nested static Physx colliders-->
+      <!--Shelves with with nested static Physx colliders-->w
       <a-asset-item id="shelves" src="Assets/shelves/shelves.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="topshelfcollider" src="Assets/shelves/topshelfcollider.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="bottomshelfcollider" src="Assets/shelves/bottomshelfcollider.glb" crossorigin="anonymous"></a-asset-item>
@@ -147,7 +147,7 @@
       <a-asset-item id="venuecolliderB8" src="Assets/venue/B_axis_collider_8.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderB9" src="Assets/venue/B_axis_collider_9.glb" crossorigin="anonymous"></a-asset-item>
 
-      <!--From blenders y-axis-->
+      <!--From blenders y-axis -->
 
       <a-asset-item id="venuecolliderA1" src="Assets/venue/A_axis_collider_1.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA2" src="Assets/venue/A_axis_collider_2.glb" crossorigin="anonymous"></a-asset-item>
@@ -158,7 +158,7 @@
       <a-asset-item id="venuecolliderA6" src="Assets/venue/A_axis_collider_6.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA7" src="Assets/venue/A_axis_collider_7.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA8" src="Assets/venue/A_axis_collider_8.glb" crossorigin="anonymous"></a-asset-item>
-    
+   
       <!--Part of the room with a step-->
 
       <a-asset-item id="step" src="Assets/venue/G_axis_collider.glb" crossorigin="anonymous"></a-asset-item>
@@ -166,14 +166,14 @@
 
 
 
-      <!--APPLYING LIGHTMAP TO ENVIROMENT - CHECK THE SCRIPTS. A very interesting way of doing things, I like it 
-      <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">-->
+      <!--APPLYING LIGHTMAP TO ENVIROMENT - CHECK THE SCRIPTS. A very interesting way of doing things, I like it -->
+      <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
 
 
     </a-assets>
 
     <!--BUILDING, NAVMESH, and COLLIDERS--------------------------------------------------------------------------------------------------->
-    <!-- The main building geometry -->
+    
     <a-gltf-model
       src="#building-glb"
       id="building"
@@ -218,7 +218,7 @@
      <!-- The navmesh model FOR PLAYER TRAVERSAL, take notice of Camera righ -->
      <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
 
-   <!-- A large invisible box to stop things falling through the floor -->
+   <!-- A large invisible box to stop things falling through the floor 
     <a-box
     id="physics-container"
     position="-5.148 -0.1 -0.355"
@@ -227,7 +227,7 @@
     physx-body="type: static;"
     physx-restitution="0.5"
   >
-  </a-box>
+  </a-box>-->
 
 <!--------------------------------------------------------------------------------------------------------------------BUILDING, NAVMESH, and COLLIDERS-->
 
@@ -259,7 +259,7 @@
       <a-entity
         id="head"
         camera="near:0.01;"
-        look-controls="pointerLockEnabled: false"
+        look-controls="pointerLockEnabled: true"
         position="0 1.65 0"
       >
         <a-cursor
@@ -311,10 +311,9 @@
         </a-entity>
         <a-entity id="right-no-magnet" data-right="grip" data-no-magnet></a-entity>
 
-        <!-- 
-          Invisible spheres at each finger tip for collision/physics interaction:
+         <!-- Invisible spheres at each finger tip for collision/physics interaction:
           physx-body type kinematic means they follow hand position and can push or interact with objects.
-        -->
+         -->
         <a-sphere data-right="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
         <a-sphere data-right="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
         <a-sphere data-right="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
@@ -353,8 +352,9 @@
     >
       <a-plane
         rotation="-90 0 0"
+        position="0 0.01 0"
         width="1.5"
-        height="0.6"
+        
         class="navmesh-hole"
         visible="false"
         crossorigin="anonymous"
@@ -374,6 +374,7 @@ src="#shelves"
 <a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 <a-plane
 rotation="-90 0 0"
+position="0 -0.01 0"
 width="1.5"
 class="navmesh-hole"
 visible="true"
@@ -400,7 +401,7 @@ scale="1.6 1.4 5"
 <a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 </a-gltf-model>
 <!--dont know why it insists on it not being nested. remember -90 on the rotation means it faces up. always double click the item in the inspector to see where it is-->
-<a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
+<a-plane rotation="-90 0 0" position ="0 -0.01 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
 <!--PATCH JOB BECAUSE ITS NOT WORKING AS INTENDED-->
 
 
@@ -498,7 +499,7 @@ physx-body-from-model="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#teddy"
       position="5 1.099 2"
-      physx-body-from-model="type:dynamic;mass:2;"
+      physx-body="type:dynamic; shape: capsule; mass:2;"
     >
     
       <a-entity
@@ -523,7 +524,7 @@ physx-body-from-model="type:dynamic;mass:2;">
       rotation="30 0 0"
       position="5 0 2.6"
      
-      physx-body-from-model="type: dynamic; shape: box; mass:4;" 
+      physx-body="type: dynamic; shape: convex ; mass:4;" 
       toggle-physics
     >
     <!-- magnet-range-debug="range:0.2,0.1"-->
@@ -624,13 +625,13 @@ physx-body-from-model="type:dynamic;mass:2;">
       src="#wall"
       position="-7 0 0"
       shadow="receive:false;cast:true;"
-      physx-body-from-model="type:static;mass:2;"
+
     >
       <a-plane
         id="wallnavmesh"
         rotation="-90 0 0"
         width="5.5"
-        position="0.047 0 0"
+        position="0.047 -0.01 0"
         height="0.6"
         class="navmesh-hole"
         visible="true"
@@ -643,7 +644,7 @@ physx-body-from-model="type:dynamic;mass:2;">
       id="table"
       shadow="receive:true;"
       src="#table-gltf"
-      position="-2 0 0.8"
+      position="-2 0.01 0.8"
       rotation="0 51 0"
      
       physx-body="type: static;"
@@ -656,6 +657,7 @@ physx-body-from-model="type:dynamic;mass:2;">
         rotation="-90 0 0"
         width="1.2"
         height="0.6"
+        position="0.047 -0.01 0"
         class="navmesh-hole"
         visible="true"
       ></a-plane>
@@ -674,7 +676,7 @@ physx-body-from-model="type:dynamic;mass:2;">
         id="tablenavmesh"
         rotation="-90 0 0"
         width="1.2"
-        height="0.6"
+       
         class="navmesh-hole"
         visible="false"
       ></a-plane>
