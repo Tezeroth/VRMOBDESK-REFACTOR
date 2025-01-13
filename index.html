@@ -87,16 +87,16 @@
       <!-- Duplicate stew-gltf from Glitch removed to avoid ID collision -->
        <!--original navmesh src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"-->
       <a-asset-item id="navmesh-glb" src="Assets/navmesh/navmesh.glb"></a-asset-item>
+      <a-asset-item id="building-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/venue.glb?v=1644331843500"></a-asset-item>
 
-
-
+<!--N/A play with getting the hand models working later
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
-      <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>
+      <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>-->
       
       <!-- Only keep the local stew-gltf to match the pot entity -->
       <a-asset-item id="stew-gltf" src="Assets/stew.gltf"></a-asset-item>
 
-      <a-asset-item id="building-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/venue.glb?v=1644331843500"></a-asset-item>
+     
       <a-asset-item id="table-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/small_wooden_table_01_1k-v1.glb?v=1647263187998"></a-asset-item>
       <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189"></a-asset-item>
       <a-asset-item id="wall" src="Assets/walls/walls1.glb" crossorigin="anonymous"></a-asset-item>
@@ -104,10 +104,11 @@
       <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="greenbox" src="Assets/greenbox01.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="teddy" src="Assets/teddy.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="norbit" src="Assets/norbit/norbit.glb" crossorigin="anonymous"></a-asset-item>
 
       <!-- Testing the Hanya mask model -->
       <a-asset-item id="Hanyamask" src="Assets/Hanyamask/Hanyamask.glb" crossorigin="anonymous"></a-asset-item>
-     <!-- <a-asset-item id="Hanyamaskcollider" src="Assets/Hanyamask/Hanyamaskcollider.glb" crossorigin="anonymous"></a-asset-item>-->
+    
 
       <!-- Testing nested manual static PhysX colliders -->
       <a-asset-item id="sofa" src="Assets/Sofa/this.glb" crossorigin="anonymous"></a-asset-item>
@@ -140,6 +141,7 @@
 
       <a-asset-item id="venuecolliderA1" src="Assets/venue/A_axis_collider_1.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA2" src="Assets/venue/A_axis_collider_2.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="venuecolliderA25" src="Assets/venue/A_axis_collider_2_5.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA3" src="Assets/venue/A_axis_collider_3.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA4" src="Assets/venue/A_axis_collider_4.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA5" src="Assets/venue/A_axis_collider_5.glb" crossorigin="anonymous"></a-asset-item>
@@ -147,6 +149,9 @@
       <a-asset-item id="venuecolliderA7" src="Assets/venue/A_axis_collider_7.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA8" src="Assets/venue/A_axis_collider_8.glb" crossorigin="anonymous"></a-asset-item>
     
+      <!--Part of the room with a step-->
+
+      <a-asset-item id="step" src="Assets/venue/G_axis_collider.glb" crossorigin="anonymous"></a-asset-item>
 
 
 
@@ -224,59 +229,92 @@
 
 
 
-    <!-- CameraRig for basic navigation, cursor clicking, and controller grabbing -->
-<a-entity
-id="cameraRig"
-simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
-movement-controls="speed:0.15;camera:#head;"
-position="0 0 0"
-rotation="0 180 0"
-origin-on-ar-start
->
-<!-- Standard camera with near clipping and cursor for point-and-click -->
-<a-entity
-  id="head"
-  camera="near:0.01;"
-  look-controls="pointerLockEnabled: false"
-  position="0 1.65 0"
->
-  <a-cursor
-    position="0 0 -1"
-    geometry="primitive: sphere; radius: 0.005;"
-    material="color: #0FFF00; shader: flat; opacity: 0.5"
-    raycaster="objects: .clickable, .blocker"
-  ></a-cursor>
-</a-entity>
+    <!-- 
+      cameraRig entity:
+      This is a container for the camera and user movement. It applies constraints so
+      the user stays on the navmesh (walkable area). Movement controls and AR start
+      position are also defined here.
+    -->
+    <a-entity
+      id="cameraRig"
+      simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
+      movement-controls="speed:0.15;camera:#head;"
+      position="0 0 0"
+      rotation="0 180 0"
+      origin-on-ar-start
+    >
+      <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
+      <a-entity
+        id="head"
+        camera="near:0.01;"
+        look-controls="pointerLockEnabled: false"
+        position="0 1.65 0"
+      >
+        <a-cursor
+          position="0 0 -1"
+          geometry="primitive: sphere; radius: 0.005; segmentsWidth: 4; segmentsHeight: 4"
+          material="color: #0FFF00; shader: flat; opacity: 0.5"
+          raycaster="objects: .clickable, .blocker"
+        >
+        </a-cursor>
+      </a-entity>
 
-<!-- Left controller (no hand model) -->
-<a-entity
-  id="controller-left"
-  handy-controls="hand: left; color: gold; model: false;"
-  physx-body="type: kinematic;"       
->
-<a-entity
-id="left-magnet"
-data-left="grip"
-data-magnet="magnet-left"
-grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#left-no-magnet;"
->
-</a-entity>
+      <a-entity
+        handy-controls="right:#right-gltf;materialOverride:right;"
+        handy-controls="left:#left-gltf;"
+        material="color:gold;metalness:1;roughness:0;"
+      >
+        <!-- 
+          Screen space inputs (for devices without hand tracking or fallback):
+          Three small colored torus shapes representing possible input points.
+          data-none attribute indicates these might be used for non-hand controllers.
+        -->
+        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:blue" data-none="screen-0"></a-torus>
+        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:green" data-none="screen-1"></a-torus>
+        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:red" data-none="screen-2"></a-torus>
 
-</a-entity>
+        <a-entity
+          id="left-magnet"
+          data-left="grip"
+          data-magnet="magnet-left"
+          grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#left-no-magnet;"
+        ></a-entity>
+        <a-entity
+          id="right-magnet"
+          data-right="grip"
+          data-magnet="magnet-right"
+          grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#right-no-magnet;"
+        ></a-entity>
 
-<!-- Right controller (no hand model) -->
-<a-entity
-  id="controller-right"
-  handy-controls="hand: right; color: gold; model: false;"
-  physx-body="type: kinematic;"   >
-  <a-entity
-  id="right-magnet"
-  data-right="grip"
-  data-magnet="magnet-right"
-  grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#right-no-magnet;"
-></a-entity>
-</a-entity>
+         <!--  no-magnet entities:These are reference points on the hand where we attach HTML interfaces or define constraints.-->
+            <!-- Renders an HTML interface from #my-interface as a texture in 3D space, positioned relative to the hand -->
+        <a-entity id="left-no-magnet" data-left="grip" data-no-magnet>
+        
+          <a-entity
+            html="html:#my-interface;cursor:#cursor"
+            position="-0.142 -0.0166 -0.02928"
+            rotation="-80 90 0"
+            scale="0.7 0.7 0.7"
+          ></a-entity>
+        </a-entity>
+        <a-entity id="right-no-magnet" data-right="grip" data-no-magnet></a-entity>
 
+        <!-- 
+          Invisible spheres at each finger tip for collision/physics interaction:
+          physx-body type kinematic means they follow hand position and can push or interact with objects.
+        -->
+        <a-sphere data-right="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+      </a-entity>
+    </a-entity>
 
    <!-- <a-entity id="AMBIENT-LIGHT" light="type: ambient; color: #d4d4ba;"></a-entity> for testing light colours-->
 
@@ -368,14 +406,14 @@ scale="1.6 1.4 5"
 </a-gltf-model>
 <!--dont know why it insists on it not being nested. remember -90 on the rotation means it faces up. always double click the item in the inspector to see where it is-->
 <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
-
+<!--PATCH JOB BECAUSE ITS NOT WORKING AS INTENDED-->
 
 
 
 
 <!-- END OF SOFA MODEL-->
 
-
+<!--Buddha Model-->
     <a-gltf-model
       class="blocker"
       id="buddy"
@@ -394,6 +432,30 @@ scale="1.6 1.4 5"
         <box></box>
       </a-entity>
     </a-gltf-model>
+
+<!--Norbit model-->
+
+<a-gltf-model
+class="blocker"
+id="norbit"
+toggle-physics
+shadow="receive:false;"
+src="#norbit"
+position="4.5 1.7 4.5"
+rotation="0 -90 0"
+physx-body-from-model="type:dynamic;mass:2;">
+<a-entity
+  id="norbit-handle-1"
+  data-magnet-range="0.2,0.1,360,180"
+  data-pick-up="parent"
+  class="magnet-left magnet-right"
+  position="0 0.2 -0"
+  rotation="90 180 0"
+  show-magnet-range="0.2,0.1">
+  <box></box>
+</a-entity>
+</a-gltf-model>
+
 
 
     <!-- TESTING hanyamask model 
@@ -634,7 +696,7 @@ scale="1.6 1.4 5"
         <a-cylinder
           class="clickable"
           radius="0.09"
-          height="0.6"
+          height="0.2"
           position="0 -0.1 0"
           color="hotpink"
           navigate-on-click="target: https://tezeroth.github.io/a-frame-navigational-layout/"
@@ -661,7 +723,6 @@ scale="1.6 1.4 5"
       position="-5 0 1.8"
       rotation="0 51 0"
       physx-body-from-model="type:dynamic;mass:15;"
-      ar-shadow-helper"
     >
     </a-gltf-model>
 
