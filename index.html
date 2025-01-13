@@ -184,7 +184,7 @@
   <a-gltf-model id="venuecolliderB8"src="#venuecolliderB8" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
   <a-gltf-model id="venuecolliderB9"src="#venuecolliderB9" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
 
-  <!--WALL COLLIDERS paraller with BLENDERS Y-AXIS - Then exported to gltf with y=up -->
+  <!--WALL COLLIDERS parallel with BLENDERS Y-AXIS - Then exported to gltf with y=up -->
 
   <a-gltf-model id="venuecolliderA1"src="#venuecolliderA1" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
   <a-gltf-model id="venuecolliderA2"src="#venuecolliderA2" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
@@ -224,92 +224,59 @@
 
 
 
-    <!-- 
-      cameraRig entity:
-      This is a container for the camera and user movement. It applies constraints so
-      the user stays on the navmesh (walkable area). Movement controls and AR start
-      position are also defined here.
-    -->
-    <a-entity
-      id="cameraRig"
-      simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
-      movement-controls="speed:0.15;camera:#head;"
-      position="0 0 0"
-      rotation="0 180 0"
-      origin-on-ar-start
-    >
-      <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
-      <a-entity
-        id="head"
-        camera="near:0.01;"
-        look-controls="pointerLockEnabled: false"
-        position="0 1.65 0"
-      >
-        <a-cursor
-          position="0 0 -1"
-          geometry="primitive: sphere; radius: 0.005; segmentsWidth: 4; segmentsHeight: 4"
-          material="color: #0FFF00; shader: flat; opacity: 0.5"
-          raycaster="objects: .clickable, .blocker"
-        >
-        </a-cursor>
-      </a-entity>
+    <!-- CameraRig for basic navigation, cursor clicking, and controller grabbing -->
+<a-entity
+id="cameraRig"
+simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
+movement-controls="speed:0.15;camera:#head;"
+position="0 0 0"
+rotation="0 180 0"
+origin-on-ar-start
+>
+<!-- Standard camera with near clipping and cursor for point-and-click -->
+<a-entity
+  id="head"
+  camera="near:0.01;"
+  look-controls="pointerLockEnabled: false"
+  position="0 1.65 0"
+>
+  <a-cursor
+    position="0 0 -1"
+    geometry="primitive: sphere; radius: 0.005;"
+    material="color: #0FFF00; shader: flat; opacity: 0.5"
+    raycaster="objects: .clickable, .blocker"
+  ></a-cursor>
+</a-entity>
 
-      <a-entity
-        handy-controls="right:#right-gltf;materialOverride:right;"
-        handy-controls="left:#left-gltf;"
-        material="color:gold;metalness:1;roughness:0;"
-      >
-        <!-- 
-          Screen space inputs (for devices without hand tracking or fallback):
-          Three small colored torus shapes representing possible input points.
-          data-none attribute indicates these might be used for non-hand controllers.
-        -->
-        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:blue" data-none="screen-0"></a-torus>
-        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:green" data-none="screen-1"></a-torus>
-        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:red" data-none="screen-2"></a-torus>
+<!-- Left controller (no hand model) -->
+<a-entity
+  id="controller-left"
+  handy-controls="hand: left; color: gold; model: false;"
+  physx-body="type: kinematic;"       
+>
+<a-entity
+id="left-magnet"
+data-left="grip"
+data-magnet="magnet-left"
+grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#left-no-magnet;"
+>
+</a-entity>
 
-        <a-entity
-          id="left-magnet"
-          data-left="grip"
-          data-magnet="magnet-left"
-          grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#left-no-magnet;"
-        ></a-entity>
-        <a-entity
-          id="right-magnet"
-          data-right="grip"
-          data-magnet="magnet-right"
-          grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#right-no-magnet;"
-        ></a-entity>
+</a-entity>
 
-         <!--  no-magnet entities:These are reference points on the hand where we attach HTML interfaces or define constraints.-->
-            <!-- Renders an HTML interface from #my-interface as a texture in 3D space, positioned relative to the hand -->
-        <a-entity id="left-no-magnet" data-left="grip" data-no-magnet>
-        
-          <a-entity
-            html="html:#my-interface;cursor:#cursor"
-            position="-0.142 -0.0166 -0.02928"
-            rotation="-80 90 0"
-            scale="0.7 0.7 0.7"
-          ></a-entity>
-        </a-entity>
-        <a-entity id="right-no-magnet" data-right="grip" data-no-magnet></a-entity>
+<!-- Right controller (no hand model) -->
+<a-entity
+  id="controller-right"
+  handy-controls="hand: right; color: gold; model: false;"
+  physx-body="type: kinematic;"   >
+  <a-entity
+  id="right-magnet"
+  data-right="grip"
+  data-magnet="magnet-right"
+  grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#right-no-magnet;"
+></a-entity>
+</a-entity>
 
-        <!-- 
-          Invisible spheres at each finger tip for collision/physics interaction:
-          physx-body type kinematic means they follow hand position and can push or interact with objects.
-        -->
-        <a-sphere data-right="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-right="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-right="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-right="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-right="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-left="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-left="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-left="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-left="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-        <a-sphere data-left="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
-      </a-entity>
-    </a-entity>
 
    <!-- <a-entity id="AMBIENT-LIGHT" light="type: ambient; color: #d4d4ba;"></a-entity> for testing light colours-->
 
@@ -401,7 +368,7 @@ scale="1.6 1.4 5"
 </a-gltf-model>
 <!--dont know why it insists on it not being nested. remember -90 on the rotation means it faces up. always double click the item in the inspector to see where it is-->
 <a-plane rotation="-90 0 0" position ="0 0 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
-<!--PATCH JOB BECAUSE ITS NOT WORKING AS INTENDED-->
+
 
 
 
@@ -667,7 +634,7 @@ scale="1.6 1.4 5"
         <a-cylinder
           class="clickable"
           radius="0.09"
-          height="0.2"
+          height="0.6"
           position="0 -0.1 0"
           color="hotpink"
           navigate-on-click="target: https://tezeroth.github.io/a-frame-navigational-layout/"
@@ -694,6 +661,7 @@ scale="1.6 1.4 5"
       position="-5 0 1.8"
       rotation="0 51 0"
       physx-body-from-model="type:dynamic;mass:15;"
+      ar-shadow-helper"
     >
     </a-gltf-model>
 
