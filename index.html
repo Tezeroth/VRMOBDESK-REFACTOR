@@ -1,5 +1,7 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+
 
 <!-- Sort out SSH key and go private soon-->
 
@@ -19,11 +21,11 @@
       - Local scripts: ar-shadow-helper, ar-cursor, simple-navmesh-constraint, model-utils, and main.js for additional logic
     -->
     
-    <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.7.0/dist/aframe-master.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/components/sphere-collider.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.controls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/dist/physx.min.js"></script>
+    <script src="physx.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
@@ -36,9 +38,9 @@
     <script src="main.js"></script> <!--hers-->
     <script src="simple-navmesh-constraint.js"></script> <!--hers-->
     <script src="model-utils.js"></script> <!--hers-->
-    <script src="raycaster-listen.js"></script>
+   
    <!-- <script src="ar-shadow-helper.js"></script> hers-->
-    <script src="ar-cursor.js"></script> <!--hers-->
+
   <!--  <script src="show-magnet-range.js"></script>-->
 
 </head>
@@ -61,12 +63,13 @@
   ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOESN'T SEEM TO DO ANYTHING
   -->
   <a-scene
+  universal-object-interaction
     renderer="draco-decoder-path: https://cdn.jsdelivr.net/npm/three@0.125.0/examples/js/libs/draco/"
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
     stats
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    physx="autoLoad: true; delay: 1000; useDefaultScene: true; stepRate: 0.02;"
+    physx="autoLoad: true; delay: 1000; useDefaultScene: true; stepRate: 0.02; wasmUrl: physx.release.wasm;"
  webxr="overlayElement:#dom-overlay;"
       reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
@@ -163,14 +166,10 @@ highRefreshRate="true"
 
       <a-asset-item id="step" src="Assets/venue/G_axis_collider.glb" crossorigin="anonymous"></a-asset-item>
 
-
-
+    </a-assets>
 
       <!--APPLYING LIGHTMAP TO ENVIROMENT - CHECK THE SCRIPTS. A very interesting way of doing things, I like it -->
-      <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" crossorigin="anonymous">
-
-
-    </a-assets>
+      <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" alt="Lightmap bake texture" crossorigin="anonymous">
 
     <!--BUILDING, NAVMESH, and COLLIDERS--------------------------------------------------------------------------------------------------->
     
@@ -191,26 +190,26 @@ highRefreshRate="true"
 <!--colliders for the venue get this WHEN BATCH EXPORT IS AVAILABLE https://blendermarket.com/products/simple-collider?search_id=35761983 -->
 
 <!--WALL COLLIDERS parallel with BLENDERS X-AXIS - Then exported to gltf with y=up -->
-  <a-gltf-model id="venuecolliderB1"src="#venuecolliderB1" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB2"src="#venuecolliderB2" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB3"src="#venuecolliderB3" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB4"src="#venuecolliderB4" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB5"src="#venuecolliderB5" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB6"src="#venuecolliderB6" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB7"src="#venuecolliderB7" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB8"src="#venuecolliderB8" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB9"src="#venuecolliderB9" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB1"src="#venuecolliderB1" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB2"src="#venuecolliderB2" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB3"src="#venuecolliderB3" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB4"src="#venuecolliderB4" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB5"src="#venuecolliderB5" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB6"src="#venuecolliderB6" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB7"src="#venuecolliderB7" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB8"src="#venuecolliderB8" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB9"src="#venuecolliderB9" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 
   <!--WALL COLLIDERS parallel with BLENDERS Y-AXIS - Then exported to gltf with y=up -->
 
-  <a-gltf-model id="venuecolliderA1"src="#venuecolliderA1" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA2"src="#venuecolliderA2" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA3"src="#venuecolliderA3" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA4"src="#venuecolliderA4" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA5"src="#venuecolliderA5" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA6"src="#venuecolliderA6" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA7"src="#venuecolliderA7" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA8"src="#venuecolliderA8" position="0 0 0" crossorigin="anonymous"physx-body-from-model="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA1"src="#venuecolliderA1" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA2"src="#venuecolliderA2" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA3"src="#venuecolliderA3" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA4"src="#venuecolliderA4" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA5"src="#venuecolliderA5" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA6"src="#venuecolliderA6" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA7"src="#venuecolliderA7" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA8"src="#venuecolliderA8" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 
 
 
@@ -268,6 +267,7 @@ highRefreshRate="true"
           material="color: #0FFF00; shader: flat; opacity: 0.5"
           raycaster="objects: .clickable, .blocker"
         >
+
         </a-cursor>
       </a-entity>
 
@@ -417,7 +417,7 @@ scale="1.6 1.4 5"
       shadow="receive:false;"
       src="#buddy"
       position="-1.5 1.3 3.3"
-      physx-body-from-model="type:dynamic;mass:2;">
+      physx-body="type:dynamic;mass:2;">
       <a-entity
         id="buddy-handle-1"
         data-magnet-range="0.2,0.1,360,180"
@@ -439,7 +439,7 @@ shadow="receive:false;"
 src="#norbit"
 position="4.5 1.7 4.5"
 rotation="0 -90 0"
-physx-body-from-model="type:dynamic;mass:2;">
+physx-body="type:dynamic;mass:2;">
 <a-entity
   id="norbit-handle-1"
   data-magnet-range="0.2,0.1,360,180"
@@ -458,14 +458,14 @@ physx-body-from-model="type:dynamic;mass:2;">
     -->
 
     <a-gltf-model
-    class="blocker"
+  
     id="hanyamask"
     toggle-physics
     shadow="receive:false;"
     src="#Hanyamask"
     position="4.3 1.3 6"
     scale="2 2 2"
-    physx-body-from-model="type:dynamic;mass:2;"
+    physx-body="type:dynamic;mass:2;"
     >
     
     <a-entity
@@ -538,7 +538,7 @@ physx-body-from-model="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#greenbox"
       position="-2 1.6 3"
-      physx-body-from-model="type:dynamic;mass:2;"
+      physx-body="type:dynamic;mass:2;"
       scale="1 1 1"
     >
       <a-entity
@@ -589,7 +589,7 @@ physx-body-from-model="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#stew-gltf"
       position="-2 1.2 0.8"
-      physx-body-from-model="type:dynamic;mass:2;"
+      physx-body="type:dynamic;mass:2;"
   
     >
       <a-entity
@@ -726,7 +726,7 @@ physx-body-from-model="type:dynamic;mass:2;">
       src="#clock-gltf"
       position="-5 0 1.8"
       rotation="0 51 0"
-      physx-body-from-model="type:dynamic;mass:15;"
+      physx-body="type:dynamic;mass:15;"
     >
     </a-gltf-model>
 
