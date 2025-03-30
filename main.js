@@ -117,6 +117,7 @@ AFRAME.registerComponent("origin-on-ar-start", {
  * This component handles navigation between scenes/pages based on user interaction.
  * It changes the color of the object when hovered over and handles navigation on click/trigger.
  */
+/*
 AFRAME.registerComponent('navigate-on-click', {
   schema: {
     target: { type: 'string' }, // Target URL
@@ -165,6 +166,7 @@ AFRAME.registerComponent('navigate-on-click', {
     }
   }
 });
+*/
 
 /**
  * This component enables object picking, moving, and dropping in both VR and non-VR modes (desktop and mobile).
