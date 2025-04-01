@@ -424,6 +424,66 @@ AFRAME.registerComponent("toggle-physics", {
   }
 });
 
+/**
+ * This component optimizes physics performance by reducing update rate and limiting active bodies
+ */
+AFRAME.registerComponent('physics-optimizer', {
+  init: function() {
+    // Reduce physics update rate to 30Hz
+    this.el.sceneEl.systems.physics.setFixedTimeStep(1/30);
+    
+    // Limit active physics bodies
+    this.el.sceneEl.systems.physics.setMaxSubSteps(1);
+  }
+});
+
+/**
+ * This component monitors performance metrics including FPS
+ */
+AFRAME.registerComponent('performance-monitor', {
+  init: function() {
+    this.fps = 0;
+    this.frames = 0;
+    this.lastTime = performance.now();
+    
+    // Create FPS display
+    this.fpsDisplay = document.createElement('div');
+    this.fpsDisplay.style.position = 'fixed';
+    this.fpsDisplay.style.top = '10px';
+    this.fpsDisplay.style.left = '10px';
+    this.fpsDisplay.style.color = 'white';
+    this.fpsDisplay.style.fontFamily = 'monospace';
+    this.fpsDisplay.style.zIndex = '9999';
+    document.body.appendChild(this.fpsDisplay);
+  },
+  
+  tick: function() {
+    this.frames++;
+    const time = performance.now();
+    
+    if (time >= this.lastTime + 1000) {
+      this.fps = Math.round((this.frames * 1000) / (time - this.lastTime));
+      this.frames = 0;
+      this.lastTime = time;
+      
+      // Update FPS display
+      this.fpsDisplay.textContent = `FPS: ${this.fps}`;
+      
+      // Log if FPS drops below 60
+      if (this.fps < 60) {
+        console.warn(`Low FPS detected: ${this.fps}`);
+      }
+    }
+  },
+  
+  remove: function() {
+    // Clean up FPS display
+    if (this.fpsDisplay && this.fpsDisplay.parentNode) {
+      this.fpsDisplay.parentNode.removeChild(this.fpsDisplay);
+    }
+  }
+});
+
 // Once the DOM content is fully loaded, run this setup function.
 window.addEventListener("DOMContentLoaded", function() {
   // ... existing code ...
