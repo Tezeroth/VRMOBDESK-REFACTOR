@@ -332,8 +332,14 @@ highRefreshRate="true"
       </a-entity>
 
       <!-- Explicit hand controller entities for movement input - moved here -->
-      <a-entity id="leftHand" oculus-touch-controls="hand: left" raycaster="objects: .clickable, .blocker" visible="false"></a-entity>
-      <a-entity id="rightHand" oculus-touch-controls="hand: right" raycaster="objects: .clickable, .blocker" visible="false"></a-entity>
+      <a-entity id="leftHand" 
+          oculus-touch-controls="hand: left; handModelStyle: lowPoly;"
+          universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
+      </a-entity>
+      <a-entity id="rightHand" 
+          oculus-touch-controls="hand: right; handModelStyle: lowPoly;"
+          universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
+      </a-entity>
 
     </a-entity>
 
