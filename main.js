@@ -396,3 +396,35 @@ AFRAME.registerComponent("universal-object-interaction", {
     this.el.sceneEl.canvas.removeEventListener("touchend", this.onTouchEnd);
   }
 });
+
+/**
+ * This component toggles physics states when items are picked up and put down.
+ * On 'pickup', it adds a 'grabbed' state.
+ * On 'putdown', it removes that state and applies the captured linear and angular velocities
+ * from the user's hand controllers (if available) to make the object continue with realistic motion.
+ */
+AFRAME.registerComponent("toggle-physics", {
+  events: {
+    pickup: function() {
+      this.el.addState('grabbed');
+    },
+    putdown: function(e) {
+      this.el.removeState('grabbed');
+      if (e.detail.frame && e.detail.inputSource) {
+        const referenceSpace = this.el.sceneEl.renderer.xr.getReferenceSpace();
+        const pose = e.detail.frame.getPose(e.detail.inputSource.gripSpace, referenceSpace);
+        if (pose && pose.angularVelocity) {
+          this.el.components['physx-body'].rigidBody.setAngularVelocity(pose.angularVelocity);
+        }
+        if (pose && pose.linearVelocity) {
+          this.el.components['physx-body'].rigidBody.setLinearVelocity(pose.linearVelocity);
+        }
+      }
+    }
+  }
+});
+
+// Once the DOM content is fully loaded, run this setup function.
+window.addEventListener("DOMContentLoaded", function() {
+  // ... existing code ...
+});
