@@ -328,9 +328,9 @@ highRefreshRate="true"
         <a-sphere data-left="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
       </a-entity>
       
-      <!-- Explicit hand controller entities for movement input -->
-      <a-entity id="leftHand" hand-controls="hand: left"></a-entity>
-      <a-entity id="rightHand" hand-controls="hand: right"></a-entity>
+      <!-- Explicit hand controller entities for movement input - moved here -->
+      <a-entity id="leftHand" hand-controls="hand: left" raycaster="objects: .clickable, .blocker"></a-entity>
+      <a-entity id="rightHand" hand-controls="hand: right" raycaster="objects: .clickable, .blocker"></a-entity>
 
     </a-entity>
 
