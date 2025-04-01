@@ -273,6 +273,61 @@ highRefreshRate="true"
         </a-cursor>
       </a-entity>
 
+      <!-- Re-added entity for handy-controls logic (magnets, etc.) -->
+      <a-entity
+        handy-controls="right:#right-gltf; left:#left-gltf; materialOverride:right;"
+        material="color:gold;metalness:1;roughness:0;"
+      >
+        <!-- 
+          Screen space inputs (for devices without hand tracking or fallback):
+          Three small colored torus shapes representing possible input points.
+          data-none attribute indicates these might be used for non-hand controllers.
+        -->
+        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:blue" data-none="screen-0"></a-torus>
+        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:green" data-none="screen-1"></a-torus>
+        <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:red" data-none="screen-2"></a-torus>
+
+        <a-entity
+          id="left-magnet"
+          data-left="grip"
+          data-magnet="magnet-left"
+          grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#left-no-magnet;"
+        ></a-entity>
+        <a-entity
+          id="right-magnet"
+          data-right="grip"
+          data-magnet="magnet-right"
+          grab-magnet-target="startEvents:squeezestart,pose_fist;stopEvents:pose_flat_fuseShort,squeezeend;noMagnetEl:#right-no-magnet;"
+        ></a-entity>
+
+         <!--  no-magnet entities:These are reference points on the hand where we attach HTML interfaces or define constraints.-->
+            <!-- Renders an HTML interface from #my-interface as a texture in 3D space, positioned relative to the hand -->
+        <a-entity id="left-no-magnet" data-left="grip" data-no-magnet>
+        
+          <a-entity
+            html="html:#my-interface;cursor:#cursor"
+            position="-0.142 -0.0166 -0.02928"
+            rotation="-80 90 0"
+            scale="0.7 0.7 0.7"
+          ></a-entity>
+        </a-entity>
+        <a-entity id="right-no-magnet" data-right="grip" data-no-magnet></a-entity>
+
+         <!-- Invisible spheres at each finger tip for collision/physics interaction:
+          physx-body type kinematic means they follow hand position and can push or interact with objects.
+         -->
+        <a-sphere data-right="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-right="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+        <a-sphere data-left="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
+      </a-entity>
+
       <!-- Explicit hand controller entities for movement input - moved here -->
       <a-entity id="leftHand" hand-controls="hand: left" raycaster="objects: .clickable, .blocker"></a-entity>
       <a-entity id="rightHand" hand-controls="hand: right" raycaster="objects: .clickable, .blocker"></a-entity>
