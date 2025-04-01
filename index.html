@@ -735,22 +735,6 @@ physx-body="type:dynamic;mass:2;">
   </a-scene>
 
   <!-- Inline script controlling the thumbstick behavior -->
-  <script>
-    // Enable continuous movement controls only
-    const cameraRig = document.querySelector('#cameraRig'); // Ensure this matches your camera rig ID
-    const sceneEl = document.querySelector("a-scene");
-
-    // Always enable movement controls
-    cameraRig.setAttribute('movement-controls', 'enabled', true);
-
-    // Handle entering and exiting VR
-    sceneEl.addEventListener("enter-vr", function() {
-      cameraRig.setAttribute('movement-controls', 'enabled', true);
-    });
-
-    sceneEl.addEventListener("exit-vr", function() {
-      cameraRig.setAttribute('movement-controls', 'enabled', true);
-    });
-  </script>
+  <!-- Removed potentially conflicting script -->
 </body>
 </html>
