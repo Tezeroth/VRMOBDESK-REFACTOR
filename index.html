@@ -11,7 +11,7 @@
 
   <!--
       Load external A-Frame libraries and components:
-      - AFrame core library (1.6.0)
+      - AFrame core library (1.7.0)
       - AFrame Environment component for quick scene setup
       - AFrame Extras for useful components including sphere-collider and additional controls
       - PhysX integration for physics simulation
@@ -26,6 +26,7 @@
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/components/sphere-collider.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.controls.min.js"></script>
     <script src="physx.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/dist/physx.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
@@ -250,7 +251,7 @@ highRefreshRate="true"
     <a-entity
       id="cameraRig"
       simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
-      movement-controls="speed:0.15;camera:#head;"
+      movement-controls="speed:0.15; camera:#head; controls: keyboard, gamepad;"
       position="0 0 0"
       rotation="0 180 0"
       origin-on-ar-start
@@ -735,22 +736,6 @@ physx-body="type:dynamic;mass:2;">
   </a-scene>
 
   <!-- Inline script controlling the thumbstick behavior -->
-  <script>
-    // Enable continuous movement controls only
-    const cameraRig = document.querySelector('#cameraRig'); // Ensure this matches your camera rig ID
-    const sceneEl = document.querySelector("a-scene");
-
-    // Always enable movement controls
-    cameraRig.setAttribute('movement-controls', 'enabled', true);
-
-    // Handle entering and exiting VR
-    sceneEl.addEventListener("enter-vr", function() {
-      cameraRig.setAttribute('movement-controls', 'enabled', true);
-    });
-
-    sceneEl.addEventListener("exit-vr", function() {
-      cameraRig.setAttribute('movement-controls', 'enabled', true);
-    });
-  </script>
+  <!-- Removed potentially conflicting script -->
 </body>
 </html>
