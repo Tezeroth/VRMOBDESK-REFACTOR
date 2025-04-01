@@ -174,39 +174,28 @@ AFRAME.registerComponent('navigate-on-click', {
  */
 AFRAME.registerComponent("universal-object-interaction", {
   schema: {
-    pickupDistance: { type: "number", default: 5 }, // Max distance for picking up objects
-    dropDistance: { type: "number", default: 10 }, // Max distance for dropping objects
-    raycastTarget: { type: "selector", default: "#head [raycaster]" } // More specific: Raycaster on the camera cursor
+    pickupDistance: { type: "number", default: 5 },
+    dropDistance: { type: "number", default: 10 },
+    raycastTarget: { type: "selector", default: "#head [raycaster]" }
   },
 
-  init: function () {
-    // Variables to track the currently picked-up object
-    this.pickedObject = null;
+  init: function() {
+    this.isGrabbing = false;
+    this.grabbedObject = null;
     this.originalParent = null;
     this.originalPosition = new THREE.Vector3();
-    this.originalQuaternion = new THREE.Quaternion();
-
-    // Bind event handlers
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-
-    // Add event listeners for non-VR inputs
-    if (!this.el.sceneEl.is("vr-mode") && !this.el.sceneEl.is("ar-mode")) {
-      this.el.sceneEl.canvas.addEventListener("mousedown", this.onMouseDown, { passive: false });
-      this.el.sceneEl.canvas.addEventListener("touchstart", this.onTouchStart, { passive: false });
-      this.el.sceneEl.canvas.addEventListener("mousemove", this.onMouseMove, { passive: false });
-      this.el.sceneEl.canvas.addEventListener("touchmove", this.onTouchMove, { passive: false });
-      this.el.sceneEl.canvas.addEventListener("mouseup", this.onMouseUp, { passive: false });
-      this.el.sceneEl.canvas.addEventListener("touchend", this.onTouchEnd, { passive: false });
-    }
-
-    // Add event listeners for VR inputs
-    this.el.sceneEl.addEventListener("triggerdown", this.onVRSelect.bind(this));
-    this.el.sceneEl.addEventListener("triggerup", this.onVRDeselect.bind(this));
+    this.originalRotation = new THREE.Euler();
+    this.originalScale = new THREE.Vector3();
+    this.raycaster = null;
+    this.raycastTarget = null;
+    
+    // Initialize raycaster after scene is loaded
+    this.el.sceneEl.addEventListener('loaded', () => {
+      this.raycastTarget = document.querySelector(this.data.raycastTarget);
+      if (this.raycastTarget) {
+        this.raycaster = this.raycastTarget.components.raycaster;
+      }
+    });
   },
 
   /**
@@ -283,7 +272,7 @@ AFRAME.registerComponent("universal-object-interaction", {
    * Update interaction (move object).
    */
   updateInteraction: function (x, y) {
-    if (this.pickedObject) {
+    if (this.grabbedObject) {
       const raycaster = this.data.raycastTarget.components.raycaster;
       const camera = this.el.sceneEl.camera;
 
@@ -296,10 +285,10 @@ AFRAME.registerComponent("universal-object-interaction", {
       raycaster.ray.origin.setFromMatrixPosition(camera.matrixWorld);
       raycaster.ray.direction.set(mouse.x, mouse.y, 0.5).unproject(camera).sub(raycaster.ray.origin).normalize();
 
-      // Move the picked object along the ray
+      // Move the grabbed object along the ray
       const distance = this.data.pickupDistance;
       const newPosition = raycaster.ray.origin.clone().add(raycaster.ray.direction.clone().multiplyScalar(distance));
-      this.pickedObject.setAttribute("position", newPosition);
+      this.grabbedObject.setAttribute("position", newPosition);
     }
   },
 
@@ -321,9 +310,9 @@ AFRAME.registerComponent("universal-object-interaction", {
    * End interaction (drop object).
    */
   endInteraction: function () {
-    if (this.pickedObject) {
-      this.dropObject(this.pickedObject);
-      this.pickedObject = null;
+    if (this.grabbedObject) {
+      this.dropObject(this.grabbedObject);
+      this.grabbedObject = null;
     }
   },
 
@@ -346,9 +335,9 @@ AFRAME.registerComponent("universal-object-interaction", {
    * Handle VR deselect event (drop object).
    */
   onVRDeselect: function () {
-    if (this.pickedObject) {
-      this.dropObject(this.pickedObject);
-      this.pickedObject = null;
+    if (this.grabbedObject) {
+      this.dropObject(this.grabbedObject);
+      this.grabbedObject = null;
     }
   },
 
@@ -356,10 +345,11 @@ AFRAME.registerComponent("universal-object-interaction", {
    * Pick up an object.
    */
   pickUpObject: function (object) {
-    this.pickedObject = object;
+    this.grabbedObject = object;
     this.originalParent = object.parentNode;
     this.originalPosition.copy(object.getAttribute("position"));
-    this.originalQuaternion.copy(object.getAttribute("rotation"));
+    this.originalRotation.copy(object.getAttribute("rotation"));
+    this.originalScale.copy(object.getAttribute("scale"));
 
     // Attach the object to the camera (non-VR) or controller (VR)
     if (this.el.sceneEl.is("vr-mode")) {
@@ -383,7 +373,8 @@ AFRAME.registerComponent("universal-object-interaction", {
     // Restore the object to its original position and parent
     this.originalParent.appendChild(object);
     object.setAttribute("position", this.originalPosition);
-    object.setAttribute("rotation", this.originalQuaternion);
+    object.setAttribute("rotation", this.originalRotation);
+    object.setAttribute("scale", this.originalScale);
   },
 
   remove: function () {
@@ -429,11 +420,17 @@ AFRAME.registerComponent("toggle-physics", {
  */
 AFRAME.registerComponent('physics-optimizer', {
   init: function() {
-    // Reduce physics update rate to 30Hz
-    this.el.sceneEl.systems.physics.setFixedTimeStep(1/30);
-    
-    // Limit active physics bodies
-    this.el.sceneEl.systems.physics.setMaxSubSteps(1);
+    // Wait for physics system to be ready
+    this.el.sceneEl.addEventListener('physics-init', () => {
+      const physics = this.el.sceneEl.systems.physics;
+      if (physics) {
+        // Reduce physics update rate to 30Hz
+        physics.setFixedTimeStep(1/30);
+        
+        // Limit active physics bodies
+        physics.setMaxSubSteps(1);
+      }
+    });
   }
 });
 
