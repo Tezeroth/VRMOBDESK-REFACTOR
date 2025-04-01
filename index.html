@@ -251,7 +251,7 @@ highRefreshRate="true"
     <a-entity
       id="cameraRig"
       simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
-      movement-controls="speed:0.15; camera:#head; controls: keyboard, gamepad;"
+      movement-controls="speed:0.15; camera:#head; controls: keyboard, touch; enabled: false;"
       position="0 0 0"
       rotation="0 180 0"
       origin-on-ar-start
@@ -327,6 +327,11 @@ highRefreshRate="true"
         <a-sphere data-left="pinky-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
         <a-sphere data-left="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
       </a-entity>
+      
+      <!-- Explicit hand controller entities for movement input -->
+      <a-entity id="leftHand" hand-controls="hand: left"></a-entity>
+      <a-entity id="rightHand" hand-controls="hand: right"></a-entity>
+
     </a-entity>
 
    <!-- <a-entity id="AMBIENT-LIGHT" light="type: ambient; color: #d4d4ba;"></a-entity> for testing light colours-->
@@ -736,6 +741,26 @@ physx-body="type:dynamic;mass:2;">
   </a-scene>
 
   <!-- Inline script controlling the thumbstick behavior -->
-  <!-- Removed potentially conflicting script -->
+  <script>
+    // Enable movement controls only when entering VR
+    const cameraRig = document.querySelector('#cameraRig'); // Ensure this matches your camera rig ID
+    const sceneEl = document.querySelector("a-scene");
+
+    // Disable movement controls initially
+    // cameraRig.setAttribute('movement-controls', 'enabled', false);
+
+    // Handle entering VR - Enable movement controls
+    sceneEl.addEventListener("enter-vr", function() {
+      // Check if it's VR mode specifically (not AR)
+      if (!sceneEl.is("ar-mode")) {
+          cameraRig.setAttribute('movement-controls', 'enabled', true);
+      }
+    });
+
+    // Handle exiting VR - Disable movement controls (optional, but good practice)
+    sceneEl.addEventListener("exit-vr", function() {
+      cameraRig.setAttribute('movement-controls', 'enabled', false);
+    });
+  </script>
 </body>
 </html>
