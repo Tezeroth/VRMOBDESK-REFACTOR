@@ -196,7 +196,7 @@ AFRAME.registerComponent('hideparts', {
  * - On object load, it checks all materials and, if they match the filters, 
  *   sets toneMapped to false.
  */
-AFRAME.register-component('no-tonemapping', {
+AFRAME.registerComponent('no-tonemapping', {
   schema: {
     default: '' // Filters to match material names
   },

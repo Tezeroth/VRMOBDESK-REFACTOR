@@ -176,7 +176,7 @@ AFRAME.registerComponent("universal-object-interaction", {
   schema: {
     pickupDistance: { type: "number", default: 5 }, // Max distance for picking up objects
     dropDistance: { type: "number", default: 10 }, // Max distance for dropping objects
-    raycastTarget: { type: "selector", default: "[raycaster]" } // Raycaster element
+    raycastTarget: { type: "selector", default: "#head [raycaster]" } // More specific: Raycaster on the camera cursor
   },
 
   init: function () {

@@ -71,7 +71,7 @@
     stats
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    physx="autoLoad: true; delay: 1000; useDefaultScene: true; stepRate: 0.02; wasmUrl: physx.release.wasm;"
+    physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: physx.release.wasm;"
  webxr="overlayElement:#dom-overlay;"
       reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
@@ -275,7 +275,7 @@ highRefreshRate="true"
 
       <!-- Re-added entity for handy-controls logic (magnets, etc.) -->
       <a-entity
-        handy-controls="right:#right-gltf; left:#left-gltf; materialOverride:right; modelStyle: none;"
+        handy-controls="right:#right-gltf; left:#left-gltf; materialOverride:right;"
         material="color:gold;metalness:1;roughness:0;"
       >
         <!-- 
@@ -481,7 +481,7 @@ physx-body="type:dynamic;mass:2;">
       data-pick-up="parent"
       class="magnet-left magnet-right"
       position="0.075 0 0"
-      w>
+      >
       <!--magnet-range-debug="range:0.1,0.05"-->
       <box></box>
     </a-entity>
@@ -506,7 +506,7 @@ physx-body="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#teddy"
       position="5 1.099 2"
-      physx-body="type:dynamic; shape: capsule; mass:2;"
+      physx-body="type:dynamic; mass:2; shape: {type: capsule};"
     >
     
       <a-entity
@@ -531,7 +531,7 @@ physx-body="type:dynamic;mass:2;">
       rotation="30 0 0"
       position="5 0 2.6"
      
-      physx-body="type: dynamic; shape: convex ; mass:4;" 
+      physx-body="type: dynamic; mass:4; shape: {type: convex};" 
       toggle-physics
     >
     <!-- magnet-range-debug="range:0.2,0.1"-->
