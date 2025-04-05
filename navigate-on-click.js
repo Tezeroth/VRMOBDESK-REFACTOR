@@ -64,6 +64,7 @@ AFRAME.registerComponent('navigate-on-click', {
     },
 
     navigate: function () {
+        console.log('Navigate-on-click component received click for element:', this.el.id, 'Target:', this.data.target);
         if (this.data.target) {
             console.log(`Navigating to: ${this.data.target}`);
             window.location.href = this.data.target;

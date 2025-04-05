@@ -22,7 +22,7 @@ AFRAME.registerComponent('control-manager', {
       // --- VR Setup ---
       if (cameraRig) {
           cameraRig.setAttribute('movement-controls', 'camera: #camera; controls: keyboard, touch, gamepad;');
-          cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:1.6;exclude:.navmesh-hole;'); // Note: added height back
+          cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;'); // Using original height:0
       }
       if (handyControlsEntity) {
           handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
@@ -46,6 +46,10 @@ AFRAME.registerComponent('control-manager', {
       sceneEl.setAttribute('arrow-controls', ''); // arrow-controls adds its own UI if not in VR
 
       // Configure camera entity for desktop/mobile
+      // Add navmesh constraint for desktop/mobile too
+      if (cameraRig) {
+         cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;');
+      }
       const camera = document.getElementById('camera');
       if (camera) {
           // Ensure look-controls are enabled (desktop-and-mobile-controls will manage pointerLock)
