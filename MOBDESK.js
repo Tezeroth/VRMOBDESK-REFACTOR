@@ -258,36 +258,19 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     if (this.heldObject) return; // Prevent multiple pickups
     
     this.heldObject = el;
-    const position = el.object3D.position.clone();
-    const quaternion = el.object3D.quaternion.clone();
     
     // Store original physics state
     this._originalPhysicsState = el.getAttribute('physx-body');
+    console.log("Picking up:", el.id, "Original state:", this._originalPhysicsState);
     
-    // Completely remove physics from picked up object initially
-    el.removeAttribute('physx-body');
+    // Immediately set to kinematic
+    el.setAttribute('physx-body', 'type', 'kinematic');
+    console.log("Set to kinematic for", el.id);
     
-    // Store the object's current transform
-    this._savedPosition = position;
-    this._savedQuaternion = quaternion;
-    
-    // Set up physics application after 2 seconds
-    this._physicsTimeout = setTimeout(() => {
-      if (this.heldObject === el && !this.inspectionMode) {
-        // Apply kinematic physics to allow movement while held
-        el.setAttribute('physx-body', {
-          type: 'kinematic',
-          mass: 1,
-          restitution: 0.3,
-          friction: 0.5,
-          linearDamping: 0.1,
-          angularDamping: 0.1
-        });
-        
-        // Ensure object maintains its current position
-        el.object3D.updateMatrix();
-      }
-    }, 2000);
+    if (this._physicsTimeout) {
+        clearTimeout(this._physicsTimeout);
+        this._physicsTimeout = null;
+    }
     
     // Create a new tick function each time to avoid memory leaks
     this._tickFunction = this.tick.bind(this);
