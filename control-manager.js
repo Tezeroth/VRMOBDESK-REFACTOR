@@ -1,11 +1,14 @@
 // Placeholder for Control Manager Logic
 AFRAME.registerComponent('control-manager', {
   init: function() {
-    console.log('Control Manager Initializing...');
+    console.log('Control Manager Init Function Started.');
     const sceneEl = this.el;
 
+    console.log('Adding physics-ready event listener...');
     // Wait for physics to be ready before setting up controls
     sceneEl.addEventListener('physics-ready', () => {
+      console.log('Physics Ready Listener Executed!');
+      /* // Temporarily commented out original logic
       console.log('Physics ready, proceeding with control setup...');
       
       // Original logic moved inside the event listener
@@ -72,7 +75,7 @@ AFRAME.registerComponent('control-manager', {
       }
 
       console.log("Control Manager Setup Complete.");
-
+      */ // End of temporarily commented out logic
     }); // End of physics-ready listener
   }
 }); 
