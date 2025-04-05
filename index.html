@@ -25,7 +25,7 @@
     <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/components/sphere-collider.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.controls.min.js"></script>
-    <script src="physx.min.js"></script>
+    <script src="lib/physx.min.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/gh/c-frame/physx@v0.1.2/dist/physx.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/handy-controls.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
@@ -35,9 +35,7 @@
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.2.0/dist/aframe-particle-system-component.min.js"></script>-->
   
     <!-- Our custom behavior code -->
-    <script src="make-transparent.js"></script>
     <script src="main.js"></script> <!--hers-->
-    <script src="simple-navmesh-constraint.js"></script> <!--hers-->
     <script src="model-utils.js"></script> <!--hers-->
     <script src="raycaster-listen.js"></script> <!-- Added for navigation -->
    
@@ -74,7 +72,7 @@
     performance-monitor
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: physx.release.wasm;"
+    physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: lib/physx.release.wasm;"
  webxr="overlayElement:#dom-overlay;"
       reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
