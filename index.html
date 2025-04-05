@@ -44,7 +44,7 @@
   <!--  <script src="show-magnet-range.js"></script>-->
 
 </head>
-<title>Boilerplate Sandbox</title>
+<title>Merging scripts</title>
 <body>
   <!-- 
       The main A-Frame scene element:
@@ -73,13 +73,13 @@
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: lib/physx.release.wasm;"
- webxr="overlayElement:#dom-overlay;"
-      reflection="directionalLight:#dirlight;"
+    webxr="overlayElement:#dom-overlay;"
+    reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
     shadow="type: pcfsoft"
     xr-mode-ui="XRMode:vr"
     environment="preset: osiris;"
-highRefreshRate="true"
+    highRefreshRate="true"
   >
  <!--
 
@@ -175,7 +175,7 @@ highRefreshRate="true"
     <a-gltf-model
       src="#building-glb"
       id="building"
-      lightmap="src:#bake;intensity: 1.5; filter:Window,Ceiling,floor;"
+      lightmap="src:#bake;intensity:1; filter:Window,Ceiling,floor;"
       depthwrite="true"
       window-replace="Glass"
       no-tonemapping="Light"
@@ -213,7 +213,7 @@ highRefreshRate="true"
 
 
 
-     <!-- The navmesh model FOR PLAYER TRAVERSAL, take notice of Camera righ -->
+     <!-- The navmesh model FOR PLAYER TRAVERSAL, take notice we dont need the physics container -->
      <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
 
    <!-- A large invisible box to stop things falling through the floor 
@@ -240,10 +240,10 @@ highRefreshRate="true"
 
 
     <!-- 
+    ALL OF THIS IS A MESS AND NEEDS TO BE REFACTORED BUT IT WORKS SO I'M NOT GOING TO TOUCH IT
       cameraRig entity:
       This is a container for the camera and user movement. It applies constraints so
-      the user stays on the navmesh (walkable area). Movement controls and AR start
-      position are also defined here.
+      the user stays on the navmesh (walkable area). Movement controls are defined here.
     -->
     <a-entity
       id="cameraRig"
@@ -251,7 +251,6 @@ highRefreshRate="true"
       movement-controls="camera:#head; controls: keyboard, touch, gamepad;"
       position="0 0 0"
       rotation="0 180 0"
-      origin-on-ar-start
     >
       <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
       <a-entity
@@ -341,16 +340,17 @@ highRefreshRate="true"
 
     <a-light
       id="dirlight"
-      shadow-camera-automatic="[ar-shadow-helper],#table,#ladder,#piano"
+      shadow-camera-automatic="#table,#ladder,#piano,#clock"
       intensity="0.8"
       light="castShadow:true;type:directional"
       position="0 3 -6"
     ></a-light>
 
-    <a-entity ar-shadow-helper="target:#my-ar-objects;light:#dirlight;" visible="true">
+    <a-entity visible="true">
       <a-plane
+      size="200"
         rotation="-90 0 0"
-        shadow="cast:false;receive:true;"
+        shadow="receive:true;"
         position="0 0.01 0"
         material="shader:shadow; depthWrite:false; opacity:0.9;"
       ></a-plane>
@@ -381,7 +381,7 @@ highRefreshRate="true"
 src="#shelves"
 >
 <a-gltf-model id="topshelfcollider"src="#topshelfcollider" position="0 0.9 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-<a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+<a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent position="0 0.1 0"></a-gltf-model>
 <a-plane
 rotation="-90 0 0"
 position="0 -0.01 0"
@@ -742,7 +742,6 @@ physx-body="type:dynamic;mass:2;">
   
   </a-scene>
 
-  <!-- Inline script controlling the thumbstick behavior -->
-  <!-- Removed script block entirely -->
+  
 </body>
 </html>
