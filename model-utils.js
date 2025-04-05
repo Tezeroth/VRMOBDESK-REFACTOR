@@ -1,6 +1,11 @@
 /* global AFRAME, THREE */
 
 /**
+ * 
+ * THIS CAN THROW YOU OFF IF YOU KNOW HOW TO IMPORT GLTFS ALREADY. JUST IMPORT GLASS AS SEPERATE TRANSPARENT MATERIAL - NTS this code wont be required for next project"
+ * 
+ * 
+ * 
  * lightmap component:
  * 
  * This component allows you to apply a lightmap texture to certain materials on a model.
