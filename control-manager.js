@@ -90,13 +90,24 @@ AFRAME.registerComponent('control-manager', {
       this.rightHand.setAttribute('universal-object-interaction', 'pickupDistance: 5; dropDistance: 10;');
     }
 
-    // Camera adjustments (Disable desktop controls)
+    // Restore VR Locomotion Controls to CameraRig
+    if (this.cameraRig) {
+      console.log("Adding VR movement-controls and navmesh constraint to cameraRig.");
+      this.cameraRig.setAttribute('movement-controls', 'camera: #camera; controls: teleport, keyboard, touch, gamepad; speed: 0.15;'); // Added speed adjustment
+      this.cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;'); // VR height
+    }
+
+    // Camera adjustments (Disable desktop controls BUT keep cursor visible)
     if (this.camera) {
         this.camera.removeAttribute('look-controls');
         this.camera.removeAttribute('wasd-controls');
         this.camera.removeAttribute('simple-navmesh-constraint');
+        // Ensure cursor is visible for VR interactions
         const cursor = this.camera.querySelector('#cursor');
-        if (cursor) cursor.setAttribute('visible', false); // Hide head cursor
+        if (cursor) {
+             console.log("Ensuring VR head cursor is visible.");
+             cursor.setAttribute('visible', true); 
+        }
     }
 
     console.log("VR Mode Setup Complete.");
@@ -114,6 +125,11 @@ AFRAME.registerComponent('control-manager', {
     if (this.rightHand) {
       this.rightHand.removeAttribute('oculus-touch-controls');
       this.rightHand.removeAttribute('universal-object-interaction');
+    }
+    // Remove VR movement controls from cameraRig
+    if (this.cameraRig) {
+      this.cameraRig.removeAttribute('movement-controls');
+      this.cameraRig.removeAttribute('simple-navmesh-constraint');
     }
     console.log("VR Mode Components Removed.");
   },
@@ -134,10 +150,12 @@ AFRAME.registerComponent('control-manager', {
       this.sceneEl.removeAttribute('arrow-controls');
     }
 
-    // Configure camera for desktop/mobile
+    // Configure camera for desktop/mobile with adjusted WASD speed
     if (this.camera) {
       this.camera.setAttribute('look-controls', 'enabled: true; pointerLockEnabled: true;');
-      this.camera.setAttribute('wasd-controls', '');
+      // Adjust WASD acceleration (default is 65)
+      console.log("Setting WASD controls with reduced acceleration (30).");
+      this.camera.setAttribute('wasd-controls', 'acceleration: 30;'); 
       this.camera.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:1.65;exclude:.navmesh-hole;');
       const cursor = this.camera.querySelector('#cursor');
       if (cursor) cursor.setAttribute('visible', true); // Show head cursor
