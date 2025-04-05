@@ -30,12 +30,13 @@ const DeviceManager = {
   hasGyro: false,
   
   async init() {
+    let vrSupported = false;
     // VR check
     if (navigator.xr) {
       try {
-        this.isVR = await navigator.xr.isSessionSupported('immersive-vr');
+        vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
       } catch (e) {
-        this.isVR = false;
+        vrSupported = false;
       }
     }
     
@@ -43,9 +44,13 @@ const DeviceManager = {
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
     
+    // Refined VR check: Consider VR true ONLY if supported AND NOT mobile
+    this.isVR = vrSupported && !this.isMobile;
+    
     // Gyro check
     this.hasGyro = window.DeviceOrientationEvent !== undefined;
     
+    console.log(`DeviceManager Init Complete: vrSupported=${vrSupported}, isMobile=${this.isMobile}, Final isVR=${this.isVR}`); // Added detailed log
     return true;
   },
 
