@@ -76,15 +76,15 @@ AFRAME.registerComponent('control-manager', {
     // Oculus Touch Controls on specific hand entities
     if (this.leftHand) {
       this.leftHand.setAttribute('oculus-touch-controls', 'hand: left;');
-      // Ensure NO universal-object-interaction
-      this.leftHand.removeAttribute('universal-object-interaction'); 
-      console.log("Added oculus-touch-controls to leftHand.");
+      // Ensure NO universal-object-interaction // Re-adding for testing
+      this.leftHand.setAttribute('universal-object-interaction', 'pickupDistance: 5; dropDistance: 10;'); // Re-added
+      console.log("Added oculus-touch-controls and universal-object-interaction to leftHand.");
     }
     if (this.rightHand) {
       this.rightHand.setAttribute('oculus-touch-controls', 'hand: right;');
-      // Ensure NO universal-object-interaction
-      this.rightHand.removeAttribute('universal-object-interaction'); 
-      console.log("Added oculus-touch-controls to rightHand.");
+      // Ensure NO universal-object-interaction // Re-adding for testing
+      this.rightHand.setAttribute('universal-object-interaction', 'pickupDistance: 5; dropDistance: 10;'); // Re-added
+      console.log("Added oculus-touch-controls and universal-object-interaction to rightHand.");
     }
     
     // Restore VR Locomotion Controls to CameraRig
@@ -116,15 +116,15 @@ AFRAME.registerComponent('control-manager', {
       this.handyControlsEntity.removeAttribute('handy-controls');
       console.log("Removed handy-controls."); 
     }
-    // Remove Oculus controls and ensure no universal interaction
+    // Remove Oculus controls and universal interaction
     if (this.leftHand) {
       this.leftHand.removeAttribute('oculus-touch-controls');
-      this.leftHand.removeAttribute('universal-object-interaction');
+      this.leftHand.removeAttribute('universal-object-interaction'); // Ensure removal
       console.log("Removed leftHand components.");
     }
     if (this.rightHand) {
       this.rightHand.removeAttribute('oculus-touch-controls');
-      this.rightHand.removeAttribute('universal-object-interaction');
+      this.rightHand.removeAttribute('universal-object-interaction'); // Ensure removal
        console.log("Removed rightHand components.");
     }
     // Remove VR movement controls from cameraRig
