@@ -46,16 +46,14 @@ AFRAME.registerComponent('control-manager', {
       sceneEl.setAttribute('arrow-controls', ''); // arrow-controls adds its own UI if not in VR
 
       // Configure camera entity for desktop/mobile
-      // Add navmesh constraint for desktop/mobile too
-      if (cameraRig) {
-         cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;');
-      }
       const camera = document.getElementById('camera');
       if (camera) {
           // Ensure look-controls are enabled (desktop-and-mobile-controls will manage pointerLock)
           camera.setAttribute('look-controls', 'enabled: true; pointerLockEnabled: true;');
           // Add WASD controls directly to the camera entity
           camera.setAttribute('wasd-controls', '');
+          // Add navmesh constraint directly to the camera for wasd-controls compatibility
+          camera.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:1.65;exclude:.navmesh-hole;'); // Use non-zero height
       }
 
        // Ensure head cursor raycaster is configured
