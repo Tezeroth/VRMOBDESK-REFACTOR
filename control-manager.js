@@ -57,52 +57,66 @@ AFRAME.registerComponent('control-manager', {
 
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Setting up VR Mode Components...");
+    console.log("Setting up VR Mode Components (Boilerplate Alignment)...");
 
-    // Handy Controls (Physics Dependent)
+    // Handy Controls on the designated entity (Physics Dependent)
     if (this.handyControlsEntity) {
+        console.log("Found handyControlsEntity for handy-controls."); 
         // Check if physics is ready using the system
         if (this.sceneEl.systems.physics && this.sceneEl.systems.physics.driver) {
-            console.log("Physics system ready, adding handy-controls.");
-            this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+            console.log("Physics system ready, attempting to add handy-controls.");
+            try {
+                this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+                console.log("Successfully added handy-controls attribute.");
+            } catch (e) {
+                console.error("Error setting handy-controls attribute:", e);
+            }
         } else {
             console.warn("Physics system not detected when entering VR. Waiting for physics-ready event...");
-            // Add a one-time listener for physics-ready
             this.sceneEl.addEventListener('physics-ready', () => {
-                console.log("Physics-ready event received AFTER entering VR. Adding handy-controls.");
-                // Double-check we are still in VR and the entity exists
+                console.log("Physics-ready event received AFTER entering VR. Attempting to add handy-controls.");
                 if (this.sceneEl.is('vr-mode') && this.handyControlsEntity) {
-                    this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+                   try {
+                       this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+                       console.log("Successfully added handy-controls attribute after physics-ready event.");
+                   } catch (e) {
+                       console.error("Error setting handy-controls attribute after physics-ready event:", e);
+                   }
+                } else {
+                    console.log("Conditions not met (not VR mode or entity missing) after physics-ready event.");
                 }
             }, { once: true });
         }
     } else {
-        console.error("Handy controls entity not found!");
+        console.error("Handy controls entity not found! Cannot add handy-controls.");
     }
 
-    // Hand Controllers & Interaction
+    // Oculus Touch Controls on specific hand entities
     if (this.leftHand) {
       this.leftHand.setAttribute('oculus-touch-controls', 'hand: left;');
-      this.leftHand.setAttribute('universal-object-interaction', 'pickupDistance: 5; dropDistance: 10;');
+      // Ensure NO universal-object-interaction
+      this.leftHand.removeAttribute('universal-object-interaction'); 
+      console.log("Added oculus-touch-controls to leftHand.");
     }
     if (this.rightHand) {
       this.rightHand.setAttribute('oculus-touch-controls', 'hand: right;');
-      this.rightHand.setAttribute('universal-object-interaction', 'pickupDistance: 5; dropDistance: 10;');
+      // Ensure NO universal-object-interaction
+      this.rightHand.removeAttribute('universal-object-interaction'); 
+      console.log("Added oculus-touch-controls to rightHand.");
     }
-
+    
     // Restore VR Locomotion Controls to CameraRig
     if (this.cameraRig) {
       console.log("Adding VR movement-controls and navmesh constraint to cameraRig.");
-      this.cameraRig.setAttribute('movement-controls', 'camera: #camera; controls: teleport, keyboard, touch, gamepad; speed: 0.15;'); // Added speed adjustment
-      this.cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;'); // VR height
+      this.cameraRig.setAttribute('movement-controls', 'camera: #camera; controls: teleport, keyboard, touch, gamepad; speed: 0.15;'); 
+      this.cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;');
     }
 
-    // Camera adjustments (Disable desktop controls BUT keep cursor visible)
+    // Camera adjustments (Keep cursor visible for VR)
     if (this.camera) {
         this.camera.removeAttribute('look-controls');
         this.camera.removeAttribute('wasd-controls');
         this.camera.removeAttribute('simple-navmesh-constraint');
-        // Ensure cursor is visible for VR interactions
         const cursor = this.camera.querySelector('#cursor');
         if (cursor) {
              console.log("Ensuring VR head cursor is visible.");
@@ -110,28 +124,33 @@ AFRAME.registerComponent('control-manager', {
         }
     }
 
-    console.log("VR Mode Setup Complete.");
+    console.log("VR Mode Setup Complete (Boilerplate Alignment).");
   },
 
   removeVRMode: function() {
-    console.log("Removing VR Mode Components...");
+    console.log("Removing VR Mode Components (Boilerplate Alignment)...");
+    // Remove handy-controls
     if (this.handyControlsEntity) {
       this.handyControlsEntity.removeAttribute('handy-controls');
+      console.log("Removed handy-controls."); 
     }
+    // Remove Oculus controls and ensure no universal interaction
     if (this.leftHand) {
       this.leftHand.removeAttribute('oculus-touch-controls');
       this.leftHand.removeAttribute('universal-object-interaction');
+      console.log("Removed leftHand components.");
     }
     if (this.rightHand) {
       this.rightHand.removeAttribute('oculus-touch-controls');
       this.rightHand.removeAttribute('universal-object-interaction');
+       console.log("Removed rightHand components.");
     }
     // Remove VR movement controls from cameraRig
     if (this.cameraRig) {
       this.cameraRig.removeAttribute('movement-controls');
       this.cameraRig.removeAttribute('simple-navmesh-constraint');
     }
-    console.log("VR Mode Components Removed.");
+    console.log("VR Mode Components Removed (Boilerplate Alignment).");
   },
 
   // ---- Desktop/Mobile Mode Setup ----
