@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- TEST ITS EVEN UPLOADING TO THE FUCKING REPO-->
 
-
-<!-- Sort out SSH key and go private soon-->
+<!-- FUCK YOU PHYSX-->
 
 
 <!--IN FUTURE READ THIS ARTICLE ABOUT GLTF AND GLB FILE FORMATS FOR OPTIMIZATION https://www.donmccurdy.com/2024/03/10/data-urls-in-3d-models/-->
@@ -65,6 +65,8 @@
   ar-cursor raycaster="objects: #my-ar-objects a-sphere .clickable, .blocker" --DOESN'T SEEM TO DO ANYTHING
   ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOESN'T SEEM TO DO ANYTHING
   -->
+
+  <!--PHYSX IS A FUCKING NIGHTMARE TO GET WORKING-->
   <a-scene
   control-manager
   
@@ -76,7 +78,8 @@
     
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: lib/physx.release.wasm;"
+    physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: https://tezeroth.github.io/MERGED-CONTROL-REMOTE/lib/physx.release.wasm;"
+    
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
