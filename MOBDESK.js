@@ -260,26 +260,42 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
   },
 
   pickupObject: function (el) {
-    if (this.heldObject) return; // Prevent multiple pickups
-    
-    this.heldObject = el;
-    
-    // Store original physics state
-    this._originalPhysicsState = el.getAttribute('physx-body');
-    console.log("Picking up:", el.id, "Original state:", this._originalPhysicsState);
-    
-    // Immediately set to kinematic
-    el.setAttribute('physx-body', 'type', 'kinematic');
-    console.log("Set to kinematic for", el.id);
-    
-    if (this._physicsTimeout) {
-        clearTimeout(this._physicsTimeout);
-        this._physicsTimeout = null;
+    console.log("desktop-and-mobile-controls: pickupObject - Attempting to pick up:", el.id);
+    if (this.heldObject) {
+        console.warn("desktop-and-mobile-controls: pickupObject - Already holding an object!");
+        return; 
     }
     
-    // Create a new tick function each time to avoid memory leaks
+    // Ensure we have a valid physics state to store
+    const currentBody = el.getAttribute('physx-body');
+    if (!currentBody) {
+        console.error("desktop-and-mobile-controls: pickupObject - Target has no physx-body!", el.id);
+        return;
+    }
+    this._originalPhysicsState = AFRAME.utils.extend({}, currentBody); // Store a copy
+    console.log("desktop-and-mobile-controls: pickupObject - Stored original state:", JSON.stringify(this._originalPhysicsState));
+
+    this.heldObject = el;
+    
+    try {
+      // Set kinematic immediately
+      el.setAttribute('physx-body', 'type', 'kinematic');
+      console.log("desktop-and-mobile-controls: pickupObject - Set physx-body to kinematic for", el.id);
+    } catch (e) {
+      console.error("desktop-and-mobile-controls: pickupObject - Error setting physx-body:", e);
+      this.heldObject = null; // Failed pickup
+      this._originalPhysicsState = null; // Clear stored state on failure
+      return;
+    }
+    
+    // Remove previous tick listener if any exists (safety check)
+    if (this._tickFunction) {
+        this.el.sceneEl.removeEventListener('tick', this._tickFunction);
+    }
+
     this._tickFunction = this.tick.bind(this);
     this.el.sceneEl.addEventListener('tick', this._tickFunction);
+    console.log("desktop-and-mobile-controls: pickupObject - Added tick listener.");
   },
   
   dropObject: function () {
@@ -292,44 +308,43 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     const position = el.object3D.position.clone();
     const quaternion = el.object3D.quaternion.clone();
 
-    // Clear references first
+    // Clear tick listener first
     if (this._tickFunction) {
       this.el.sceneEl.removeEventListener('tick', this._tickFunction);
       this._tickFunction = null;
       console.log("Removed tick listener during drop.");
     }
     
-    // Store ref, then clear held object
-    const previousHeldObject = this.heldObject; // Keep ref for logging/check
+    // Store original state locally before clearing refs
+    const originalState = this._originalPhysicsState;
+    const previousHeldObject = el; // Use el directly
+    
     this.heldObject = null;
-    console.log("Cleared heldObject reference.");
+    this._originalPhysicsState = null; // Clear stored state
+    console.log("Cleared heldObject reference and stored state.");
 
-    // Ensure any existing physics body is gone before applying the original state
-    // Needed if drop happens directly after pickup OR after exiting inspect
+    // Remove the kinematic body
     previousHeldObject.removeAttribute('physx-body');
-    console.log("Removed any existing physx-body before dropping.");
+    console.log("Removed physx-body from:", previousHeldObject.id);
 
-    // Reapply original physics state (should be dynamic)
-    if (this._originalPhysicsState) {
-      console.log("Attempting to reapply original physics state:", this._originalPhysicsState);
-      // Use requestAnimationFrame to ensure DOM updates (like body removal) settle?
-      requestAnimationFrame(() => {
-          // Double check we still want to drop this object (safety)
-          if(previousHeldObject && !this.heldObject) { 
-             try {
-                previousHeldObject.setAttribute('physx-body', this._originalPhysicsState);
-                // Restore position/rotation *after* setting physics state
-                previousHeldObject.object3D.position.copy(position);
-                previousHeldObject.object3D.quaternion.copy(quaternion);
-                previousHeldObject.object3D.updateMatrix(); // Force update
-                console.log("Reapplied original state and transform for:", previousHeldObject.id);
-             } catch (e) {
-                console.error("Error reapplying physics state during drop:", e);
-             }
-          }
-      });
+    // Immediately try to reapply original state (if we have one)
+    if (originalState) {
+      console.log("Attempting to reapply original physics state immediately:", JSON.stringify(originalState));
+      try {
+          // Set the physics body attribute with the original configuration
+          previousHeldObject.setAttribute('physx-body', originalState);
+          
+          // Restore position/rotation *after* setting physics state
+          previousHeldObject.object3D.position.copy(position);
+          previousHeldObject.object3D.quaternion.copy(quaternion);
+          previousHeldObject.object3D.updateMatrix(); // Force update
+          console.log("Reapplied original state and transform for:", previousHeldObject.id);
+      } catch (e) {
+          console.error("Error reapplying physics state during drop:", e);
+          // Attempt to leave the object without a physics body if reapplication fails
+      }
     } else {
-      console.warn("No original physics state found for", previousHeldObject?.id);
+      console.warn("No original physics state found to reapply for", previousHeldObject.id);
     }
   },
 
