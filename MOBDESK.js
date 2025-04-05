@@ -285,35 +285,51 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
   dropObject: function () {
     if (!this.heldObject) return;
 
-    // Clear the physics timeout if it exists
-    if (this._physicsTimeout) {
-      clearTimeout(this._physicsTimeout);
-      this._physicsTimeout = null;
-    }
-
     const el = this.heldObject;
+    console.log("desktop-and-mobile-controls: dropObject called for:", el.id);
+
+    // Store final position/rotation BEFORE changing physics
     const position = el.object3D.position.clone();
     const quaternion = el.object3D.quaternion.clone();
-    
+
     // Clear references first
     if (this._tickFunction) {
       this.el.sceneEl.removeEventListener('tick', this._tickFunction);
       this._tickFunction = null;
+      console.log("Removed tick listener during drop.");
     }
     
-    // Store reference to current held object and clear it
-    const previousHeldObject = this.heldObject;
+    // Store ref, then clear held object
+    const previousHeldObject = this.heldObject; // Keep ref for logging/check
     this.heldObject = null;
-    
-    // Reapply original physics state
-    if (previousHeldObject && this._originalPhysicsState) {
-      previousHeldObject.removeAttribute('physx-body');
+    console.log("Cleared heldObject reference.");
+
+    // Ensure any existing physics body is gone before applying the original state
+    // Needed if drop happens directly after pickup OR after exiting inspect
+    previousHeldObject.removeAttribute('physx-body');
+    console.log("Removed any existing physx-body before dropping.");
+
+    // Reapply original physics state (should be dynamic)
+    if (this._originalPhysicsState) {
+      console.log("Attempting to reapply original physics state:", this._originalPhysicsState);
+      // Use requestAnimationFrame to ensure DOM updates (like body removal) settle?
       requestAnimationFrame(() => {
-        previousHeldObject.setAttribute('physx-body', this._originalPhysicsState);
-        previousHeldObject.object3D.position.copy(position);
-        previousHeldObject.object3D.quaternion.copy(quaternion);
-        previousHeldObject.object3D.updateMatrix();
+          // Double check we still want to drop this object (safety)
+          if(previousHeldObject && !this.heldObject) { 
+             try {
+                previousHeldObject.setAttribute('physx-body', this._originalPhysicsState);
+                // Restore position/rotation *after* setting physics state
+                previousHeldObject.object3D.position.copy(position);
+                previousHeldObject.object3D.quaternion.copy(quaternion);
+                previousHeldObject.object3D.updateMatrix(); // Force update
+                console.log("Reapplied original state and transform for:", previousHeldObject.id);
+             } catch (e) {
+                console.error("Error reapplying physics state during drop:", e);
+             }
+          }
       });
+    } else {
+      console.warn("No original physics state found for", previousHeldObject?.id);
     }
   },
 
@@ -474,12 +490,6 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
   toggleInspectionMode: function () {
     if (!this.heldObject) return;
     
-    // Clear the physics timeout if it exists
-    if (this._physicsTimeout) {
-      clearTimeout(this._physicsTimeout);
-      this._physicsTimeout = null;
-    }
-    
     this.inspectionMode = !this.inspectionMode;
     
     // Update cursor color
@@ -490,64 +500,32 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     const el = this.heldObject;
     
     if (this.inspectionMode) {
-      // Store current transform for inspection mode
+      // Entering inspection
+      console.log("Entering inspection mode for:", el.id);
       this._savedPosition = el.object3D.position.clone();
       this._savedQuaternion = el.object3D.quaternion.clone();
-      
-      // Disable physics during inspection
-      el.removeAttribute('physx-body');
-      
-      // Remove tick listener to avoid position updates
+      // Remove physics body for inspection
+      el.removeAttribute('physx-body'); 
+      // Remove tick listener to stop following camera
       if (this._tickFunction) {
         this.el.sceneEl.removeEventListener('tick', this._tickFunction);
         this._tickFunction = null;
       }
-      
-      // Disable controls
+      // Disable movement/look controls
       this.camera.setAttribute('look-controls', 'enabled', false);
       this.camera.setAttribute('wasd-controls', 'enabled', false);
-      
-      // Ensure object maintains position
-      requestAnimationFrame(() => {
-        el.object3D.position.copy(this._savedPosition);
-        el.object3D.quaternion.copy(this._savedQuaternion);
-        el.object3D.updateMatrix();
-      });
-    } else {
-      // Exit inspection mode
-      if (!DeviceManager.isMobile) {
-        document.body.requestPointerLock();
-      }
-      
-      // Re-enable controls
-      this.camera.setAttribute('look-controls', {
-        enabled: true,
-        pointerLockEnabled: !DeviceManager.isMobile
-      });
-      this.camera.setAttribute('wasd-controls', 'enabled', true);
 
-      // First remove any existing physics
-      el.removeAttribute('physx-body');
-      
-      // Then reapply physics in the next frame
-      requestAnimationFrame(() => {
-        // Apply kinematic physics to allow movement while held
-        el.setAttribute('physx-body', {
-          type: 'kinematic',
-          mass: 1,
-          restitution: 0.3,
-          friction: 0.5,
-          linearDamping: 0.1,
-          angularDamping: 0.1
-        });
-        
-        // Ensure object maintains its current position
-        el.object3D.updateMatrix();
-        
-        // Restore tick function for position updates
-        this._tickFunction = this.tick.bind(this);
-        this.el.sceneEl.addEventListener('tick', this._tickFunction);
-      });
+    } else {
+      // Exiting inspection mode
+      console.log("Exiting inspection mode for:", el.id);
+      // Re-enable controls ONLY. Physics/tick listener remain off until drop.
+      this.camera.setAttribute('look-controls', { enabled: true, pointerLockEnabled: !DeviceManager.isMobile }); // Re-enable look (handle pointer lock)
+      this.camera.setAttribute('wasd-controls', 'enabled', true);
+      // Request pointer lock only if not mobile
+      if (!DeviceManager.isMobile) {
+         // Small delay might help ensure controls are re-enabled before lock
+         setTimeout(() => { document.body.requestPointerLock(); }, 50); 
+      }
     }
   },
 
