@@ -88,33 +88,28 @@ AFRAME.registerComponent('control-manager', {
 
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Setting up VR Mode Components (Boilerplate Alignment - Direct Handy Controls)...");
+    console.log("Setting up VR Mode (Components already present in HTML)...");
 
-    // Handy Controls - Add directly, assuming local PhysX initializes fast enough
+    // Handy Controls - REMOVED dynamic add/remove
+    /*
     if (this.handyControlsEntity) {
-        console.log("Found handyControlsEntity. Attempting to add handy-controls DIRECTLY."); 
-        try {
-            this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
-            console.log("Successfully attempted to add handy-controls attribute directly.");
-        } catch (e) {
-            console.error("Error setting handy-controls attribute directly:", e);
-        }
-        // NOTE: Removed physics-ready listener logic for this test
+        // ... listener logic removed ...
     } else {
-        console.error("Handy controls entity not found! Cannot add handy-controls.");
+        console.error("Handy controls entity not found!");
     }
+    */
 
-    // Oculus Touch Controls on specific hand entities
+    // Oculus Touch Controls - REMOVED dynamic add/remove
+    /*
     if (this.leftHand) {
-      this.leftHand.setAttribute('oculus-touch-controls', 'hand: left;');
+      // Removed setAttribute('oculus-touch-controls', ...);
       this.leftHand.removeAttribute('universal-object-interaction'); 
-      console.log("Added oculus-touch-controls to leftHand.");
     }
     if (this.rightHand) {
-      this.rightHand.setAttribute('oculus-touch-controls', 'hand: right;');
+       // Removed setAttribute('oculus-touch-controls', ...);
       this.rightHand.removeAttribute('universal-object-interaction'); 
-      console.log("Added oculus-touch-controls to rightHand.");
     }
+    */
     
     // Restore VR Locomotion Controls to CameraRig
     if (this.cameraRig) {
@@ -135,38 +130,34 @@ AFRAME.registerComponent('control-manager', {
         }
     }
 
-    console.log("VR Mode Setup Complete (Boilerplate Alignment - Direct Handy Controls)...");
+    console.log("VR Mode Setup Complete (Components present in HTML).");
   },
 
   removeVRMode: function() {
-    console.log("Removing VR Mode Components (Boilerplate Alignment)...");
-
-    // Remove the debug keyboard listener
-    console.log("Removing VR debug key listener.");
-    window.removeEventListener('keydown', this.handleVRKeyDown);
-
-    // Remove handy-controls
+    console.log("Removing VR Mode Components (Leaving HTML components)...");
+    // Remove handy-controls - NO LONGER REMOVED
+    /*
     if (this.handyControlsEntity) {
       this.handyControlsEntity.removeAttribute('handy-controls');
-      console.log("Removed handy-controls."); 
     }
-    // Remove Oculus controls and universal interaction
+    */
+    // Remove Oculus controls - NO LONGER REMOVED
+    /*
     if (this.leftHand) {
       this.leftHand.removeAttribute('oculus-touch-controls');
-      this.leftHand.removeAttribute('universal-object-interaction'); // Ensure removal
-      console.log("Removed leftHand components.");
+      this.leftHand.removeAttribute('universal-object-interaction');
     }
     if (this.rightHand) {
       this.rightHand.removeAttribute('oculus-touch-controls');
-      this.rightHand.removeAttribute('universal-object-interaction'); // Ensure removal
-       console.log("Removed rightHand components.");
+      this.rightHand.removeAttribute('universal-object-interaction');
     }
+    */
     // Remove VR movement controls from cameraRig
     if (this.cameraRig) {
       this.cameraRig.removeAttribute('movement-controls');
       this.cameraRig.removeAttribute('simple-navmesh-constraint');
     }
-    console.log("VR Mode Components Removed (Boilerplate Alignment).");
+    console.log("VR Mode Components Removed (Except HTML components).");
   },
 
   // ---- Desktop/Mobile Mode Setup ----

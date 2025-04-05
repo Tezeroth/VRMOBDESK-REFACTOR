@@ -285,8 +285,8 @@
 
       <!-- Re-added entity for handy-controls logic (magnets, etc.) -->
       <a-entity
-        
         material="color:gold;metalness:1;roughness:0;"
+        handy-controls="materialOverride:right;"
       >
         <!-- 
           Screen space inputs (for devices without hand tracking or fallback):
@@ -340,11 +340,11 @@
 
       <!-- Explicit hand controller entities for movement input - moved here -->
       <a-entity id="leftHand" 
-          
+          oculus-touch-controls="hand: left;"
           universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
       </a-entity>
       <a-entity id="rightHand" 
-          
+          oculus-touch-controls="hand: right;"
           universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
       </a-entity>
 
