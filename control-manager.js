@@ -57,35 +57,17 @@ AFRAME.registerComponent('control-manager', {
 
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Setting up VR Mode Components (Boilerplate Alignment)...");
+    console.log("Setting up VR Mode Components (Boilerplate Alignment - Simplified Handy Controls)...");
 
-    // Handy Controls on the designated entity (Physics Dependent)
+    // Handy Controls on the designated entity (Physics Dependent - Bypassing explicit check for testing)
     if (this.handyControlsEntity) {
-        console.log("Found handyControlsEntity for handy-controls."); 
-        // Check if physics is ready using the system
-        if (this.sceneEl.systems.physics && this.sceneEl.systems.physics.driver) {
-            console.log("Physics system ready, attempting to add handy-controls.");
-            try {
-                this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
-                console.log("Successfully added handy-controls attribute.");
-            } catch (e) {
-                console.error("Error setting handy-controls attribute:", e);
-            }
-        } else {
-            console.warn("Physics system not detected when entering VR. Waiting for physics-ready event...");
-            this.sceneEl.addEventListener('physics-ready', () => {
-                console.log("Physics-ready event received AFTER entering VR. Attempting to add handy-controls.");
-                if (this.sceneEl.is('vr-mode') && this.handyControlsEntity) {
-                   try {
-                       this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
-                       console.log("Successfully added handy-controls attribute after physics-ready event.");
-                   } catch (e) {
-                       console.error("Error setting handy-controls attribute after physics-ready event:", e);
-                   }
-                } else {
-                    console.log("Conditions not met (not VR mode or entity missing) after physics-ready event.");
-                }
-            }, { once: true });
+        console.log("Found handyControlsEntity. Attempting to add handy-controls DIRECTLY."); 
+        try {
+            // Directly set the attribute, assuming physics will be ready or handy-controls handles delay
+            this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+            console.log("Successfully attempted to add handy-controls attribute directly.");
+        } catch (e) {
+            console.error("Error setting handy-controls attribute directly:", e);
         }
     } else {
         console.error("Handy controls entity not found! Cannot add handy-controls.");
@@ -124,7 +106,7 @@ AFRAME.registerComponent('control-manager', {
         }
     }
 
-    console.log("VR Mode Setup Complete (Boilerplate Alignment).");
+    console.log("VR Mode Setup Complete (Boilerplate Alignment - Simplified Handy Controls).");
   },
 
   removeVRMode: function() {
