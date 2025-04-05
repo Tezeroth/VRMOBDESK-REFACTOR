@@ -11,6 +11,7 @@ AFRAME.registerComponent('navigate-on-click', {
 
         // Change material color on hover (works in non-VR and VR)
         this.el.addEventListener('mouseenter', () => {
+            console.log('Mouseenter event on:', this.el.id);
             const mesh = this.el.getObject3D('mesh');
             if (mesh) {
                 mesh.traverse((node) => {
@@ -31,6 +32,7 @@ AFRAME.registerComponent('navigate-on-click', {
 
         // Revert material color on mouse leave
         this.el.addEventListener('mouseleave', () => {
+            console.log('Mouseleave event on:', this.el.id);
             const mesh = this.el.getObject3D('mesh');
             if (mesh) {
                 mesh.traverse((node) => {
