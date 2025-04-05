@@ -20,6 +20,7 @@ AFRAME.registerComponent('control-manager', {
     // Bind event handlers
     this.onEnterVR = this.onEnterVR.bind(this);
     this.onExitVR = this.onExitVR.bind(this);
+    this.handleVRKeyDown = this.handleVRKeyDown.bind(this);
 
     // Setup initial mode based on detection (usually desktop/mobile first)
     this.setupInitialMode();
@@ -29,6 +30,36 @@ AFRAME.registerComponent('control-manager', {
     this.sceneEl.addEventListener('exit-vr', this.onExitVR);
 
     console.log("Control Manager Initialized and listening for VR mode changes.");
+  },
+
+  // Add temporary keydown handler for VR debugging
+  handleVRKeyDown: function(event) {
+      // Only act if in VR mode 
+      if (!this.sceneEl.is('vr-mode')) return; 
+
+      if (event.key === 'g') {
+          console.log("VR Debug: 'g' key pressed. Attempting to emit squeezestart on right magnet.");
+          const rightMagnet = document.getElementById('right-magnet');
+          if (rightMagnet) {
+              rightMagnet.emit('squeezestart', null, false); // Emit the event
+              console.log("Emitted squeezestart on right-magnet.");
+          } else {
+              console.error("VR Debug: Could not find #right-magnet to emit event.");
+          }
+          event.preventDefault(); // Prevent default browser action
+      }
+       
+       if (event.key === 'h') {
+          console.log("VR Debug: 'h' key pressed. Attempting to emit squeezeend on right magnet.");
+          const rightMagnet = document.getElementById('right-magnet');
+          if (rightMagnet) {
+              rightMagnet.emit('squeezeend', null, false); // Emit the event
+              console.log("Emitted squeezeend on right-magnet.");
+          } else {
+              console.error("VR Debug: Could not find #right-magnet to emit event.");
+          }
+          event.preventDefault(); // Prevent default browser action
+      }
   },
 
   // Determines the initial setup before any enter/exit events
@@ -57,27 +88,18 @@ AFRAME.registerComponent('control-manager', {
 
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Setting up VR Mode Components (Boilerplate Alignment - Robust Physics Wait)...");
+    console.log("Setting up VR Mode Components (Boilerplate Alignment - Direct Handy Controls)...");
 
-    // Handy Controls - Add via physics-ready event listener ONLY
+    // Handy Controls - Add directly, assuming local PhysX initializes fast enough
     if (this.handyControlsEntity) {
-        console.log("Found handyControlsEntity. Adding listener for physics-ready to enable handy-controls."); 
-        // Always add a one-time listener. This handles cases where enter-vr fires before OR after physics-ready.
-        this.sceneEl.addEventListener('physics-ready', () => {
-            console.log("Physics-ready event received during VR setup phase.");
-            // Double-check we are still in VR mode and the entity exists when the event fires
-            if (this.sceneEl.is('vr-mode') && this.handyControlsEntity) {
-               console.log("Attempting to add handy-controls attribute now.");
-               try {
-                   this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
-                   console.log("Successfully added handy-controls attribute via physics-ready listener.");
-               } catch (e) {
-                   console.error("Error setting handy-controls attribute via physics-ready listener:", e);
-               }
-            } else {
-                console.log("Conditions not met (not VR mode or entity missing) when physics-ready fired.");
-            }
-        }, { once: true }); // Ensure it only runs once per enter-vr
+        console.log("Found handyControlsEntity. Attempting to add handy-controls DIRECTLY."); 
+        try {
+            this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+            console.log("Successfully attempted to add handy-controls attribute directly.");
+        } catch (e) {
+            console.error("Error setting handy-controls attribute directly:", e);
+        }
+        // NOTE: Removed physics-ready listener logic for this test
     } else {
         console.error("Handy controls entity not found! Cannot add handy-controls.");
     }
@@ -113,11 +135,16 @@ AFRAME.registerComponent('control-manager', {
         }
     }
 
-    console.log("VR Mode Setup Complete (Boilerplate Alignment - Robust Physics Wait)...");
+    console.log("VR Mode Setup Complete (Boilerplate Alignment - Direct Handy Controls)...");
   },
 
   removeVRMode: function() {
     console.log("Removing VR Mode Components (Boilerplate Alignment)...");
+
+    // Remove the debug keyboard listener
+    console.log("Removing VR debug key listener.");
+    window.removeEventListener('keydown', this.handleVRKeyDown);
+
     // Remove handy-controls
     if (this.handyControlsEntity) {
       this.handyControlsEntity.removeAttribute('handy-controls');
