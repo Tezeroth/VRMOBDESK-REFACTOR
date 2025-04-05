@@ -42,6 +42,9 @@
    <!-- <script src="ar-shadow-helper.js"></script> hers-->
 
   <!--  <script src="show-magnet-range.js"></script>-->
+  <script src="MOBDESK.js"></script>
+  <script src="control-manager.js"></script>
+  <link rel="stylesheet" href="MOBDESK.css">
 
 </head>
 <title>Merging scripts</title>
@@ -63,6 +66,7 @@
   ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOESN'T SEEM TO DO ANYTHING
   -->
   <a-scene
+  control-manager
   
     renderer="draco-decoder-path: https://cdn.jsdelivr.net/npm/three@0.125.0/examples/js/libs/draco/"
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
@@ -247,31 +251,30 @@
     -->
     <a-entity
       id="cameraRig"
-      simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;"
-      movement-controls="camera:#head; controls: keyboard, touch, gamepad;"
+      
+      
       position="0 0 0"
       rotation="0 180 0"
     >
       <!-- The user's head/camera. We give near-clipping adjustments and look-controls for standard VR head movement. -->
       <a-entity
-        id="head"
+        id="camera"
         camera="near:0.01;"
         look-controls="pointerLockEnabled: true"
         position="0 1.65 0"
       >
-        <a-cursor
-          position="0 0 -1"
-          geometry="primitive: sphere; radius: 0.005; segmentsWidth: 4; segmentsHeight: 4"
-          material="color: #0FFF00; shader: flat; opacity: 0.5"
-          raycaster="objects: .clickable, .blocker"
+        <a-entity id="cursor"
+           position="0 0 -1"
+           geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+           material="color: lime; shader: flat; opacity: 0.9" 
+           raycaster="objects: .clickable, .blocker, .pickupable"
         >
-
-        </a-cursor>
+        </a-entity>
       </a-entity>
 
       <!-- Re-added entity for handy-controls logic (magnets, etc.) -->
       <a-entity
-        handy-controls="materialOverride:right;"
+        
         material="color:gold;metalness:1;roughness:0;"
       >
         <!-- 
@@ -326,11 +329,11 @@
 
       <!-- Explicit hand controller entities for movement input - moved here -->
       <a-entity id="leftHand" 
-          oculus-touch-controls="hand: left;"
+          
           universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
       </a-entity>
       <a-entity id="rightHand" 
-          oculus-touch-controls="hand: right;"
+          
           universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
       </a-entity>
 
@@ -421,7 +424,7 @@ scale="1.6 1.4 5"
 
 <!--Buddha Model-->
     <a-gltf-model
-      class="blocker"
+      class="blocker pickupable"
       id="buddy"
       toggle-physics
       shadow="receive:false;"
@@ -503,7 +506,7 @@ physx-body="type:dynamic;mass:2;">
 
     <!-- TESTING EASE OF ADDING HANDLE TO NEW TEDDY OBJECT -->
     <a-gltf-model
-      
+      class="pickupable"
       id="teddy"
       toggle-physics
       shadow="receive:false;"
@@ -542,7 +545,7 @@ physx-body="type:dynamic;mass:2;">
 
     <!-- A greenbox with two handles -->
     <a-gltf-model
-      class="blocker"
+      class="blocker pickupable"
       id="greenbox"
       toggle-physics
       shadow="receive:false;"
@@ -742,6 +745,5 @@ physx-body="type:dynamic;mass:2;">
   
   </a-scene>
 
-  
 </body>
 </html>
