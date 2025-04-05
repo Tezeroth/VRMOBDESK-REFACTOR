@@ -63,13 +63,13 @@
   ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOESN'T SEEM TO DO ANYTHING
   -->
   <a-scene
-  universal-object-interaction
+  
     renderer="draco-decoder-path: https://cdn.jsdelivr.net/npm/three@0.125.0/examples/js/libs/draco/"
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
     stats
     physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 1; fixedTimeStep: 1/30;"
     renderer="antialias: false; precision: mediump;"
-    performance-monitor
+    
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physx="autoLoad: true; delay: 1000; useDefaultScene: true; wasmUrl: lib/physx.release.wasm;"
@@ -78,11 +78,7 @@
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
     shadow="type: pcfsoft"
     xr-mode-ui="XRMode:vr"
-    environment="
-    preset: osiris;     /* Use the Osiris environment preset */
-    lightColor: #85856f;     /* Override the default greenish color */
-    lightIntensity: 5;     /* Lower intensity so baked lighting dominates */
-  "
+    environment="preset: osiris;"
 highRefreshRate="true"
   >
  <!--
@@ -276,7 +272,7 @@ highRefreshRate="true"
 
       <!-- Re-added entity for handy-controls logic (magnets, etc.) -->
       <a-entity
-        handy-controls="right:#right-gltf; left:#left-gltf; materialOverride:right;"
+        handy-controls="materialOverride:right;"
         material="color:gold;metalness:1;roughness:0;"
       >
         <!-- 
@@ -331,11 +327,11 @@ highRefreshRate="true"
 
       <!-- Explicit hand controller entities for movement input - moved here -->
       <a-entity id="leftHand" 
-          oculus-touch-controls="hand: left; handModelStyle: lowPoly;"
+          oculus-touch-controls="hand: left;"
           universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
       </a-entity>
       <a-entity id="rightHand" 
-          oculus-touch-controls="hand: right; handModelStyle: lowPoly;"
+          oculus-touch-controls="hand: right;"
           universal-object-interaction="pickupDistance: 5; dropDistance: 10;">
       </a-entity>
 
@@ -439,7 +435,7 @@ scale="1.6 1.4 5"
         class="magnet-left magnet-right"
         position="0 0.01 -0"
         rotation="90 180 0">
-        <box></box>
+        
       </a-entity>
     </a-gltf-model>
 
@@ -461,7 +457,7 @@ physx-body="type:dynamic;mass:2;">
   class="magnet-left magnet-right"
   position="0 0.2 -0"
   rotation="90 180 0">
-  <box></box>
+  
 </a-entity>
 </a-gltf-model>
 
@@ -490,7 +486,7 @@ physx-body="type:dynamic;mass:2;">
       position="0.075 0 0"
       >
       <!--magnet-range-debug="range:0.1,0.05"-->
-      <box></box>
+      
     </a-entity>
     <a-entity
       id="hanyamask-handle"
@@ -500,7 +496,7 @@ physx-body="type:dynamic;mass:2;">
       position=" -0.075 0  0"
       rotation="90 180 0"
      >
-      <box></box>
+      
     </a-entity>
 
   </a-gltf-model>
@@ -513,7 +509,7 @@ physx-body="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#teddy"
       position="5 1.099 2"
-      physx-body="type:dynamic; mass:2; shape: {type: capsule};"
+      physx-body="type:dynamic; mass:2;"
     >
     
       <a-entity
@@ -524,7 +520,7 @@ physx-body="type:dynamic;mass:2;">
         position="0 0.01 -0"
         rotation="90 0 0"
       >
-        <box></box>
+        
       </a-entity>
     </a-gltf-model>
 
@@ -538,7 +534,7 @@ physx-body="type:dynamic;mass:2;">
       rotation="30 0 0"
       position="5 0 2.6"
      
-      physx-body="type: dynamic; mass:4; shape: {type: convex};" 
+      physx-body="type: dynamic; mass:4;" 
       toggle-physics
     >
     <!-- magnet-range-debug="range:0.2,0.1"-->
@@ -564,8 +560,7 @@ physx-body="type:dynamic;mass:2;">
         position="0 0 -0.15"
         rotation="90 180 90"
       >
-      
-        <box></box>
+        
       </a-entity>
       <a-entity
         id="box-handle-2"
@@ -577,7 +572,7 @@ physx-body="type:dynamic;mass:2;">
         rotation="90 180 90"
       >
       <!--magnet-range-debug="range:0.2,0.1"-->
-        <box></box>
+        
       </a-entity>
     </a-gltf-model>
 
@@ -588,7 +583,7 @@ physx-body="type:dynamic;mass:2;">
       class="clickable"
       color="red"
       position="-2 0.5 -2"
-      geometry="width:1;height:1;depth:1"
+      
       physx-body="type: static;"
       physx-restitution="1.5"
       navigate-on-click="target: https://tezeroth.github.io/IframeinAframe/"
@@ -616,7 +611,7 @@ physx-body="type:dynamic;mass:2;">
         rotation="0 90 0"
       >
       <!--magnet-range-debug="range:0.2,0.1"-->
-        <box></box>
+        
       </a-entity>
       <a-entity
         id="stew-handle-2"
@@ -628,7 +623,7 @@ physx-body="type:dynamic;mass:2;">
         rotation="0 90 0"
       >
       <!--magnet-range-debug="range:0.2,0.1"-->
-        <box></box>
+        
       </a-entity>
     </a-gltf-model>
 
