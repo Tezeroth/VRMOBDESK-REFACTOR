@@ -1,19 +1,20 @@
 // Placeholder for Control Manager Logic
 AFRAME.registerComponent('control-manager', {
   init: function() {
-    console.log('Control Manager Initializing...');
-    const sceneEl = this.el;
-
-    // Directly check for DeviceManager (assuming it's loaded by now)
+    // Check if DeviceManager is ready
     if (typeof DeviceManager === 'undefined' || !DeviceManager.hasOwnProperty('isVR')) {
-        console.error('DeviceManager not ready during control-manager init!');
-        // Decide how to handle this - maybe wait briefly or setup default controls?
-        // For now, we'll just log the error and attempt to continue.
+      console.log('Control Manager: DeviceManager not ready, waiting...');
+      setTimeout(this.init.bind(this), 100); // Retry after 100ms
+      return; // Stop execution for this attempt
     }
 
-    // Proceed with setup using DeviceManager if available, otherwise it might fail
-    const isVR = typeof DeviceManager !== 'undefined' ? DeviceManager.isVR : false; // Default to false if DeviceManager missing
-    const isMobile = typeof DeviceManager !== 'undefined' ? DeviceManager.isMobile : !isVR; // Default to mobile if not VR and DeviceManager missing
+    // --- DeviceManager is ready, proceed with setup --- 
+    console.log('Control Manager Initializing... (DeviceManager ready)');
+    const sceneEl = this.el;
+
+    // Proceed with setup using DeviceManager
+    const isVR = DeviceManager.isVR;
+    const isMobile = DeviceManager.isMobile;
 
     console.log(`Device Detected: VR=${isVR}, Mobile=${isMobile}`);
 
@@ -30,7 +31,17 @@ AFRAME.registerComponent('control-manager', {
           cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0;exclude:.navmesh-hole;');
       }
       if (handyControlsEntity) {
-          handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+          // Check if physics is ready before adding handy-controls
+          if (sceneEl.is('physics-ready')) {
+            console.log("Physics ready, adding handy-controls.");
+            handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+          } else {
+            console.log("DeviceManager ready, but physics not yet. Waiting for physics to add handy-controls...");
+            sceneEl.addEventListener('physics-ready', () => {
+              console.log("Physics ready event received, adding handy-controls.");
+              handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+            }, {once: true}); // Ensure listener runs only once
+          }
       }
       if (leftHand) {
           leftHand.setAttribute('oculus-touch-controls', 'hand: left;');
