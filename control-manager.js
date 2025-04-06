@@ -93,13 +93,29 @@ AFRAME.registerComponent('control-manager', {
     // Handy Controls - Add directly, assuming local PhysX initializes fast enough
     if (this.handyControlsEntity) {
         console.log("Found handyControlsEntity. Attempting to add handy-controls DIRECTLY."); 
+        let handyControlsAttached = false; // Flag
         try {
             this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
-            console.log("Successfully attempted to add handy-controls attribute directly.");
+            // Check if component is actually attached
+            handyControlsAttached = !!(this.handyControlsEntity.components && this.handyControlsEntity.components['handy-controls']);
+            console.log(`Successfully attempted to add handy-controls. Attached: ${handyControlsAttached}`);
         } catch (e) {
             console.error("Error setting handy-controls attribute directly:", e);
+            handyControlsAttached = false;
         }
-        // NOTE: Removed physics-ready listener logic for this test
+        
+        // Visual feedback via cursor color
+        const cursor = this.camera?.querySelector('#cursor');
+        if (cursor) {
+            const newColor = handyControlsAttached ? 'blue' : 'red';
+            console.log(`Setting head cursor color to ${newColor} based on handy-controls status.`);
+            cursor.setAttribute('material', 'color', newColor);
+            // Ensure cursor is visible (might have been hidden)
+             cursor.setAttribute('visible', true); 
+        } else {
+            console.warn("Could not find head cursor to update color.");
+        }
+        
     } else {
         console.error("Handy controls entity not found! Cannot add handy-controls.");
     }
@@ -140,28 +156,16 @@ AFRAME.registerComponent('control-manager', {
 
   removeVRMode: function() {
     console.log("Removing VR Mode Components (Leaving HTML components)...");
-    // Remove handy-controls - NO LONGER REMOVED
-    /*
-    if (this.handyControlsEntity) {
-      this.handyControlsEntity.removeAttribute('handy-controls');
-    }
-    */
-    // Remove Oculus controls - NO LONGER REMOVED
-    /*
-    if (this.leftHand) {
-      this.leftHand.removeAttribute('oculus-touch-controls');
-      this.leftHand.removeAttribute('universal-object-interaction');
-    }
-    if (this.rightHand) {
-      this.rightHand.removeAttribute('oculus-touch-controls');
-      this.rightHand.removeAttribute('universal-object-interaction');
-    }
-    */
+    // NOTE: handy-controls and oculus-touch-controls are NOT removed as they are in HTML now
+    
     // Remove VR movement controls from cameraRig
     if (this.cameraRig) {
       this.cameraRig.removeAttribute('movement-controls');
       this.cameraRig.removeAttribute('simple-navmesh-constraint');
     }
+    
+    // No need to explicitly reset cursor color here, setupDesktopMobileMode will handle it.
+    
     console.log("VR Mode Components Removed (Except HTML components).");
   },
 
@@ -177,19 +181,21 @@ AFRAME.registerComponent('control-manager', {
       console.log("Mobile detected, adding arrow controls UI.");
       this.sceneEl.setAttribute('arrow-controls', '');
     } else {
-      // Ensure arrows are removed if not mobile
       this.sceneEl.removeAttribute('arrow-controls');
     }
 
     // Configure camera for desktop/mobile with adjusted WASD speed
     if (this.camera) {
       this.camera.setAttribute('look-controls', 'enabled: true; pointerLockEnabled: true;');
-      // Adjust WASD acceleration (default is 65)
       console.log("Setting WASD controls with reduced acceleration (30).");
       this.camera.setAttribute('wasd-controls', 'acceleration: 30;'); 
       this.camera.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:1.65;exclude:.navmesh-hole;');
       const cursor = this.camera.querySelector('#cursor');
-      if (cursor) cursor.setAttribute('visible', true); // Show head cursor
+      if (cursor) {
+           console.log("Setting head cursor color to lime and ensuring visible.");
+           cursor.setAttribute('material', 'color', 'lime'); // Reset to default color
+           cursor.setAttribute('visible', true); 
+      }
     }
 
     console.log("Desktop/Mobile Mode Setup Complete.");
