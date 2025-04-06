@@ -27,10 +27,24 @@ AFRAME.registerComponent('control-manager', {
     this.sceneEl.addEventListener('enter-vr', () => {
       console.log("EVENT: enter-vr detected by control-manager.");
       this.isVRMode = true; // Ensure flag is set
-      console.log("Setting up VR Mode based on enter-vr event...");
-      // Ensure desktop/mobile is removed *before* setting up VR (redundant but safe)
-      this.removeDesktopMobileMode(); 
-      this.setupVRMode();
+      console.log("-> Attempting VR transition steps..."); // Moved log up
+      
+      try {
+          console.log("--> Calling removeDesktopMobileMode...");
+          this.removeDesktopMobileMode(); 
+          console.log("<-- removeDesktopMobileMode finished.");
+      } catch (e) {
+          console.error("*** ERROR during removeDesktopMobileMode in enter-vr listener:", e);
+      }
+      
+      try {
+          console.log("--> Calling setupVRMode...");
+          this.setupVRMode();
+          console.log("<-- setupVRMode finished.");
+      } catch(e) {
+           console.error("*** ERROR during setupVRMode in enter-vr listener:", e);
+      }
+      console.log("-> VR transition steps complete (or errors logged).");
     });
 
     this.sceneEl.addEventListener('exit-vr', () => {
