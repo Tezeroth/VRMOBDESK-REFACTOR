@@ -220,7 +220,23 @@ AFRAME.registerComponent('control-manager', {
         this.rightHand.addEventListener('gripup', this.logGripUp);
     } else { console.error("setupVRMode: RightHand not found, cannot add listeners."); }
     // --- END DEBUG --- 
-
+    
+    // --- DEBUG 2: Listener directly on magnet entities ---
+    this.logGripDownOnMagnet = (evt) => { console.log(`>>> GRIP DOWN directly on magnet: ${evt.target.id}`); };
+    const leftMagnet = this.handyControlsEntity?.querySelector('#left-magnet');
+    const rightMagnet = this.handyControlsEntity?.querySelector('#right-magnet');
+    
+    if (leftMagnet) {
+        console.log("Adding direct gripdown listener to leftMagnet");
+        leftMagnet.addEventListener('gripdown', this.logGripDownOnMagnet);
+    } else { console.error("setupVRMode: leftMagnet not found!"); }
+    
+    if (rightMagnet) {
+        console.log("Adding direct gripdown listener to rightMagnet");
+        rightMagnet.addEventListener('gripdown', this.logGripDownOnMagnet);
+    } else { console.error("setupVRMode: rightMagnet not found!"); }
+    // --- END DEBUG 2 ---
+    
     console.log("VR Mode Setup Complete (Boilerplate Alignment - Direct Handy Controls)...");
   },
 
@@ -229,7 +245,7 @@ AFRAME.registerComponent('control-manager', {
     console.log("Removing VR Mode Components (Leaving HTML components)...");
     // NOTE: handy-controls and oculus-touch-controls are NOT removed as they are in HTML now
 
-    // --- DEBUG: Remove event listeners --- 
+    // --- DEBUG: Remove hand event listeners --- 
      if (this.leftHand) {
          console.log("Removing gripdown/gripup listeners from leftHand");
          this.leftHand.removeEventListener('gripdown', this.logGripDown);
@@ -241,6 +257,19 @@ AFRAME.registerComponent('control-manager', {
          this.rightHand.removeEventListener('gripup', this.logGripUp);
      }
     // --- END DEBUG --- 
+    
+    // --- DEBUG 2: Remove magnet listeners ---
+    const leftMagnet = this.handyControlsEntity?.querySelector('#left-magnet');
+    const rightMagnet = this.handyControlsEntity?.querySelector('#right-magnet');
+    if (leftMagnet && this.logGripDownOnMagnet) {
+        console.log("Removing direct gripdown listener from leftMagnet");
+        leftMagnet.removeEventListener('gripdown', this.logGripDownOnMagnet);
+    }
+     if (rightMagnet && this.logGripDownOnMagnet) {
+        console.log("Removing direct gripdown listener from rightMagnet");
+        rightMagnet.removeEventListener('gripdown', this.logGripDownOnMagnet);
+    }
+    // --- END DEBUG 2 ---
 
     // Remove VR movement controls from cameraRig
     if (this.cameraRig) {
