@@ -204,39 +204,8 @@ AFRAME.registerComponent('control-manager', {
     // Oculus Touch Controls on specific hand entities are expected to be in HTML
     console.log("Assuming Oculus Touch Controls are already present in HTML.");
     
-    // --- DEBUG: Add event listeners for grip events --- 
-    this.logGripDown = (evt) => { console.log(`*** GRIP DOWN detected on: ${evt.target.id}`); };
-    this.logGripUp = (evt) => { console.log(`*** GRIP UP detected on: ${evt.target.id}`); };
-    
-    if (this.leftHand) {
-        console.log("Adding gripdown/gripup listeners to leftHand");
-        this.leftHand.addEventListener('gripdown', this.logGripDown);
-        this.leftHand.addEventListener('gripup', this.logGripUp);
-    } else { console.error("setupVRMode: LeftHand not found, cannot add listeners."); }
-    
-    if (this.rightHand) {
-        console.log("Adding gripdown/gripup listeners to rightHand");
-        this.rightHand.addEventListener('gripdown', this.logGripDown);
-        this.rightHand.addEventListener('gripup', this.logGripUp);
-    } else { console.error("setupVRMode: RightHand not found, cannot add listeners."); }
-    // --- END DEBUG --- 
-    
-    // --- DEBUG 2: Listener directly on magnet entities ---
-    this.logGripDownOnMagnet = (evt) => { console.log(`>>> GRIP DOWN directly on magnet: ${evt.target.id}`); };
-    const leftMagnet = this.handyControlsEntity?.querySelector('#left-magnet');
-    const rightMagnet = this.handyControlsEntity?.querySelector('#right-magnet');
-    
-    if (leftMagnet) {
-        console.log("Adding direct gripdown listener to leftMagnet");
-        leftMagnet.addEventListener('gripdown', this.logGripDownOnMagnet);
-    } else { console.error("setupVRMode: leftMagnet not found!"); }
-    
-    if (rightMagnet) {
-        console.log("Adding direct gripdown listener to rightMagnet");
-        rightMagnet.addEventListener('gripdown', this.logGripDownOnMagnet);
-    } else { console.error("setupVRMode: rightMagnet not found!"); }
-    // --- END DEBUG 2 ---
-    
+    // --- DEBUG: Listeners removed ---
+  
     console.log("VR Mode Setup Complete (Boilerplate Alignment - Direct Handy Controls)...");
   },
 
@@ -244,32 +213,8 @@ AFRAME.registerComponent('control-manager', {
     console.log("Attempting to run removeVRMode..."); 
     console.log("Removing VR Mode Components (Leaving HTML components)...");
     // NOTE: handy-controls and oculus-touch-controls are NOT removed as they are in HTML now
-
-    // --- DEBUG: Remove hand event listeners --- 
-     if (this.leftHand) {
-         console.log("Removing gripdown/gripup listeners from leftHand");
-         this.leftHand.removeEventListener('gripdown', this.logGripDown);
-         this.leftHand.removeEventListener('gripup', this.logGripUp);
-     }
-     if (this.rightHand) {
-         console.log("Removing gripdown/gripup listeners from rightHand");
-         this.rightHand.removeEventListener('gripdown', this.logGripDown);
-         this.rightHand.removeEventListener('gripup', this.logGripUp);
-     }
-    // --- END DEBUG --- 
-    
-    // --- DEBUG 2: Remove magnet listeners ---
-    const leftMagnet = this.handyControlsEntity?.querySelector('#left-magnet');
-    const rightMagnet = this.handyControlsEntity?.querySelector('#right-magnet');
-    if (leftMagnet && this.logGripDownOnMagnet) {
-        console.log("Removing direct gripdown listener from leftMagnet");
-        leftMagnet.removeEventListener('gripdown', this.logGripDownOnMagnet);
-    }
-     if (rightMagnet && this.logGripDownOnMagnet) {
-        console.log("Removing direct gripdown listener from rightMagnet");
-        rightMagnet.removeEventListener('gripdown', this.logGripDownOnMagnet);
-    }
-    // --- END DEBUG 2 ---
+  
+    // --- DEBUG: Listeners removed ---
 
     // Remove VR movement controls from cameraRig
     if (this.cameraRig) {
