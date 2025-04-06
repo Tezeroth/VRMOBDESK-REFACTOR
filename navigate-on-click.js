@@ -56,12 +56,18 @@ AFRAME.registerComponent('navigate-on-click', {
         // Handle navigation via VR controller trigger (VR)
         this.el.sceneEl.addEventListener('triggerdown', (event) => {
             const controller = event.target; // The VR controller entity
-            const intersected = controller.components.raycaster.intersectedEls[0];
-            if (intersected === this.el) {
-                this.navigate();
-                // Stop the event from propagating to underlying objects
-                event.stopPropagation();
+            // --- SAFETY CHECK --- 
+            if (controller && controller.components && controller.components.raycaster) {
+                 const intersected = controller.components.raycaster.intersectedEls[0];
+                 if (intersected === this.el) {
+                    this.navigate();
+                    // Stop the event from propagating to underlying objects
+                    event.stopPropagation();
+                }
+            } else {
+                console.warn('navigate-on-click: Triggerdown ignored, controller or raycaster not found on event target:', controller);
             }
+            // --- END SAFETY CHECK ---
         });
     },
 

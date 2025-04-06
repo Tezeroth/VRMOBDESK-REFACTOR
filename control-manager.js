@@ -204,20 +204,20 @@ AFRAME.registerComponent('control-manager', {
     // Oculus Touch Controls on specific hand entities are expected to be in HTML
     console.log("Assuming Oculus Touch Controls are already present in HTML.");
     
-    // --- DEBUG: Add event listeners for squeeze events --- 
-    this.logSqueezeStart = (evt) => { console.log(`*** SQUEEZE START detected on: ${evt.target.id}`); };
-    this.logSqueezeEnd = (evt) => { console.log(`*** SQUEEZE END detected on: ${evt.target.id}`); };
+    // --- DEBUG: Add event listeners for grip events --- 
+    this.logGripDown = (evt) => { console.log(`*** GRIP DOWN detected on: ${evt.target.id}`); };
+    this.logGripUp = (evt) => { console.log(`*** GRIP UP detected on: ${evt.target.id}`); };
     
     if (this.leftHand) {
-        console.log("Adding squeeze listeners to leftHand");
-        this.leftHand.addEventListener('squeezestart', this.logSqueezeStart);
-        this.leftHand.addEventListener('squeezeend', this.logSqueezeEnd);
+        console.log("Adding gripdown/gripup listeners to leftHand");
+        this.leftHand.addEventListener('gripdown', this.logGripDown);
+        this.leftHand.addEventListener('gripup', this.logGripUp);
     } else { console.error("setupVRMode: LeftHand not found, cannot add listeners."); }
     
     if (this.rightHand) {
-        console.log("Adding squeeze listeners to rightHand");
-        this.rightHand.addEventListener('squeezestart', this.logSqueezeStart);
-        this.rightHand.addEventListener('squeezeend', this.logSqueezeEnd);
+        console.log("Adding gripdown/gripup listeners to rightHand");
+        this.rightHand.addEventListener('gripdown', this.logGripDown);
+        this.rightHand.addEventListener('gripup', this.logGripUp);
     } else { console.error("setupVRMode: RightHand not found, cannot add listeners."); }
     // --- END DEBUG --- 
 
@@ -231,14 +231,14 @@ AFRAME.registerComponent('control-manager', {
 
     // --- DEBUG: Remove event listeners --- 
      if (this.leftHand) {
-         console.log("Removing squeeze listeners from leftHand");
-         this.leftHand.removeEventListener('squeezestart', this.logSqueezeStart);
-         this.leftHand.removeEventListener('squeezeend', this.logSqueezeEnd);
+         console.log("Removing gripdown/gripup listeners from leftHand");
+         this.leftHand.removeEventListener('gripdown', this.logGripDown);
+         this.leftHand.removeEventListener('gripup', this.logGripUp);
      }
      if (this.rightHand) {
-         console.log("Removing squeeze listeners from rightHand");
-         this.rightHand.removeEventListener('squeezestart', this.logSqueezeStart);
-         this.rightHand.removeEventListener('squeezeend', this.logSqueezeEnd);
+         console.log("Removing gripdown/gripup listeners from rightHand");
+         this.rightHand.removeEventListener('gripdown', this.logGripDown);
+         this.rightHand.removeEventListener('gripup', this.logGripUp);
      }
     // --- END DEBUG --- 
 
