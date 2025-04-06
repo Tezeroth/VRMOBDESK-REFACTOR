@@ -144,7 +144,7 @@ AFRAME.registerComponent('control-manager', {
 
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Attempting to run setupVRMode..."); // <-- Log 2
+    console.log("Attempting to run setupVRMode..."); 
 
     // Remove desktop/mobile specific components first
     this.removeDesktopMobileMode();
@@ -171,7 +171,7 @@ AFRAME.registerComponent('control-manager', {
     }
 
     // Handy Controls - Add directly
-    console.log(`Checking for handyControlsEntity before adding component... Found: ${!!this.handyControlsEntity}`); // <-- Log 3
+    console.log(`Checking for handyControlsEntity before adding component... Found: ${!!this.handyControlsEntity}`); 
     if (this.handyControlsEntity) {
         console.log("Found handyControlsEntity. Attempting to add handy-controls DIRECTLY.");
         let handyControlsAttached = false; // Flag
@@ -187,10 +187,10 @@ AFRAME.registerComponent('control-manager', {
 
         // Visual feedback via cursor color
         const cursor = this.camera?.querySelector('#cursor');
-        console.log(`Cursor element found for color change? ${!!cursor}`); // <-- Log 4
+        console.log(`Cursor element found for color change? ${!!cursor}`); 
         if (cursor) {
             const newColor = handyControlsAttached ? 'blue' : 'red';
-            console.log(`Setting head cursor color to ${newColor} based on handy-controls status.`); // <-- Log 5
+            console.log(`Setting head cursor color to ${newColor} based on handy-controls status.`); 
             cursor.setAttribute('material', 'color', newColor);
             cursor.setAttribute('visible', true);
         } else {
@@ -203,14 +203,44 @@ AFRAME.registerComponent('control-manager', {
 
     // Oculus Touch Controls on specific hand entities are expected to be in HTML
     console.log("Assuming Oculus Touch Controls are already present in HTML.");
+    
+    // --- DEBUG: Add event listeners for squeeze events --- 
+    this.logSqueezeStart = (evt) => { console.log(`*** SQUEEZE START detected on: ${evt.target.id}`); };
+    this.logSqueezeEnd = (evt) => { console.log(`*** SQUEEZE END detected on: ${evt.target.id}`); };
+    
+    if (this.leftHand) {
+        console.log("Adding squeeze listeners to leftHand");
+        this.leftHand.addEventListener('squeezestart', this.logSqueezeStart);
+        this.leftHand.addEventListener('squeezeend', this.logSqueezeEnd);
+    } else { console.error("setupVRMode: LeftHand not found, cannot add listeners."); }
+    
+    if (this.rightHand) {
+        console.log("Adding squeeze listeners to rightHand");
+        this.rightHand.addEventListener('squeezestart', this.logSqueezeStart);
+        this.rightHand.addEventListener('squeezeend', this.logSqueezeEnd);
+    } else { console.error("setupVRMode: RightHand not found, cannot add listeners."); }
+    // --- END DEBUG --- 
 
     console.log("VR Mode Setup Complete (Boilerplate Alignment - Direct Handy Controls)...");
   },
 
   removeVRMode: function() {
-    console.log("Attempting to run removeVRMode..."); // <-- Log 2
+    console.log("Attempting to run removeVRMode..."); 
     console.log("Removing VR Mode Components (Leaving HTML components)...");
     // NOTE: handy-controls and oculus-touch-controls are NOT removed as they are in HTML now
+
+    // --- DEBUG: Remove event listeners --- 
+     if (this.leftHand) {
+         console.log("Removing squeeze listeners from leftHand");
+         this.leftHand.removeEventListener('squeezestart', this.logSqueezeStart);
+         this.leftHand.removeEventListener('squeezeend', this.logSqueezeEnd);
+     }
+     if (this.rightHand) {
+         console.log("Removing squeeze listeners from rightHand");
+         this.rightHand.removeEventListener('squeezestart', this.logSqueezeStart);
+         this.rightHand.removeEventListener('squeezeend', this.logSqueezeEnd);
+     }
+    // --- END DEBUG --- 
 
     // Remove VR movement controls from cameraRig
     if (this.cameraRig) {
