@@ -88,28 +88,55 @@ AFRAME.registerComponent('control-manager', {
 
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Setting up VR Mode (Components already present in HTML)...");
+    console.log("Setting up VR Mode Components (Boilerplate Alignment - Combined Physics Check/Wait)...");
 
-    // Handy Controls - REMOVED dynamic add/remove
-    /*
+    // Handy Controls - Add when physics is ready
     if (this.handyControlsEntity) {
-        // ... listener logic removed ...
+        console.log("Found handyControlsEntity. Checking/waiting for physics to add handy-controls."); 
+        
+        // Check if physics is ALREADY ready
+        if (this.sceneEl.is('physics-ready')) {
+            console.log("Physics was already ready. Attempting to add handy-controls directly.");
+            try {
+                this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+                console.log("Successfully added handy-controls attribute directly (physics was ready).");
+            } catch (e) {
+                console.error("Error setting handy-controls attribute directly (physics was ready):", e);
+            }
+        } else {
+            // If not ready yet, add a listener
+            console.warn("Physics not ready yet. Adding one-time listener for physics-ready event...");
+            this.sceneEl.addEventListener('physics-ready', () => {
+                console.log("Physics-ready event received.");
+                // Double-check we are still in VR mode and the entity exists when the event fires
+                if (this.sceneEl.is('vr-mode') && this.handyControlsEntity) {
+                   console.log("Attempting to add handy-controls attribute now via listener.");
+                   try {
+                       this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+                       console.log("Successfully added handy-controls attribute via physics-ready listener.");
+                   } catch (e) {
+                       console.error("Error setting handy-controls attribute via physics-ready listener:", e);
+                   }
+                } else {
+                    console.log("Conditions not met (not VR mode or entity missing) when physics-ready fired.");
+                }
+            }, { once: true }); // Ensure it only runs once per enter-vr
+        }
     } else {
-        console.error("Handy controls entity not found!");
+        console.error("Handy controls entity not found! Cannot add handy-controls.");
     }
-    */
 
-    // Oculus Touch Controls - REMOVED dynamic add/remove
-    /*
+    // Oculus Touch Controls on specific hand entities
     if (this.leftHand) {
-      // Removed setAttribute('oculus-touch-controls', ...);
+      this.leftHand.setAttribute('oculus-touch-controls', 'hand: left;');
       this.leftHand.removeAttribute('universal-object-interaction'); 
+      console.log("Added oculus-touch-controls to leftHand.");
     }
     if (this.rightHand) {
-       // Removed setAttribute('oculus-touch-controls', ...);
+      this.rightHand.setAttribute('oculus-touch-controls', 'hand: right;');
       this.rightHand.removeAttribute('universal-object-interaction'); 
+      console.log("Added oculus-touch-controls to rightHand.");
     }
-    */
     
     // Restore VR Locomotion Controls to CameraRig
     if (this.cameraRig) {
@@ -130,7 +157,7 @@ AFRAME.registerComponent('control-manager', {
         }
     }
 
-    console.log("VR Mode Setup Complete (Components present in HTML).");
+    console.log("VR Mode Setup Complete (Boilerplate Alignment - Combined Physics Check/Wait)...");
   },
 
   removeVRMode: function() {
