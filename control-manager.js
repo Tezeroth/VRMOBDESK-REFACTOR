@@ -74,7 +74,6 @@ AFRAME.registerComponent('control-manager', {
         this.isVRMode = false;
         console.log("Initial state is Desktop/Mobile. Setting up Desktop/Mobile mode.");
         // Explicitly remove any lingering VR components (safety check)
-        this.removeVRMode(); 
         // Setup Desktop/Mobile as it's the initial state
         this.setupDesktopMobileMode();
       }
