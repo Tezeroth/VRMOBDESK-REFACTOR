@@ -30,6 +30,10 @@ AFRAME.registerComponent("toggle-physics", {
       }
       // --- End Feedback --- 
       this.el.removeState('grabbed');
+      
+      // --- TEST: Skip applying release velocity ---
+      console.log(`*** toggle-physics: SKIPPING velocity application on putdown for ${this.el.id}`);
+      /* 
       if (e.detail.frame && e.detail.inputSource) {
         const referenceSpace = this.el.sceneEl.renderer.xr.getReferenceSpace();
         const pose = e.detail.frame.getPose(e.detail.inputSource.gripSpace, referenceSpace);
@@ -40,6 +44,8 @@ AFRAME.registerComponent("toggle-physics", {
           this.el.components['physx-body'].rigidBody.setLinearVelocity(pose.linearVelocity);
         }
       }
+      */
+      // --- END TEST ---
     }
   }
 });
