@@ -607,12 +607,13 @@ physx-body="type:dynamic;mass:2;">
 
     <!-- A stew pot model with physics and handles that can be grabbed -->
     <a-gltf-model
-      class="blocker"
+      class="blocker pickupable"
       id="pot"
+      toggle-physics
       shadow="receive:false;"
       src="#stew-gltf"
       position="-2 1.2 0.8"
-      physx-body="type:dynamic;mass:2;shape: box;"
+      physx-body="type:dynamic;mass:2;"
   
     >
       <a-entity
