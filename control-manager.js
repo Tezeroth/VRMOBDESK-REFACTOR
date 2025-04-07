@@ -48,7 +48,7 @@ AFRAME.registerComponent('control-manager', {
       
       // Conditionally remove static colliders and disable shadows on mobile
       if (this.isMobile) {
-          console.log("Mobile detected. Disabling shadows and queueing collider removal...");
+          console.log("Mobile detected. Disabling shadows...");
           
           // Disable shadows from main light immediately
           const light = this.sceneEl.querySelector('#dirlight');
@@ -67,18 +67,24 @@ AFRAME.registerComponent('control-manager', {
                console.warn("Could not find #dirlight to disable shadows for mobile.");
           }
           
-          // Delay collider removal slightly
+          // --- RE-ATTEMPT COMMENT OUT Mobile Collider Removal ---
+          /* 
+          console.log("Queueing collider removal for mobile...");
+          // Delay removal slightly to ensure physics system is ready
           setTimeout(() => {
               console.log("Executing delayed collider removal for mobile...");
-              const staticColliders = this.sceneEl.querySelectorAll('.venue-collider');
-              console.log(`Found ${staticColliders.length} venue colliders to remove physics from.`);
-              staticColliders.forEach(collider => {
-                  if (collider.components['physx-body']) {
-                     collider.removeAttribute('physx-body');
-                  } // Simplified logging
+              const colliders = this.sceneEl.querySelectorAll('.venue-collider');
+              console.log(`Found ${colliders.length} venue colliders to remove physics from.`);
+              colliders.forEach(collider => {
+                  if (collider.hasAttribute('physx-body')) {
+                      collider.removeAttribute('physx-body');
+                      // console.log(`Removed physx-body from ${collider.id || 'collider'}`);
+                  }
               });
-              console.log("Delayed collider removal complete.");
+               console.log("Delayed collider removal complete.");
           }, 1000); // 1 second delay
+          */
+          // ---
       }
       
       if (DeviceManager.isVR) {
@@ -156,27 +162,40 @@ AFRAME.registerComponent('control-manager', {
   // ---- Desktop/Mobile Mode Setup ----
   setupDesktopMobileMode: function() {
     console.log("Setting up Desktop/Mobile Mode...");
-    this.sceneEl.setAttribute('desktop-and-mobile-controls', '');
+    const cameraEl = document.querySelector('#camera');
+    const cameraRig = document.querySelector('#cameraRig');
+    const sceneEl = this.el.sceneEl;
 
-    // Add arrow UI only if mobile
+    // Add necessary components if not present
+    if (cameraEl && !cameraEl.hasAttribute('look-controls')) {
+        cameraEl.setAttribute('look-controls', 'pointerLockEnabled: true');
+    }
+    if (cameraEl && !cameraEl.hasAttribute('wasd-controls')) {
+        // <<< REDUCE ACCELERATION BY 25% >>>
+        cameraEl.setAttribute('wasd-controls', 'fly: false; acceleration: 23;'); // Was 30
+        console.log("Setting WASD controls with reduced acceleration (23).");
+    } else if (cameraEl) {
+         // If it exists, just set acceleration
+         cameraEl.setAttribute('wasd-controls', 'acceleration', 23); // Was 30
+         console.log("Updating existing WASD controls acceleration to 23.");
+    }
+    
+    // Add mobile specific UI
     if (DeviceManager.isMobile) {
-      console.log("Mobile detected, adding arrow controls UI.");
-      this.sceneEl.setAttribute('arrow-controls', '');
+        console.log("Mobile detected, adding arrow controls UI.");
+        if (!sceneEl.components['arrow-controls']) {
+             sceneEl.setAttribute('arrow-controls', ''); 
+        }
     } else {
-      this.sceneEl.removeAttribute('arrow-controls');
+         // Ensure arrow controls are removed if on desktop
+         if (sceneEl.components['arrow-controls']) {
+              sceneEl.removeAttribute('arrow-controls');
+         }
     }
 
-    // Configure camera for desktop/mobile with adjusted WASD speed
-    if (this.camera) {
-      this.camera.setAttribute('look-controls', 'enabled: true; pointerLockEnabled: true;');
-      console.log("Setting WASD controls with reduced acceleration (30).");
-      this.camera.setAttribute('wasd-controls', 'acceleration: 30;');
-      this.camera.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:1.65;exclude:.navmesh-hole;');
-      const cursor = this.camera.querySelector('#cursor');
-      if (cursor) {
-        cursor.setAttribute('material', 'color', 'lime'); // Reset color
-        cursor.setAttribute('visible', true);
-      }
+    // Add the main interaction component
+    if (!sceneEl.components['desktop-and-mobile-controls']) {
+        sceneEl.setAttribute('desktop-and-mobile-controls', '');
     }
 
     console.log("Desktop/Mobile Mode Setup Complete.");

@@ -183,4 +183,72 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Basic Styles - Can be expanded */
+body {
+  margin: 0;
+  overflow: hidden; /* Prevent scrollbars */
+}
+
+/* Loading Overlay Styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  font-family: sans-serif;
+  z-index: 1000;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #555;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Arrow Controls Styles */
+.arrow-controls {
+  /* ... existing styles ... */
+}
+
+.arrow-btn, .action-btn {
+ /* ... existing styles ... */
+}
+
+/* Look Mode Button Styles */
+.look-mode-btn {
+ /* ... existing styles ... */
+}
+
+/* Permission Overlay Styles */
+.permission-overlay {
+ /* ... existing styles ... */
+}
+
+.permission-content {
+ /* ... existing styles ... */
 } 

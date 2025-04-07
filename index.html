@@ -54,6 +54,12 @@
 </head>
 <title>Merging scripts</title>
 <body>
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loader"></div>
+      <span>Loading...</span>
+    </div>
+  </div>
   <!-- 
       The main A-Frame scene element:
       - physx: Integrates physics simulation using PhysX (delayed start for stability)
@@ -76,6 +82,7 @@
   physx="autoLoad: true; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.2.x/wasm/physx.release.wasm"-->
   <!--https://cdn.jsdelivr.net/gh/c-frame/physx@v0.2.x/wasm/physx.release.wasm"-->
   <a-scene
+
   control-manager
   
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
@@ -94,6 +101,7 @@
     xr-mode-ui="XRMode:vr"
     environment="preset: osiris;"
     highRefreshRate="true"
+    loading-screen-manager
   >
  <!--
 
@@ -456,7 +464,7 @@ scale="1.6 1.4 5"
       shadow="receive:false;"
       src="#buddy"
       position="-1.5 1.3 3.3"
-      physx-body="type:dynamic; mass:2; shape: cylinder;">
+      physx-body="type:dynamic; mass:2;">
       <a-entity
         id="buddy-handle-1"
         data-magnet-range="0.2,0.1,360,180"
@@ -576,7 +584,7 @@ physx-body="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#greenbox"
       position="-2 1.6 3"
-      physx-body="type:dynamic; mass:2; shape: box;"
+      physx-body="type:dynamic; mass:2;"
       scale="1 1 1"
     >
       <a-entity
