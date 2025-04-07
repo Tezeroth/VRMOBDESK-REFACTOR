@@ -80,15 +80,12 @@
   
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
     stats
-    physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 1; fixedTimeStep: 1/30;"
+    physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 4; fixedTimeStep: 1/60;"
     renderer="antialias: true; precision: mediump;"
     
+    physx="autoLoad: true; wasmUrl: lib/physx.release.wasm";
     
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    
-    physx="autoLoad: true; delay: 1000; wasmUrl: lib/physx.release.wasm";
-
-    
     
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
@@ -389,7 +386,7 @@
     </a-entity>
 
     <!-- A piano model, notice without physx-from-model, you cant put things -->
-    <a-gltf-model id="piano"  rotation="0 100 0"  position="0 0 4.5"  shadow="receive:false;cast:true;"
+    <a-gltf-model id="piano"  rotation="0 100 0"  position="-5.466 0 7.979"  shadow="receive:false;cast:true;"
     src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118"
     >
       <a-plane
@@ -459,7 +456,7 @@ scale="1.6 1.4 5"
       shadow="receive:false;"
       src="#buddy"
       position="-1.5 1.3 3.3"
-      physx-body="type:dynamic;mass:2;">
+      physx-body="type:dynamic; mass:2; shape: cylinder;">
       <a-entity
         id="buddy-handle-1"
         data-magnet-range="0.2,0.1,360,180"
@@ -474,7 +471,7 @@ scale="1.6 1.4 5"
 <!--Norbit model-->
 
 <a-gltf-model
-class="blocker"
+class="blocker pickupable"
 id="norbit"
 toggle-physics
 shadow="receive:false;"
@@ -500,7 +497,7 @@ physx-body="type:dynamic;mass:2;">
     -->
 
     <a-gltf-model
-  
+    class="pickupable"
     id="hanyamask"
     toggle-physics
     shadow="receive:false;"
@@ -511,7 +508,7 @@ physx-body="type:dynamic;mass:2;">
     >
     
     <a-entity
-      id="hanyamask-handle"
+      id="hanyamask-handle-1"
       data-magnet-range="0.1,0.05,360,180"
       data-pick-up="parent"
       class="magnet-left magnet-right"
@@ -521,7 +518,7 @@ physx-body="type:dynamic;mass:2;">
       
     </a-entity>
     <a-entity
-      id="hanyamask-handle"
+      id="hanyamask-handle-2"
       data-magnet-range="0.1,0.05,360,180"
       data-pick-up="parent"
       class="magnet-left magnet-right"
@@ -557,11 +554,11 @@ physx-body="type:dynamic;mass:2;">
     </a-gltf-model>
 
     <a-gltf-model
+      class="pickupable magnet-left magnet-right"
       id="coin01"
       src="#coinmesh"
       data-pick-up
       scale="1 1 1"
-      class="magnet-left magnet-right"
       data-magnet-range="0.2,0.1,360,180"
       rotation="30 0 0"
       position="5 0 2.6"
@@ -569,7 +566,6 @@ physx-body="type:dynamic;mass:2;">
       physx-body="type: dynamic; mass:4;" 
       toggle-physics
     >
-    <!-- magnet-range-debug="range:0.2,0.1"-->
     </a-gltf-model>
 
     <!-- A greenbox with two handles -->
@@ -580,7 +576,7 @@ physx-body="type:dynamic;mass:2;">
       shadow="receive:false;"
       src="#greenbox"
       position="-2 1.6 3"
-      physx-body="type:dynamic;mass:2;"
+      physx-body="type:dynamic; mass:2; shape: box;"
       scale="1 1 1"
     >
       <a-entity
