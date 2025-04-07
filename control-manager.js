@@ -25,33 +25,16 @@ AFRAME.registerComponent('control-manager', {
     this.isMobile = false; 
 
     this.sceneEl.addEventListener('enter-vr', () => {
-      console.log("EVENT: enter-vr detected by control-manager.");
-      this.isVRMode = true; // Ensure flag is set
-      console.log("-> Attempting VR transition steps..."); // Moved log up
-      
-      try {
-          console.log("--> Calling removeDesktopMobileMode...");
-          this.removeDesktopMobileMode(); 
-          console.log("<-- removeDesktopMobileMode finished.");
-      } catch (e) {
-          console.error("*** ERROR during removeDesktopMobileMode in enter-vr listener:", e);
-      }
-      
-      try {
-          console.log("--> Calling setupVRMode...");
-          this.setupVRMode();
-          console.log("<-- setupVRMode finished.");
-      } catch(e) {
-           console.error("*** ERROR during setupVRMode in enter-vr listener:", e);
-      }
-      console.log("-> VR transition steps complete (or errors logged).");
+      console.log("Event: enter-vr detected.");
+      this.isVRMode = true; 
+      this.removeDesktopMobileMode();
+      this.setupVRMode();
     });
 
     this.sceneEl.addEventListener('exit-vr', () => {
-      console.log("EVENT: exit-vr detected by control-manager.");
-      if (this.isVRMode) { // Keep check here, only run if actually exiting VR mode
+      console.log("Event: exit-vr detected.");
+      if (this.isVRMode) { 
         this.isVRMode = false;
-        console.log("Transitioning back to Desktop/Mobile Mode...");
         this.removeVRMode();
         this.setupDesktopMobileMode();
       }
@@ -61,176 +44,118 @@ AFRAME.registerComponent('control-manager', {
     DeviceManager.init().then(() => {
       // Update mobile status now that DeviceManager is ready
       this.isMobile = DeviceManager.isMobile;
-      console.log(`Control Manager: Initial Device Check Complete - isVR: ${DeviceManager.isVR}, isMobile: ${this.isMobile}`);
+      console.log(`Control Manager: Initial Device Check - isVR: ${DeviceManager.isVR}, isMobile: ${this.isMobile}`);
       
-      // Set initial state based *directly* on DeviceManager
+      // Conditionally remove static colliders and disable shadows on mobile
+      if (this.isMobile) {
+          console.log("Mobile detected. Disabling shadows and queueing collider removal...");
+          
+          // Disable shadows from main light immediately
+          const light = this.sceneEl.querySelector('#dirlight');
+          if (light) {
+              try {
+                   if (light.components.light) {
+                       light.setAttribute('light', 'castShadow', false);
+                       console.log("Disabled shadow casting on #dirlight for mobile.");
+                   } else {
+                       console.warn("#dirlight found, but no light component to modify.");
+                   }
+              } catch (e) {
+                   console.error("Error disabling shadows on #dirlight:", e);
+              }
+          } else {
+               console.warn("Could not find #dirlight to disable shadows for mobile.");
+          }
+          
+          // Delay collider removal slightly
+          setTimeout(() => {
+              console.log("Executing delayed collider removal for mobile...");
+              const staticColliders = this.sceneEl.querySelectorAll('.venue-collider');
+              console.log(`Found ${staticColliders.length} venue colliders to remove physics from.`);
+              staticColliders.forEach(collider => {
+                  if (collider.components['physx-body']) {
+                     collider.removeAttribute('physx-body');
+                  } // Simplified logging
+              });
+              console.log("Delayed collider removal complete.");
+          }, 1000); // 1 second delay
+      }
+      
       if (DeviceManager.isVR) {
-        this.isVRMode = true; // Set internal flag immediately
-        console.log("Initial state IS VR (Emulator/Device). Preemptively removing Desktop/Mobile components and waiting for 'enter-vr' event to setup VR mode.");
-        // Remove potentially conflicting desktop components right away
-        this.removeDesktopMobileMode(); 
-        // **Crucially, DO NOT call setupVRMode here.** Wait for the 'enter-vr' event from user action.
+        this.isVRMode = true; 
+        console.log("Initial state IS VR. Removing Desktop/Mobile components.");
+        this.removeDesktopMobileMode();
       } else {
         this.isVRMode = false;
-        console.log("Initial state is Desktop/Mobile. Setting up Desktop/Mobile mode.");
-        // Explicitly remove any lingering VR components (safety check)
-        // Setup Desktop/Mobile as it's the initial state
+        console.log("Initial state is Desktop/Mobile. Setting up.");
+        // Ensure setup occurs *after* potential collider removal
         this.setupDesktopMobileMode();
       }
-      console.log("Control Manager Initial Setup Complete. Listening for VR events.");
+      console.log("Control Manager Initial Setup Complete.");
     }).catch(error => {
         console.error("Error during DeviceManager initialization:", error);
         // Fallback to desktop/mobile if DeviceManager fails
-        console.log("Fallback: Setting up Desktop/Mobile mode due to DeviceManager error.");
+        console.log("Fallback: Setting up Desktop/Mobile mode.");
         this.isVRMode = false;
         this.setupDesktopMobileMode();
     });
   },
 
-  // Add temporary keydown handler for VR debugging
-  handleVRKeyDown: function(event) {
-      // Only act if in VR mode 
-      if (!this.sceneEl.is('vr-mode')) return; 
-
-      if (event.key === 'g') {
-          console.log("VR Debug: 'g' key pressed. Attempting to emit squeezestart on right magnet.");
-          const rightMagnet = document.getElementById('right-magnet');
-          if (rightMagnet) {
-              rightMagnet.emit('squeezestart', null, false); // Emit the event
-              console.log("Emitted squeezestart on right-magnet.");
-          } else {
-              console.error("VR Debug: Could not find #right-magnet to emit event.");
-          }
-          event.preventDefault(); // Prevent default browser action
-      }
-       
-       if (event.key === 'h') {
-          console.log("VR Debug: 'h' key pressed. Attempting to emit squeezeend on right magnet.");
-          const rightMagnet = document.getElementById('right-magnet');
-          if (rightMagnet) {
-              rightMagnet.emit('squeezeend', null, false); // Emit the event
-              console.log("Emitted squeezeend on right-magnet.");
-          } else {
-              console.error("VR Debug: Could not find #right-magnet to emit event.");
-          }
-          event.preventDefault(); // Prevent default browser action
-      }
-  },
-
-  // Determines the initial setup before any enter/exit events
-  setupInitialMode: function() {
-    if (this.sceneEl.is('vr-mode')) {
-      console.log("Initial Mode: Already in VR. Setting up VR controls.");
-      this.setupVRMode();
-    } else {
-      console.log("Initial Mode: Not in VR. Setting up Desktop/Mobile controls.");
-      // Always start with desktop/mobile controls if not immediately in VR
-      this.setupDesktopMobileMode();
-    }
-  },
-
-  onEnterVR: function() {
-    console.log("Event: enter-vr received.");
-    this.removeDesktopMobileMode(); // Clean up desktop/mobile stuff
-    this.setupVRMode();           // Setup VR stuff
-  },
-
-  onExitVR: function() {
-    console.log("Event: exit-vr received.");
-    this.removeVRMode();           // Clean up VR stuff
-    this.setupDesktopMobileMode(); // Setup desktop/mobile stuff
-  },
-
   // ---- VR Mode Setup ----
   setupVRMode: function() {
-    console.log("Attempting to run setupVRMode..."); 
-
-    // Remove desktop/mobile specific components first
+    console.log("Setting up VR Mode...");
     this.removeDesktopMobileMode();
 
-    console.log("Setting up VR Mode Components (Boilerplate Alignment)...");
-
-    // VR Movement Controls on cameraRig
     if (this.cameraRig) {
-      console.log("Setting movement-controls and simple-navmesh-constraint on cameraRig for VR.");
       this.cameraRig.setAttribute('movement-controls', 'controls: checkpoint, nipple, trackpad, touch, gamepad, keyboard, mouse; speed:0.2;');
       this.cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0.01;exclude:.navmesh-hole;');
     } else {
       console.error("Camera Rig not found! Cannot set VR movement controls.");
     }
 
-    // Look controls on camera (usually managed by VR headset)
     if (this.camera) {
-      this.camera.setAttribute('look-controls', 'enabled', false); // Disable mouse/touch look in VR
-       const cursor = this.camera.querySelector('#cursor');
-       if (cursor) cursor.setAttribute('visible', true); // Ensure head cursor is visible
-       else console.warn("setupVRMode: Head cursor not found inside camera.");
+      this.camera.setAttribute('look-controls', 'enabled', false);
+      const cursor = this.camera.querySelector('#cursor');
+      if (cursor) cursor.setAttribute('visible', true);
+      else console.warn("setupVRMode: Head cursor not found inside camera.");
     } else {
-        console.error("Camera not found! Cannot disable look-controls.");
+      console.error("Camera not found! Cannot disable look-controls.");
     }
 
-    // Handy Controls - Add directly
-    console.log(`Checking for handyControlsEntity before adding component... Found: ${!!this.handyControlsEntity}`); 
     if (this.handyControlsEntity) {
-        console.log("Found handyControlsEntity. Attempting to add handy-controls DIRECTLY.");
-        let handyControlsAttached = false; // Flag
-        try {
-            this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
-            // Check if component is actually attached
-            handyControlsAttached = !!(this.handyControlsEntity.components && this.handyControlsEntity.components['handy-controls']);
-            console.log(`Successfully attempted to add handy-controls. Attached: ${handyControlsAttached}`);
-        } catch (e) {
-            console.error("Error setting handy-controls attribute directly:", e);
-            handyControlsAttached = false;
-        }
-
-        // Visual feedback via cursor color
+      try {
+        this.handyControlsEntity.setAttribute('handy-controls', 'materialOverride:right;');
+        const handyControlsAttached = !!(this.handyControlsEntity.components && this.handyControlsEntity.components['handy-controls']);
+        console.log(`Handy-controls attached: ${handyControlsAttached}`); // Keep this check
+        // Keep cursor color logic for feedback
         const cursor = this.camera?.querySelector('#cursor');
-        console.log(`Cursor element found for color change? ${!!cursor}`); 
         if (cursor) {
             const newColor = handyControlsAttached ? 'blue' : 'red';
-            console.log(`Setting head cursor color to ${newColor} based on handy-controls status.`); 
             cursor.setAttribute('material', 'color', newColor);
-            cursor.setAttribute('visible', true);
-        } else {
-            console.warn("Could not find head cursor to update color.");
+            cursor.setAttribute('visible', true); // Ensure visible
         }
-
+      } catch (e) {
+        console.error("Error setting handy-controls attribute:", e);
+      }
     } else {
-        console.error("Handy controls entity not found! Cannot add handy-controls.");
+      console.error("Handy controls entity not found!");
     }
-
-    // Oculus Touch Controls on specific hand entities are expected to be in HTML
-    console.log("Assuming Oculus Touch Controls are already present in HTML.");
-    
-    // --- DEBUG: Listeners removed ---
-  
-    console.log("VR Mode Setup Complete (Boilerplate Alignment - Direct Handy Controls)...");
+    // Oculus Touch Controls assumed to be in HTML
+    console.log("VR Mode Setup Complete.");
   },
 
   removeVRMode: function() {
-    console.log("Attempting to run removeVRMode..."); 
-    console.log("Removing VR Mode Components (Leaving HTML components)...");
-    // NOTE: handy-controls and oculus-touch-controls are NOT removed as they are in HTML now
-  
-    // --- DEBUG: Listeners removed ---
-
-    // Remove VR movement controls from cameraRig
+    console.log("Removing VR Mode components...");
     if (this.cameraRig) {
       this.cameraRig.removeAttribute('movement-controls');
       this.cameraRig.removeAttribute('simple-navmesh-constraint');
     }
-
-    // No need to explicitly reset cursor color here, setupDesktopMobileMode will handle it.
-
-    console.log("VR Mode Components Removed (Except HTML components).");
+    console.log("VR Mode Components Removed.");
   },
 
   // ---- Desktop/Mobile Mode Setup ----
   setupDesktopMobileMode: function() {
-    console.log("Setting up Desktop/Mobile Mode Components...");
-
-    // Add desktop/mobile interaction handler
+    console.log("Setting up Desktop/Mobile Mode...");
     this.sceneEl.setAttribute('desktop-and-mobile-controls', '');
 
     // Add arrow UI only if mobile
@@ -249,9 +174,8 @@ AFRAME.registerComponent('control-manager', {
       this.camera.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:1.65;exclude:.navmesh-hole;');
       const cursor = this.camera.querySelector('#cursor');
       if (cursor) {
-           console.log("Setting head cursor color to lime and ensuring visible.");
-           cursor.setAttribute('material', 'color', 'lime'); // Reset to default color
-           cursor.setAttribute('visible', true);
+        cursor.setAttribute('material', 'color', 'lime'); // Reset color
+        cursor.setAttribute('visible', true);
       }
     }
 
@@ -259,7 +183,7 @@ AFRAME.registerComponent('control-manager', {
   },
 
   removeDesktopMobileMode: function() {
-    console.log("Removing Desktop/Mobile Mode Components...");
+    console.log("Removing Desktop/Mobile Mode components...");
     this.sceneEl.removeAttribute('desktop-and-mobile-controls');
     this.sceneEl.removeAttribute('arrow-controls');
 
@@ -268,9 +192,6 @@ AFRAME.registerComponent('control-manager', {
       this.camera.setAttribute('look-controls', 'enabled', false);
       this.camera.removeAttribute('wasd-controls');
       this.camera.removeAttribute('simple-navmesh-constraint');
-       const cursor = this.camera.querySelector('#cursor');
-       // Hide cursor in VR by default? Or let setupVRMode handle it?
-       // Let's ensure setupVRMode makes it visible.
     }
     console.log("Desktop/Mobile Mode Components Removed.");
   },

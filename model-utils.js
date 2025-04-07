@@ -154,7 +154,7 @@ AFRAME.registerComponent('depthwrite', {
   update() {
     this.el.object3D.traverse(function (o) {
       if (o.material) {
-        // Set each material's depthWrite property based on the component's data
+        // Restore original behavior: Set depthWrite based on component data for ALL materials
         o.material.depthWrite = this.data;
       }
     }.bind(this));

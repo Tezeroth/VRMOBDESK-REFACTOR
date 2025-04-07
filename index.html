@@ -3,6 +3,9 @@
 <head>
 
   <!-- WORKING VERSION. TIDY UP, DOCUMENT, AND ADD MORE FEATURES -->
+   <!--
+   LEARN WEBPACK AND USE IT TO COMPRESS THE FILES - DO NOT FORGET
+   -->
 
 
 <!--IN FUTURE READ THIS ARTICLE ABOUT GLTF AND GLB FILE FORMATS FOR OPTIMIZATION https://www.donmccurdy.com/2024/03/10/data-urls-in-3d-models/-->
@@ -179,6 +182,9 @@
 
       <a-asset-item id="step" src="Assets/venue/G_axis_collider.glb" crossorigin="anonymous"></a-asset-item>
 
+      <!-- Added merged collider asset - REVERTED -->
+      <!-- <a-asset-item id="mergedcolliders-glb" src="Assets/venue/mergedcolliders.glb" crossorigin="anonymous"></a-asset-item> -->
+
     </a-assets>
 
       <!--APPLYING LIGHTMAP TO ENVIROMENT - CHECK THE SCRIPTS. A very interesting way of doing things, I like it -->
@@ -200,32 +206,44 @@
   
   </a-gltf-model>
 
+<!-- Single merged static collider - REVERTED -->
+<!-- 
+<a-gltf-model 
+    id="merged-static-colliders" 
+    src="#mergedcolliders-glb" 
+    physx-body="type: static;" 
+    make-transparent 
+    position="0 0 0">
+</a-gltf-model>
+-->
+
 <!--colliders for the venue get this WHEN BATCH EXPORT IS AVAILABLE https://blendermarket.com/products/simple-collider?search_id=35761983 -->
 
+<!-- Re-added individual collider models -->
 <!--WALL COLLIDERS parallel with BLENDERS X-AXIS - Then exported to gltf with y=up -->
-  <a-gltf-model id="venuecolliderB1"src="#venuecolliderB1" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB2"src="#venuecolliderB2" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB3"src="#venuecolliderB3" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB4"src="#venuecolliderB4" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB5"src="#venuecolliderB5" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB6"src="#venuecolliderB6" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB7"src="#venuecolliderB7" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB8"src="#venuecolliderB8" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderB9"src="#venuecolliderB9" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB1"src="#venuecolliderB1" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB2"src="#venuecolliderB2" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB3"src="#venuecolliderB3" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB4"src="#venuecolliderB4" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB5"src="#venuecolliderB5" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB6"src="#venuecolliderB6" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB7"src="#venuecolliderB7" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB8"src="#venuecolliderB8" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderB9"src="#venuecolliderB9" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 
   <!--WALL COLLIDERS parallel with BLENDERS Y-AXIS - Then exported to gltf with y=up -->
 
-  <a-gltf-model id="venuecolliderA1"src="#venuecolliderA1" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA2"src="#venuecolliderA2" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA3"src="#venuecolliderA3" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA4"src="#venuecolliderA4" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA5"src="#venuecolliderA5" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA6"src="#venuecolliderA6" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA7"src="#venuecolliderA7" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-  <a-gltf-model id="venuecolliderA8"src="#venuecolliderA8" position="0 0 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA1"src="#venuecolliderA1" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA2"src="#venuecolliderA2" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA3"src="#venuecolliderA3" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA4"src="#venuecolliderA4" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA5"src="#venuecolliderA5" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA6"src="#venuecolliderA6" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA7"src="#venuecolliderA7" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+  <a-gltf-model id="venuecolliderA8"src="#venuecolliderA8" position="0 0 0" class="venue-collider" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
 
-
-
+<!-- Step Collider -->
+  <a-gltf-model id="step" src="#step" position="0 0 0" class="venue-collider" crossorigin="anonymous" physx-body="type:static" make-transparent></a-gltf-model>
 
      <!-- The navmesh model FOR PLAYER TRAVERSAL, take notice we dont need the physics container -->
      <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
@@ -394,8 +412,8 @@
 <a-gltf-model id="shelves"  rotation="0 90 0"  position=" 4.5 0 5"  shadow="receive:false;cast:true;"
 src="#shelves"
 >
-<a-gltf-model id="topshelfcollider"src="#topshelfcollider" position="0 0.9 0" crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-<a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"physx-body="type:static" make-transparent position="0 0.1 0"></a-gltf-model>
+<a-gltf-model id="topshelfcollider"src="#topshelfcollider" position="0 0.9 0"  crossorigin="anonymous" physx-body="type:static" make-transparent ></a-gltf-model> <!-- DEBUG: Restored physics, removed collider class -->
+<a-gltf-model id="bottomshelfcollider"src="#bottomshelfcollider"crossorigin="anonymous"  physx-body="type:static" make-transparent position="0 0.1 0"></a-gltf-model> <!-- DEBUG: Restored physics, removed collider class -->
 <a-plane
 rotation="-90 0 0"
 position="0 -0.01 0"
@@ -419,10 +437,10 @@ scale="1.6 1.4 5"
 <!-- BE AWARE THE MODEL IS SHITTY AND NOT BEEN RETOPOED YET-->
 <a-gltf-model id="sofa" position ="0 0 8" rotation="0 180 0" shadow="receive:true;cast:true;" src="Assets/Sofa/this.glb" crossorigin="anonymous">
 
-<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
-<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"physx-body="type:static" make-transparent></a-gltf-model>
-<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"physx-body="type:static" make-transparent></a-gltf-model>
-<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"physx-body="type:static" make-transparent ></a-gltf-model>
+<a-gltf-model id="sofabase"src="#sofabase"crossorigin="anonymous"  physx-body="type:static" make-transparent ></a-gltf-model> <!-- DEBUG: Restored physics, removed collider class -->
+<a-gltf-model id="sofaback"src="#sofaback"crossorigin="anonymous"  physx-body="type:static" make-transparent></a-gltf-model> <!-- DEBUG: Restored physics, removed collider class -->
+<a-gltf-model id="sofaleft"src="#sofaleft"crossorigin="anonymous"  physx-body="type:static" make-transparent></a-gltf-model> <!-- DEBUG: Restored physics, removed collider class -->
+<a-gltf-model id="sofaright"src="#sofaright"crossorigin="anonymous"  physx-body="type:static" make-transparent ></a-gltf-model> <!-- DEBUG: Restored physics, removed collider class -->
 </a-gltf-model>
 <!--dont know why it insists on it not being nested. remember -90 on the rotation means it faces up. always double click the item in the inspector to see where it is-->
 <a-plane rotation="-90 0 0" position ="0 -0.01 8" width="1.8" height="0.9" class="navmesh-hole" crossorigin="anonymous"></a-plane>
@@ -611,7 +629,7 @@ physx-body="type:dynamic;mass:2;">
       toggle-physics
       shadow="receive:false;"
       src="#stew-gltf"
-      position="-2 1.2 0.8"
+      position="-2 1.22 0.8"
       physx-body="type:dynamic;mass:2;shape: sphere;"
   
     >
