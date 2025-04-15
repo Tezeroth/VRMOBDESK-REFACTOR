@@ -170,16 +170,25 @@ AFRAME.registerComponent('control-manager', {
     if (cameraEl && !cameraEl.hasAttribute('look-controls')) {
         cameraEl.setAttribute('look-controls', 'pointerLockEnabled: true');
     }
-    if (cameraEl && !cameraEl.hasAttribute('wasd-controls')) {
-        // <<< REDUCE ACCELERATION BY 25% >>>
-        cameraEl.setAttribute('wasd-controls', 'fly: false; acceleration: 23;'); // Was 30
-        console.log("Setting WASD controls with reduced acceleration (23).");
-    } else if (cameraEl) {
-         // If it exists, just set acceleration
-         cameraEl.setAttribute('wasd-controls', 'acceleration', 23); // Was 30
-         console.log("Updating existing WASD controls acceleration to 23.");
+    
+    if (cameraRig && !cameraRig.hasAttribute('movement-controls')) {
+        // Use movement-controls, enabling keyboard for WASD
+        cameraRig.setAttribute('movement-controls', 'enabled: true; controls: keyboard; speed: 0.2; fly: false;'); 
+        console.log("Setting movement-controls (keyboard) on cameraRig.");
+    } else if (cameraRig) {
+        // If it exists, ensure keyboard is enabled and set speed
+        cameraRig.setAttribute('movement-controls', 'enabled', true);
+        cameraRig.setAttribute('movement-controls', 'controls', 'keyboard');
+        cameraRig.setAttribute('movement-controls', 'speed', 0.2);
+        console.log("Updating existing movement-controls (keyboard) on cameraRig.");
     }
     
+    // Add Navmesh Constraint for Desktop/Mobile
+    if (cameraRig && !cameraRig.hasAttribute('simple-navmesh-constraint')) {
+        cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0.01;exclude:.navmesh-hole;');
+        console.log("Setting simple-navmesh-constraint for Desktop/Mobile mode.");
+    }
+
     // Add mobile specific UI
     if (DeviceManager.isMobile) {
         console.log("Mobile detected, adding arrow controls UI.");
@@ -209,9 +218,16 @@ AFRAME.registerComponent('control-manager', {
     // Disable camera look/move controls typically used for desktop
     if (this.camera) {
       this.camera.setAttribute('look-controls', 'enabled', false);
-      this.camera.removeAttribute('wasd-controls');
-      this.camera.removeAttribute('simple-navmesh-constraint');
     }
+    
+    // Add constraint and movement-controls removal from cameraRig
+    if (this.cameraRig) {
+        this.cameraRig.removeAttribute('simple-navmesh-constraint');
+        console.log("Removed simple-navmesh-constraint from cameraRig.");
+        this.cameraRig.removeAttribute('movement-controls');
+        console.log("Removed movement-controls from cameraRig.");
+    }
+    
     console.log("Desktop/Mobile Mode Components Removed.");
   },
 

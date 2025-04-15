@@ -336,13 +336,13 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
           this.releaseObject(throwVelocity);
           this.resetCursorVisual();
           
-          // --- Re-enable WASD controls after throw ---
-          const cameraEl = this.camera;
-          if (cameraEl && cameraEl.hasAttribute('wasd-controls')) {
-              cameraEl.setAttribute('wasd-controls', 'enabled', true);
-              console.log("Re-enabled WASD controls after throwing.");
+          // <<< FIX: Re-enable movement-controls on cameraRig >>>
+          const cameraRig = document.querySelector('#cameraRig');
+          if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
+             cameraRig.setAttribute('movement-controls', 'enabled', true);
+             console.log("Re-enabled movement-controls on rig after throwing.");
           }
-          // ---
+          // <<< END FIX >>>
           
       } else if (this.interactionState === 'holding' && this.secondClickStartTime > 0) {
           // Mouse was released *before* charge threshold was met in tick -> Quick click, so drop.
@@ -517,12 +517,13 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
             this.secondClickStartTime = 0;
             if (this.cursor) this.cursor.setAttribute('material', 'color', 'yellow');
 
-            // Disable WASD controls when charging starts
-            const cameraEl = this.camera;
-             if (cameraEl && cameraEl.hasAttribute('wasd-controls')) {
-                cameraEl.setAttribute('wasd-controls', 'enabled', false);
-                console.log("Disabled WASD controls for charging.");
+            // <<< FIX: Disable movement-controls on cameraRig >>>
+            const cameraRig = document.querySelector('#cameraRig');
+            if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
+               cameraRig.setAttribute('movement-controls', 'enabled', false);
+               console.log("Disabled movement-controls on rig for charging.");
             }
+            // <<< END FIX >>>
         }
     }
 
@@ -584,13 +585,13 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
              this.toggleInspectionMode(); 
         } else if (this.interactionState === 'charging') {
             console.log("onKeyPress: Space detected while charging -> Cancelling throw.");
-            // --- Re-enable WASD controls when cancelling charge ---
-            const cameraEl = this.camera;
-             if (cameraEl && cameraEl.hasAttribute('wasd-controls')) {
-                cameraEl.setAttribute('wasd-controls', 'enabled', true);
-                console.log("Re-enabled WASD controls after cancelling charge.");
+            // <<< FIX: Re-enable movement-controls on cameraRig >>>
+            const cameraRig = document.querySelector('#cameraRig');
+            if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
+               cameraRig.setAttribute('movement-controls', 'enabled', true);
+               console.log("Re-enabled movement-controls on rig after cancelling charge.");
             }
-            // ---
+            // <<< END FIX >>>
             this.interactionState = 'holding'; // Set state AFTER enabling controls
             this.chargeStartTime = 0;
             this.secondClickStartTime = 0; 
@@ -746,6 +747,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     }
     
     const cameraEl = this.camera;
+    const cameraRig = document.querySelector('#cameraRig'); 
     const lookControls = cameraEl ? cameraEl.components['look-controls'] : null;
     const arrowControlsComp = this.el.sceneEl.components['arrow-controls'];
     const objectToToggle = this.interactionState === 'holding' ? this.heldObject : this.objectBeingInspected;
@@ -779,15 +781,14 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
              console.log("Removed tick listener for inspection.");
         }
         
-        // Disable controls
+        // <<< REVERT to using enabled flag >>>
         if (lookControls) { lookControls.data.enabled = false; console.log("Disabled look-controls."); }
-        if (cameraEl) { cameraEl.setAttribute('wasd-controls', 'enabled', false); console.log("Disabled wasd controls."); }
-        
-        // *** Exit Pointer Lock ***
-        if (document.pointerLockElement === document.body) {
-             console.log("Exiting pointer lock for inspection.");
-             document.exitPointerLock();
+        if (cameraRig && cameraRig.hasAttribute('movement-controls')) { 
+            // Set enabled to false
+            cameraRig.setAttribute('movement-controls', 'enabled', false); 
+            console.log("Disabled movement-controls on rig for inspection."); 
         }
+        // <<< END REVERT >>>
 
         if (this.cursor) this.cursor.setAttribute('material', 'color', 'red');
 
@@ -820,9 +821,31 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
        }
        // ---
 
-       // Re-enable controls AFTER restoring angles
+       // <<< ADD DIAGNOSTIC LOGGING >>>
+       console.log("Exiting Inspect: Checking components before re-enabling movement...");
+       if (cameraRig) {
+           const constraint = cameraRig.getAttribute('simple-navmesh-constraint');
+           const movement = cameraRig.getAttribute('movement-controls');
+           console.log(`  - simple-navmesh-constraint present: ${!!constraint}`);
+           console.log(`  - movement-controls present: ${!!movement}`);
+           if (movement) {
+               console.log(`  - movement-controls current enabled state: ${movement.enabled}`);
+               console.log(`  - movement-controls current speed state: ${movement.speed}`);
+           }
+       } else {
+           console.error("Exiting Inspect: Cannot find cameraRig!");
+       }
+       // <<< END DIAGNOSTIC LOGGING >>>
+
+       // <<< REVERT to using enabled flag >>>
        if (lookControls) { lookControls.data.enabled = true; console.log("Re-enabled look-controls."); }
-       if (cameraEl) { cameraEl.setAttribute('wasd-controls', 'enabled', true); console.log("Re-enabled wasd controls."); }
+       if (cameraRig && cameraRig.hasAttribute('movement-controls')) { 
+           // Set enabled to true
+           cameraRig.setAttribute('movement-controls', 'enabled', true); 
+           console.log("Re-enabled movement-controls on rig after inspection."); 
+           // ... diagnostic log for speed (can keep for now) ...
+       }
+       // <<< END REVERT >>>
        
        // Request pointer lock (only if not mobile) - Needs to happen AFTER enabling controls
        if (!DeviceManager.isMobile) {
@@ -1134,7 +1157,7 @@ AFRAME.registerComponent('arrow-controls', {
     if (!lookControls) return; 
 
     const moveVector = new THREE.Vector3(0, 0, 0);
-    const moveSpeed = 0.25; // <<< Increased speed further
+    const moveSpeed = 0.1875; // <<< REDUCE speed by 25% >>>
 
     if (this.moveState.up)    moveVector.z -= 1;
     if (this.moveState.down)  moveVector.z += 1;
