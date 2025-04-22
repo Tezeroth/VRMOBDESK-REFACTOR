@@ -45,8 +45,14 @@ VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with
 
 Comprehensive documentation is available in the `Documentation` folder:
 
-- **[Documentation/aug](./Documentation/aug)**: Detailed documentation of the application's functionality, dependencies, and architecture
+- **[Documentation/Docs](./Documentation/Docs)**: Detailed documentation of the application's functionality, dependencies, and architecture
 - **[Documentation/UML](./Documentation/UML)**: UML diagrams showing the application's structure and behavior
+
+For specific documentation:
+- [Functionality](./Documentation/Docs/Functionality.md)
+- [Dependencies](./Documentation/Docs/Dependencies.md)
+- [Program Flow](./Documentation/Docs/ProgramFlow.md)
+- [Modular Structure](./Documentation/Docs/ModularStructure.md)
 
 ## Project Structure
 
@@ -112,3 +118,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [A-Frame](https://aframe.io/) - WebVR framework
 - [PhysX](https://github.com/c-frame/physx) - Physics engine
 - [Handy Controls](https://github.com/c-frame/handy-work) - Hand tracking and interaction
+
