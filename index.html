@@ -22,9 +22,9 @@
       - AFrame HTML Mesh component (aframe-html) for rendering HTML elements as textures in 3D
       - Local scripts: ar-shadow-helper, ar-cursor, simple-navmesh-constraint, model-utils, and main.js for additional logic
     -->
-    
+
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.7.1/dist/aframe-master.min.js"></script>
-    <<script src="lib/physx.min.js"></script>
+    <script src="lib/physx.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-environment-component@1.3.7/dist/aframe-environment-component.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/components/sphere-collider.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.controls.min.js"></script>
@@ -32,24 +32,13 @@
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
 
-    
-    <!--<script src="https://cdn.jsdelivr.net/gh/c-frame/physx@v0.2.x/dist/physx.min.js"></script>
+    <!-- Optimized modular code structure -->
+    <script type="module" src="js/main.js"></script>
 
+    <!-- Legacy scripts for components not yet migrated -->
+    <script src="model-utils.js"></script>
 
-    snow
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.2.0/dist/aframe-particle-system-component.min.js"></script>-->
-  
-    <!-- Our custom behavior code -->
-    <script src="VR.js"></script> <!--hers-->
-    <script src="model-utils.js"></script> <!--hers-->
-    <script src="navigate-on-click.js"></script> <!-- Added for navigation -->
-   
-   <!-- <script src="ar-shadow-helper.js"></script> hers-->
-
-  <!--  <script src="show-magnet-range.js"></script>-->
-  <script src="MOBDESK.js"></script>
-  <script src="control-manager.js"></script>
-  <link rel="stylesheet" href="MOBDESK.css">
+    <link rel="stylesheet" href="MOBDESK.css">
 
 </head>
 <title>Working Prototype</title>
@@ -60,7 +49,7 @@
       <span>Loading...</span>
     </div>
   </div>
-  <!-- 
+  <!--
       The main A-Frame scene element:
       - physx: Integrates physics simulation using PhysX (delayed start for stability)
       - webxr: Configures WebXR with a specified overlay element for AR or VR UI
@@ -82,18 +71,13 @@
   physx="autoLoad: true; wasmUrl: https://cdn.jsdelivr.net/gh/c-frame/physx@v0.2.x/wasm/physx.release.wasm"-->
   <!--https://cdn.jsdelivr.net/gh/c-frame/physx@v0.2.x/wasm/physx.release.wasm"-->
   <a-scene
-
-  control-manager
-  
+    control-manager
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
     stats
     physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 4; fixedTimeStep: 1/60;"
     renderer="antialias: true; precision: mediump;"
-    
-    physx="autoLoad: true; wasmUrl: lib/physx.release.wasm";
-    
+    physx="autoLoad: true; wasmUrl: lib/physx.release.wasm"
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
-    
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
@@ -108,10 +92,10 @@
  stats
 
  HOLY FUCK HIGH REFRESH RATE SORTED IT OUT
- 
- 
+
+
  -->
-    <!-- 
+    <!--
       Asset management system:
       Preload models and images before the scene is displayed.
     -->
@@ -126,11 +110,11 @@
 <!--N/A play with getting the hand models working later
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
       <a-asset-item id="left-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-left-hand-webxr/model.gltf"></a-asset-item>-->
-      
+
       <!-- Only keep the local stew-gltf to match the pot entity -->
       <a-asset-item id="stew-gltf" src="Assets/stew.gltf"></a-asset-item>
 
-     
+
       <a-asset-item id="table-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/small_wooden_table_01_1k-v1.glb?v=1647263187998"></a-asset-item>
       <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189"></a-asset-item>
       <a-asset-item id="wall" src="Assets/walls/walls1.glb" crossorigin="anonymous"></a-asset-item>
@@ -142,7 +126,7 @@
 
       <!-- Testing the Hanya mask model -->
       <a-asset-item id="Hanyamask" src="Assets/Hanyamask/Hanyamask.glb" crossorigin="anonymous"></a-asset-item>
-    
+
 
       <!-- Testing nested manual static PhysX colliders -->
       <a-asset-item id="sofa" src="Assets/Sofa/this.glb" crossorigin="anonymous"></a-asset-item>
@@ -182,7 +166,7 @@
       <a-asset-item id="venuecolliderA6" src="Assets/venue/A_axis_collider_6.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA7" src="Assets/venue/A_axis_collider_7.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="venuecolliderA8" src="Assets/venue/A_axis_collider_8.glb" crossorigin="anonymous"></a-asset-item>
-   
+
       <!--Part of the room with a step-->
 
       <a-asset-item id="step" src="Assets/venue/G_axis_collider.glb" crossorigin="anonymous"></a-asset-item>
@@ -196,7 +180,7 @@
       <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" alt="Lightmap bake texture" crossorigin="anonymous">
 
     <!--BUILDING, NAVMESH, and COLLIDERS--------------------------------------------------------------------------------------------------->
-    
+
     <a-gltf-model
       src="#building-glb"
       id="building"
@@ -206,18 +190,18 @@
       no-tonemapping="Light"
       shadow="cast:false;receive:true;"
       position="0 0.001 0"
-      
+
     >
-  
+
   </a-gltf-model>
 
 <!-- Single merged static collider - REVERTED -->
-<!-- 
-<a-gltf-model 
-    id="merged-static-colliders" 
-    src="#mergedcolliders-glb" 
-    physx-body="type: static;" 
-    make-transparent 
+<!--
+<a-gltf-model
+    id="merged-static-colliders"
+    src="#mergedcolliders-glb"
+    physx-body="type: static;"
+    make-transparent
     position="0 0 0">
 </a-gltf-model>
 -->
@@ -253,14 +237,14 @@
      <!-- The navmesh model FOR PLAYER TRAVERSAL, take notice we dont need the physics container -->
      <a-gltf-model class="navmesh" src="Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
 
-   <!-- A large invisible box to stop things falling through the floor 
+   <!-- A large invisible box to stop things falling through the floor
     <a-box
     id="physics-container"
     position="-5.148 -0.1 -0.355"
     visible="false"
     geometry="width:33.67;height:0.2;depth:19.06"
     physx-body="type: static;"
-    physx-restitution="0.5" 
+    physx-restitution="0.5"
   >
   </a-box>-->
 
@@ -276,7 +260,7 @@
 
 
 
-    <!-- 
+    <!--
     ALL OF THIS IS A MESS AND NEEDS TO BE REFACTORED BUT IT WORKS SO I'M NOT GOING TO TOUCH IT
       cameraRig entity:
       This is a container for the camera and user movement. It applies constraints so
@@ -284,8 +268,8 @@
     -->
     <a-entity
       id="cameraRig"
-      
-      
+
+
       position="0 0 0"
       rotation="0 180 0"
     >
@@ -299,7 +283,7 @@
         <a-entity id="cursor"
            position="0 0 -1"
            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-           material="color: lime; shader: flat; opacity: 0.9" 
+           material="color: lime; shader: flat; opacity: 0.9"
            raycaster="objects: .clickable, .blocker, .pickupable"
            cursor="fuse: false;"
         >
@@ -311,7 +295,7 @@
         material="color:gold;metalness:1;roughness:0;"
         handy-controls="materialOverride:right;"
       >
-        <!-- 
+        <!--
           Screen space inputs (for devices without hand tracking or fallback):
           Three small colored torus shapes representing possible input points.
           data-none attribute indicates these might be used for non-hand controllers.
@@ -336,7 +320,7 @@
          <!--  no-magnet entities:These are reference points on the hand where we attach HTML interfaces or define constraints.-->
             <!-- Renders an HTML interface from #my-interface as a texture in 3D space, positioned relative to the hand -->
         <a-entity id="left-no-magnet" data-left="grip" data-no-magnet>
-        
+
           <a-entity
             html="html:#my-interface;cursor:#cursor"
             position="-0.142 -0.0166 -0.02928"
@@ -401,11 +385,11 @@
         rotation="-90 0 0"
         position="0 0.01 0"
         width="1.5"
-        
+
         class="navmesh-hole"
         visible="false"
         crossorigin="anonymous"
-       
+
       ></a-plane>
     </a-gltf-model>
 
@@ -472,7 +456,7 @@ scale="1.6 1.4 5"
         class="magnet-left magnet-right"
         position="0 0.01 -0"
         rotation="90 180 0">
-        
+
       </a-entity>
     </a-gltf-model>
 
@@ -494,14 +478,14 @@ physx-body="type:dynamic;mass:2;">
   class="magnet-left magnet-right"
   position="0 0.2 -0"
   rotation="90 180 0">
-  
+
 </a-entity>
 </a-gltf-model>
 
 
 
-    <!-- TESTING hanyamask model 
-    
+    <!-- TESTING hanyamask model
+
     -->
 
     <a-gltf-model
@@ -514,7 +498,7 @@ physx-body="type:dynamic;mass:2;">
     scale="2 2 2"
     physx-body="type:dynamic;mass:2;"
     >
-    
+
     <a-entity
       id="hanyamask-handle-1"
       data-magnet-range="0.1,0.05,360,180"
@@ -523,7 +507,7 @@ physx-body="type:dynamic;mass:2;">
       position="0.075 0 0"
       >
       <!--magnet-range-debug="range:0.1,0.05"-->
-      
+
     </a-entity>
     <a-entity
       id="hanyamask-handle-2"
@@ -533,7 +517,7 @@ physx-body="type:dynamic;mass:2;">
       position=" -0.075 0  0"
       rotation="90 180 0"
      >
-      
+
     </a-entity>
 
   </a-gltf-model>
@@ -548,7 +532,7 @@ physx-body="type:dynamic;mass:2;">
       position="5 1.099 2"
       physx-body="type:dynamic; mass:2;"
     >
-    
+
       <a-entity
         id="teddy-handle"
         data-magnet-range="0.2,0.1,360,180"
@@ -557,7 +541,7 @@ physx-body="type:dynamic;mass:2;">
         position="0 0.01 -0"
         rotation="90 0 0"
       >
-        
+
       </a-entity>
     </a-gltf-model>
 
@@ -570,8 +554,8 @@ physx-body="type:dynamic;mass:2;">
       data-magnet-range="0.2,0.1,360,180"
       rotation="30 0 0"
       position="5 0 2.6"
-     
-      physx-body="type: dynamic; mass:4;" 
+
+      physx-body="type: dynamic; mass:4;"
       toggle-physics
     >
     </a-gltf-model>
@@ -590,25 +574,25 @@ physx-body="type:dynamic;mass:2;">
       <a-entity
         id="box-handle-1"
         data-magnet-range="0.2,0.1,360,180"
-        
+
         data-pick-up="parent"
         class="magnet-left magnet-right"
         position="0 0 -0.15"
         rotation="90 180 90"
       >
-        
+
       </a-entity>
       <a-entity
         id="box-handle-2"
         data-magnet-range="0.2,0.1,360,180"
         data-pick-up="parent"
-     
+
         class="magnet-left magnet-right"
         position="0 0 0.15"
         rotation="90 180 90"
       >
       <!--magnet-range-debug="range:0.2,0.1"-->
-        
+
       </a-entity>
     </a-gltf-model>
 
@@ -619,7 +603,7 @@ physx-body="type:dynamic;mass:2;">
       class="clickable"
       color="red"
       position="-2 0.5 -2"
-      
+
       physx-body="type: static;"
       physx-restitution="1.5"
       navigate-on-click="target: https://tezeroth.github.io/IframeinAframe/"
@@ -635,31 +619,31 @@ physx-body="type:dynamic;mass:2;">
       src="#stew-gltf"
       position="-2 1.22 0.8"
       physx-body="type:dynamic;mass:2;shape: sphere;"
-  
+
     >
       <a-entity
         id="stew-handle-1"
         data-magnet-range="0.2,0.1,360,180"
-       
+
         data-pick-up="parent"
         class="magnet-left magnet-right"
         position="0 0.35 -0.35"
         rotation="0 90 0"
       >
       <!--magnet-range-debug="range:0.2,0.1"-->
-        
+
       </a-entity>
       <a-entity
         id="stew-handle-2"
         data-magnet-range="0.2,0.1,360,180"
         data-pick-up="parent"
-       
+
         class="magnet-left magnet-right"
         position="0 0.35 0.35"
         rotation="0 90 0"
       >
       <!--magnet-range-debug="range:0.2,0.1"-->
-        
+
       </a-entity>
     </a-gltf-model>
 
@@ -691,7 +675,7 @@ physx-body="type:dynamic;mass:2;">
       src="#table-gltf"
       position="-2 0.01 0.8"
       rotation="0 51 0"
-     
+
       physx-body="type: static;"
     >
 <!-- -->
@@ -714,14 +698,14 @@ physx-body="type:dynamic;mass:2;">
       src="#table-gltf"
       position="-2 0 3"
       rotation="0 128 0"
-     
+
       physx-body="type: static;"
     >
       <a-plane
         id="tablenavmesh"
         rotation="-90 0 0"
         width="1.2"
-       
+
         class="navmesh-hole"
         visible="false"
       ></a-plane>
@@ -753,7 +737,7 @@ physx-body="type:dynamic;mass:2;">
         </a-cylinder>
       </a-entity>
     </a-box>
-    <!-- Event listener for the button 
+    <!-- Event listener for the button
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         const buttonEl = document.querySelector('#teleport-button');
@@ -775,7 +759,7 @@ physx-body="type:dynamic;mass:2;">
     >
     </a-gltf-model>
 
-  
+
   </a-scene>
 
 </body>
