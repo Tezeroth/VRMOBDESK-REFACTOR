@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VRMOBDESK Test (Modular Structure)</title>
+  
+  <!-- A-Frame and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.7.1/dist/aframe-master.min.js"></script>
+  <script src="lib/physx.min.js"></script>
+  
+  <!-- Modular code structure -->
+  <script type="module" src="js/main.js"></script>
+  
+  <style>
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2em;
+      font-family: sans-serif;
+      z-index: 1000;
+    }
+    
+    .loading-content {
+      text-align: center;
+    }
+    
+    .loader {
+      border: 16px solid #333;
+      border-top: 16px solid #3498db;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loader"></div>
+      <span>Loading...</span>
+    </div>
+  </div>
+  
+  <a-scene
+    control-manager
+    physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 4; fixedTimeStep: 1/60;"
+    physx="autoLoad: true; wasmUrl: lib/physx.release.wasm"
+    loading-screen-manager
+  >
+    <a-assets>
+      <!-- Add any assets you need here -->
+    </a-assets>
+    
+    <!-- Test objects -->
+    <a-box position="0 0.5 -3" color="red" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-box>
+    <a-sphere position="1 0.5 -3" color="blue" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-sphere>
+    <a-cylinder position="-1 0.5 -3" color="green" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-cylinder>
+    
+    <!-- Navigation target -->
+    <a-box position="0 0.5 -6" color="yellow" class="clickable" navigate-on-click="target: index.html;"></a-box>
+    
+    <!-- Floor -->
+    <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="gray" physx-body="type: static;"></a-plane>
+    
+    <!-- Camera rig -->
+    <a-entity
+      id="cameraRig"
+      position="0 0 0"
+    >
+      <a-entity
+        id="camera"
+        camera="near:0.01;"
+        look-controls="pointerLockEnabled: true"
+        position="0 1.6 0"
+      >
+        <a-entity id="cursor"
+          position="0 0 -1"
+          geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+          material="color: lime; shader: flat; opacity: 0.9" 
+          raycaster="objects: .clickable, .blocker, .pickupable"
+          cursor="fuse: false;"
+        ></a-entity>
+      </a-entity>
+    </a-entity>
+    
+    <a-sky color="#ECECEC"></a-sky>
+  </a-scene>
+  
+  <script>
+    // Additional test code can go here
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Test page loaded');
+      
+      // Test multiplayer functionality
+      const multiplayer = document.querySelector('a-scene').addEventListener('loaded', () => {
+        // Check if URL has multiplayer parameter
+        if (window.location.search.includes('multiplayer=true')) {
+          console.log('Testing multiplayer functionality');
+          // The multiplayer UI should be created automatically by main.js
+        }
+      });
+    });
+  </script>
+</body>
+</html>

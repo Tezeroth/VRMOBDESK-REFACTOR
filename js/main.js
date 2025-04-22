@@ -101,6 +101,8 @@ const LoadingScreenManager = {
 
 // Register components safely
 function registerComponents() {
+  console.log('Registering components...');
+
   // Register core components
   safeRegisterComponent('control-manager', ControlManager);
   safeRegisterComponent('desktop-mobile-controls', DesktopMobileControls);
@@ -108,6 +110,8 @@ function registerComponents() {
   safeRegisterComponent('navigate-on-click', NavigateOnClick);
   safeRegisterComponent('toggle-physics', TogglePhysics);
   safeRegisterComponent('loading-screen-manager', LoadingScreenManager);
+
+  console.log('Component registration complete');
 }
 
 // Initialize application when DOM is loaded
@@ -121,6 +125,27 @@ document.addEventListener('DOMContentLoaded', () => {
   DeviceManager.init().then(() => {
     console.log(`Device detection complete: VR=${DeviceManager.isVR}, Mobile=${DeviceManager.isMobile}, Gyro=${DeviceManager.hasGyro}`);
 
+    // Ensure desktop-mobile-controls is added to the scene
+    const scene = document.querySelector('a-scene');
+    if (scene) {
+      if (!scene.hasAttribute('desktop-mobile-controls')) {
+        console.log('Adding desktop-mobile-controls to scene');
+        scene.setAttribute('desktop-mobile-controls', '');
+      }
+
+      // Add scene loaded handler
+      scene.addEventListener('loaded', () => {
+        console.log('Scene loaded');
+
+        // Hide loading screen
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) {
+          console.log('Loading screen hidden');
+          loadingOverlay.style.display = 'none';
+        }
+      });
+    }
+
     // Initialize multiplayer capabilities if needed
     // This is a placeholder for future multiplayer implementation
     if (window.location.search.includes('multiplayer=true')) {
@@ -131,17 +156,140 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Initialize multiplayer capabilities
- * This is a placeholder for future implementation
+ * This will be expanded in future implementation
  */
 function initializeMultiplayer() {
-  console.log('Multiplayer mode requested - This feature is not yet implemented');
+  console.log('Multiplayer mode requested - Setting up multiplayer environment');
 
-  // Future implementation will include:
-  // 1. WebRTC or WebSocket connection setup
-  // 2. Player synchronization
-  // 3. Positional audio
-  // 4. Shared physics state
+  // Initialize the multiplayer manager
+  MultiplayerManager.init();
+
+  // Create UI for multiplayer controls
+  createMultiplayerUI();
+
+  // Connect to multiplayer server
+  setTimeout(() => {
+    // Auto-connect after a short delay
+    MultiplayerManager.connect();
+  }, 2000);
+
+  return MultiplayerManager;
 }
+
+/**
+ * Create UI elements for multiplayer controls
+ */
+function createMultiplayerUI() {
+  // Create a simple UI for multiplayer controls
+  const uiContainer = document.createElement('div');
+  uiContainer.id = 'multiplayer-ui';
+  uiContainer.style.position = 'fixed';
+  uiContainer.style.bottom = '20px';
+  uiContainer.style.right = '20px';
+  uiContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  uiContainer.style.padding = '10px';
+  uiContainer.style.borderRadius = '5px';
+  uiContainer.style.color = 'white';
+  uiContainer.style.fontFamily = 'Arial, sans-serif';
+  uiContainer.style.zIndex = '1000';
+
+  // Status indicator
+  const statusIndicator = document.createElement('div');
+  statusIndicator.id = 'multiplayer-status';
+  statusIndicator.textContent = 'Multiplayer: Initializing...';
+  uiContainer.appendChild(statusIndicator);
+
+  // Connect button
+  const connectButton = document.createElement('button');
+  connectButton.textContent = 'Connect';
+  connectButton.style.marginTop = '10px';
+  connectButton.style.marginRight = '5px';
+  connectButton.style.padding = '5px 10px';
+  connectButton.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('connect-multiplayer'));
+  });
+  uiContainer.appendChild(connectButton);
+
+  // Disconnect button
+  const disconnectButton = document.createElement('button');
+  disconnectButton.textContent = 'Disconnect';
+  disconnectButton.style.padding = '5px 10px';
+  disconnectButton.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('disconnect-multiplayer'));
+  });
+  uiContainer.appendChild(disconnectButton);
+
+  // Add event listeners to update UI
+  document.addEventListener('multiplayer-initialized', (e) => {
+    statusIndicator.textContent = `Multiplayer: Ready (ID: ${e.detail.localId})`;
+  });
+
+  document.addEventListener('multiplayer-connected', () => {
+    statusIndicator.textContent = 'Multiplayer: Connected';
+    statusIndicator.style.color = '#00ff00';
+  });
+
+  document.addEventListener('multiplayer-disconnected', () => {
+    statusIndicator.textContent = 'Multiplayer: Disconnected';
+    statusIndicator.style.color = '#ff0000';
+  });
+
+  // Add to document
+  document.body.appendChild(uiContainer);
+}
+
+// Create a proper MultiplayerManager module
+const MultiplayerManager = {
+  isConnected: false,
+  peers: [],
+  localId: null,
+
+  /**
+   * Initialize the multiplayer system
+   */
+  init: function() {
+    console.log('Initializing multiplayer manager');
+    // This will be implemented with WebRTC or WebSocket
+    this.localId = 'user_' + Math.floor(Math.random() * 10000);
+    console.log(`Generated local user ID: ${this.localId}`);
+
+    // Setup event listeners for multiplayer events
+    document.addEventListener('connect-multiplayer', this.connect.bind(this));
+    document.addEventListener('disconnect-multiplayer', this.disconnect.bind(this));
+
+    return this;
+  },
+
+  /**
+   * Connect to multiplayer server
+   */
+  connect: function() {
+    console.log('Connecting to multiplayer server...');
+    // This will be implemented with actual connection logic
+    setTimeout(() => {
+      this.isConnected = true;
+      console.log('Connected to multiplayer server (simulated)');
+
+      // Emit connected event
+      const event = new CustomEvent('multiplayer-connected');
+      document.dispatchEvent(event);
+    }, 1000);
+  },
+
+  /**
+   * Disconnect from multiplayer server
+   */
+  disconnect: function() {
+    console.log('Disconnecting from multiplayer server...');
+    // This will be implemented with actual disconnection logic
+    this.isConnected = false;
+    this.peers = [];
+
+    // Emit disconnected event
+    const event = new CustomEvent('multiplayer-disconnected');
+    document.dispatchEvent(event);
+  }
+};
 
 // Export for module system
 export {
@@ -155,5 +303,6 @@ export {
   ArrowControls,
   NavigateOnClick,
   TogglePhysics,
-  LoadingScreenManager
+  LoadingScreenManager,
+  MultiplayerManager
 };

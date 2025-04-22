@@ -54,29 +54,60 @@ const DesktopMobileControls = {
     this.cameraPitchOnEnterInspect = 0;
     this.rigYawOnEnterInspect = 0;
 
+    // Store schema defaults in component instance
+    this.minThrowForce = this.data?.minThrowForce || 5;
+    this.maxThrowForce = this.data?.maxThrowForce || 10;
+    this.maxChargeTime = this.data?.maxChargeTime || 1500;
+    this.chargeThreshold = this.data?.chargeThreshold || 200;
+    this.holdDistance = this.data?.holdDistance || 2;
+
+    // Bind methods to this instance
+    this._setupTickFunction = this._setupTickFunction.bind(this);
+    this._removeTickFunction = this._removeTickFunction.bind(this);
+    this.tick = this.tick.bind(this);
+
     // Create state machine for interaction states
+    const component = this; // Store reference to component
+
     this.stateMachine = new StateMachine({
       initialState: 'idle',
       states: {
         idle: {
           onPickup: function(el) {
+            console.log('State machine: onPickup called with element:', el ? (el.id || el.tagName) : 'null');
+
+            if (!el) {
+              console.error('Cannot pickup null element');
+              return 'idle';
+            }
+
             // Store element and original physics state
             this.setData('heldObject', el);
-            this.setData('originalPhysicsState', PhysicsUtils.convertToKinematic(el));
+            const originalState = PhysicsUtils.convertToKinematic(el);
+            console.log('Original physics state:', originalState);
+            this.setData('originalPhysicsState', originalState);
 
             // Initialize camera rotation tracking
-            if (this.camera) {
-              this.camera.object3D.getWorldQuaternion(prevCameraWorldQuat);
+            const camera = document.querySelector('#camera');
+            if (camera) {
+              camera.object3D.getWorldQuaternion(prevCameraWorldQuat);
+              console.log('Camera rotation tracking initialized');
+            } else {
+              console.warn('No camera found for rotation tracking');
             }
 
             // Set up tick function for object movement
-            this._setupTickFunction();
+            component._setupTickFunction();
+            console.log('Tick function set up for object movement');
 
             return 'holding';
           },
           onExit: function() {
             // Update cursor visual
-            InteractionUtils.updateCursorVisual(this.cursor, 'holding');
+            const cursor = document.querySelector('#camera > #cursor');
+            if (cursor) {
+              InteractionUtils.updateCursorVisual(cursor, 'holding');
+            }
           }
         },
         holding: {
@@ -88,11 +119,14 @@ const DesktopMobileControls = {
             const heldObject = this.getData('heldObject');
             const originalState = this.getData('originalPhysicsState');
 
+            console.log('Dropping object:', heldObject ? (heldObject.id || heldObject.tagName) : 'null');
+            console.log('Original state:', originalState);
+
             // Restore original physics state
             PhysicsUtils.restoreOriginalState(heldObject, originalState);
 
             // Clean up
-            this._removeTickFunction();
+            component._removeTickFunction();
             this.setData('heldObject', null);
             this.setData('originalPhysicsState', null);
 
@@ -102,10 +136,11 @@ const DesktopMobileControls = {
             const heldObject = this.getData('heldObject');
 
             // Store camera orientation
-            const lookControls = this.camera?.components['look-controls'];
+            const camera = document.querySelector('#camera');
+            const lookControls = camera?.components['look-controls'];
             if (lookControls && lookControls.pitchObject && lookControls.yawObject) {
-              this.cameraPitchOnEnterInspect = lookControls.pitchObject.rotation.x;
-              this.rigYawOnEnterInspect = lookControls.yawObject.rotation.y;
+              component.cameraPitchOnEnterInspect = lookControls.pitchObject.rotation.x;
+              component.rigYawOnEnterInspect = lookControls.yawObject.rotation.y;
             }
 
             // Disable controls
@@ -126,13 +161,16 @@ const DesktopMobileControls = {
             heldObject.removeAttribute('physx-body');
 
             // Clean up tick function
-            this._removeTickFunction();
+            component._removeTickFunction();
 
             return 'inspecting';
           },
           onExit: function(newState) {
             if (newState === 'charging') {
-              InteractionUtils.updateCursorVisual(this.cursor, 'charging', 0);
+              const cursor = document.querySelector('#camera > #cursor');
+              if (cursor) {
+                InteractionUtils.updateCursorVisual(cursor, 'charging', 0);
+              }
 
               // Disable movement during charging
               const cameraRig = document.querySelector('#cameraRig');
@@ -149,19 +187,24 @@ const DesktopMobileControls = {
             const chargeStartTime = this.getData('chargeStartTime');
 
             // Calculate throw force based on charge time
-            const chargeDuration = Math.min(Date.now() - chargeStartTime, this.data.maxChargeTime);
-            const chargeRatio = chargeDuration / this.data.maxChargeTime;
-            const throwForce = this.data.minThrowForce +
-                              (this.data.maxThrowForce - this.data.minThrowForce) * chargeRatio;
+            const component = document.querySelector('a-scene').components['desktop-mobile-controls'];
+            const maxChargeTime = component.maxChargeTime;
+            const minThrowForce = component.minThrowForce;
+            const maxThrowForce = component.maxThrowForce;
+
+            const chargeDuration = Math.min(Date.now() - chargeStartTime, maxChargeTime);
+            const chargeRatio = chargeDuration / maxChargeTime;
+            const throwForce = minThrowForce + (maxThrowForce - minThrowForce) * chargeRatio;
 
             // Calculate throw velocity
-            const throwVelocity = PhysicsUtils.calculateThrowVelocity(this.camera, throwForce);
+            const camera = document.querySelector('#camera');
+            const throwVelocity = PhysicsUtils.calculateThrowVelocity(camera, throwForce);
 
             // Restore original physics state with velocity
             PhysicsUtils.restoreOriginalState(heldObject, originalState, throwVelocity);
 
             // Clean up
-            this._removeTickFunction();
+            component._removeTickFunction();
             this.setData('heldObject', null);
             this.setData('originalPhysicsState', null);
             this.setData('chargeStartTime', 0);
@@ -182,7 +225,10 @@ const DesktopMobileControls = {
             }
 
             // Update cursor visual
-            InteractionUtils.updateCursorVisual(this.cursor, newState);
+            const cursor = document.querySelector('#camera > #cursor');
+            if (cursor) {
+              InteractionUtils.updateCursorVisual(cursor, newState);
+            }
           }
         },
         inspecting: {
@@ -190,10 +236,11 @@ const DesktopMobileControls = {
             const inspectedObject = this.getData('inspectedObject');
 
             // Restore camera orientation
-            const lookControls = this.camera?.components['look-controls'];
+            const camera = document.querySelector('#camera');
+            const lookControls = camera?.components['look-controls'];
             if (lookControls && lookControls.pitchObject && lookControls.yawObject) {
-              lookControls.pitchObject.rotation.x = this.cameraPitchOnEnterInspect;
-              lookControls.yawObject.rotation.y = this.rigYawOnEnterInspect;
+              lookControls.pitchObject.rotation.x = component.cameraPitchOnEnterInspect;
+              lookControls.yawObject.rotation.y = component.rigYawOnEnterInspect;
             }
 
             // Re-enable controls
@@ -211,20 +258,23 @@ const DesktopMobileControls = {
             const inspectPosition = inspectedObject.object3D.position.clone();
 
             // Create dynamic body temporarily
-            inspectedObject.setAttribute('physx-body', 'type', 'dynamic');
+            inspectedObject.removeAttribute('physx-body');
+            inspectedObject.setAttribute('physx-body', 'type: dynamic');
 
             // Schedule switch to kinematic
             setTimeout(() => {
               try {
                 // Switch back to kinematic
-                inspectedObject.setAttribute('physx-body', 'type', 'kinematic');
+                inspectedObject.removeAttribute('physx-body');
+                inspectedObject.setAttribute('physx-body', 'type: kinematic');
 
                 // Apply final rotation
                 inspectedObject.object3D.quaternion.copy(inspectQuaternion);
 
                 // Store camera rotation for next tick
-                if (this.camera) {
-                  this.camera.object3D.getWorldQuaternion(prevCameraWorldQuat);
+                const camera = document.querySelector('#camera');
+                if (camera) {
+                  camera.object3D.getWorldQuaternion(prevCameraWorldQuat);
                 }
 
                 // Restore holding state
@@ -232,7 +282,7 @@ const DesktopMobileControls = {
                 this.setData('inspectedObject', null);
 
                 // Set up tick function for object movement
-                this._setupTickFunction();
+                component._setupTickFunction();
 
               } catch (e) {
                 console.error("Error restoring from inspection:", e);
@@ -240,7 +290,11 @@ const DesktopMobileControls = {
                 this.setData('heldObject', null);
                 this.setData('inspectedObject', null);
                 this.stateMachine.reset('idle');
-                InteractionUtils.updateCursorVisual(this.cursor, 'idle');
+
+                const cursor = document.querySelector('#camera > #cursor');
+                if (cursor) {
+                  InteractionUtils.updateCursorVisual(cursor, 'idle');
+                }
               }
             }, 100);
 
@@ -257,12 +311,25 @@ const DesktopMobileControls = {
             }
 
             // Update cursor visual
-            InteractionUtils.updateCursorVisual(this.cursor, 'holding');
+            const cursor = document.querySelector('#camera > #cursor');
+            if (cursor) {
+              InteractionUtils.updateCursorVisual(cursor, 'holding');
+            }
           }
         }
       },
       onTransition: (fromState, toState, action) => {
         console.log(`Interaction state transition: ${fromState} -> ${toState} (${action})`);
+
+        // Emit state change event for debugging
+        const event = new CustomEvent('statechange', {
+          detail: {
+            from: fromState,
+            to: toState,
+            action: action
+          }
+        });
+        document.dispatchEvent(event);
       }
     });
 
@@ -287,7 +354,10 @@ const DesktopMobileControls = {
     window.addEventListener('touchend', this.onTouchEnd);
 
     // Initialize cursor visual
-    InteractionUtils.updateCursorVisual(this.cursor, 'idle');
+    const cursor = document.querySelector('#camera > #cursor');
+    if (cursor) {
+      InteractionUtils.updateCursorVisual(cursor, 'idle');
+    }
   },
 
   remove: function () {
@@ -335,21 +405,44 @@ const DesktopMobileControls = {
   },
 
   onMouseDown: function (evt) {
-    if (DeviceManager.isMobile) return;
-    if (evt.button !== 0) return; // Only react to left mouse button
+    console.log('Mouse down event');
+    if (DeviceManager.isMobile) {
+      console.log('Ignoring mouse down on mobile');
+      return;
+    }
+    if (evt.button !== 0) {
+      console.log('Ignoring non-left mouse button');
+      return; // Only react to left mouse button
+    }
     if (evt.target.classList.contains('arrow-btn') ||
         evt.target.classList.contains('action-btn') ||
-        evt.target.closest('.arrow-controls')) return;
+        evt.target.closest('.arrow-controls')) {
+      console.log('Ignoring click on UI element');
+      return;
+    }
 
     if (this.stateMachine.is('idle')) {
+      console.log('State: idle - Looking for pickupable object');
       const headCursor = document.querySelector('#camera > #cursor');
-      if (!headCursor || !headCursor.components.raycaster) return;
+      if (!headCursor) {
+        console.warn('No cursor found');
+        return;
+      }
+      if (!headCursor.components.raycaster) {
+        console.warn('No raycaster component on cursor');
+        return;
+      }
 
+      console.log('Raycaster found, checking for intersections');
       const clickedEl = InteractionUtils.getIntersectedElement(headCursor, '.pickupable');
       if (clickedEl) {
+        console.log('Found pickupable object:', clickedEl.id || clickedEl.tagName);
         this.stateMachine.transition('onPickup', clickedEl);
+      } else {
+        console.log('No pickupable object found');
       }
     } else if (this.stateMachine.is('holding')) {
+      console.log('State: holding - Starting second click timer');
       this.secondClickStartTime = Date.now();
     }
   },
@@ -453,7 +546,9 @@ const DesktopMobileControls = {
       const sensitivity = 0.005;
       const moveDeltaX = (touch.clientX - this.prevMouseX) * sensitivity;
       const moveDeltaY = (touch.clientY - this.prevMouseY) * sensitivity;
-      const lookControls = this.camera.components['look-controls'];
+      const camera = document.querySelector('#camera');
+      if (!camera) return;
+      const lookControls = camera.components['look-controls'];
 
       if (lookControls) {
         lookControls.yawObject.rotation.y += moveDeltaX;
@@ -524,7 +619,7 @@ const DesktopMobileControls = {
   tick: function () {
     // Check if we need to transition from holding to charging
     if (this.stateMachine.is('holding') && this.secondClickStartTime > 0) {
-      if (Date.now() - this.secondClickStartTime > this.data.chargeThreshold) {
+      if (Date.now() - this.secondClickStartTime > this.chargeThreshold) {
         this.stateMachine.transition('onCharge');
         this.secondClickStartTime = 0;
       }
@@ -535,7 +630,9 @@ const DesktopMobileControls = {
       const heldObject = this.stateMachine.getData('heldObject');
       if (!heldObject) return;
 
-      const camera = this.camera;
+      const camera = document.querySelector('#camera');
+      if (!camera) return;
+
       const object3D = heldObject.object3D;
 
       // Calculate position
@@ -544,7 +641,9 @@ const DesktopMobileControls = {
 
       tempDirection.set(0, 0, -1);
       tempDirection.applyQuaternion(currentCameraWorldQuat);
-      targetPosition.copy(tempCameraWorldPos).add(tempDirection.multiplyScalar(this.data.holdDistance));
+      const component = document.querySelector('a-scene').components['desktop-mobile-controls'];
+      const holdDistance = component ? component.holdDistance : 2;
+      targetPosition.copy(tempCameraWorldPos).add(tempDirection.multiplyScalar(holdDistance));
 
       object3D.position.copy(targetPosition);
 
@@ -565,26 +664,40 @@ const DesktopMobileControls = {
     // Update charge visual feedback
     if (this.stateMachine.is('charging')) {
       const chargeStartTime = this.stateMachine.getData('chargeStartTime');
-      const chargeDuration = Math.min(Date.now() - chargeStartTime, this.data.maxChargeTime);
-      const chargeRatio = chargeDuration / this.data.maxChargeTime;
+      const chargeDuration = Math.min(Date.now() - chargeStartTime, this.maxChargeTime);
+      const chargeRatio = chargeDuration / this.maxChargeTime;
 
-      InteractionUtils.updateCursorVisual(this.cursor, 'charging', chargeRatio);
+      const cursor = document.querySelector('#camera > #cursor');
+      if (cursor) {
+        InteractionUtils.updateCursorVisual(cursor, 'charging', chargeRatio);
+      }
     }
   },
 
   // Helper methods
 
   _setupTickFunction: function () {
+    console.log('Setting up tick function');
     if (this._tickFunction) {
-      this.el.sceneEl.removeEventListener('tick', this._tickFunction);
+      console.log('Removing existing tick function');
+      document.querySelector('a-scene').removeEventListener('tick', this._tickFunction);
     }
     this._tickFunction = this.tick.bind(this);
-    this.el.sceneEl.addEventListener('tick', this._tickFunction);
+    const sceneEl = document.querySelector('a-scene');
+    if (!sceneEl) {
+      console.error('No scene element found for tick function');
+      return;
+    }
+    console.log('Adding tick function to scene');
+    sceneEl.addEventListener('tick', this._tickFunction);
   },
 
   _removeTickFunction: function () {
     if (this._tickFunction) {
-      this.el.sceneEl.removeEventListener('tick', this._tickFunction);
+      const sceneEl = document.querySelector('a-scene');
+      if (sceneEl) {
+        sceneEl.removeEventListener('tick', this._tickFunction);
+      }
       this._tickFunction = null;
     }
   }

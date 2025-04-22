@@ -34,7 +34,7 @@ VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with
    ```
    # Using Python 3
    python -m http.server
-   
+
    # Using Node.js
    npx serve
    ```
@@ -48,18 +48,29 @@ Comprehensive documentation is available in the `Documentation` folder:
 - **[Documentation/aug](./Documentation/aug)**: Detailed documentation of the application's functionality, dependencies, and architecture
 - **[Documentation/UML](./Documentation/UML)**: UML diagrams showing the application's structure and behavior
 
-## Optimized Code Structure
+## Project Structure
 
-The codebase has been optimized for maintainability, performance, and future multiplayer support:
+The project has been refactored into a modular structure:
 
-- **[js/](./js)**: Contains the optimized, modular code structure
-  - **[js/components/](./js/components)**: A-Frame components
-  - **[js/managers/](./js/managers)**: Manager modules
-  - **[js/utils/](./js/utils)**: Utility functions and helpers
+- **[js/components/](./js/components)**: A-Frame components
+  - ControlManager: Manages control schemes based on device type
+  - DesktopMobileControls: Handles desktop and mobile interactions
+  - ArrowControls: Provides on-screen controls for mobile devices
+  - NavigateOnClick: Handles navigation to other pages on click
+  - TogglePhysics: Handles physics state for VR object interaction
+- **[js/managers/](./js/managers)**: Manager modules
+  - DeviceManager: Handles device detection, permissions, and capabilities
+  - LookModeManager: Handles switching between swipe and gyro modes
+- **[js/utils/](./js/utils)**: Utility functions and helpers
+  - PhysicsUtils: Utility functions for physics operations
+  - InteractionUtils: Utility functions for object interactions
+  - StateMachine: A simple state machine implementation
+
+The legacy code is still available in the root directory for reference and fallback if needed.
 
 ## Development
 
-### Project Structure
+### Directory Structure
 
 ```
 VRMOBDESK/
@@ -67,11 +78,12 @@ VRMOBDESK/
 ├── Documentation/      # Project documentation
 │   ├── aug/            # Detailed documentation
 │   └── UML/            # UML diagrams
-├── js/                 # Optimized JavaScript modules
+├── js/                 # New modular JavaScript structure (in development)
 │   ├── components/     # A-Frame components
 │   ├── managers/       # Manager modules
 │   └── utils/          # Utility functions
 ├── lib/                # External libraries
+├── *.js                # Original JavaScript files (currently in use)
 ├── index.html          # Main HTML file
 ├── MOBDESK.css         # CSS styles
 └── README.md           # This file
@@ -79,7 +91,13 @@ VRMOBDESK/
 
 ### Future Development
 
-The project is being prepared for multiplayer functionality with positional audio. See [Documentation/aug/MultiplayerPreparation.md](./Documentation/aug/MultiplayerPreparation.md) for details.
+The project is now ready for:
+
+1. **Multiplayer functionality**: Adding support for multiple users with positional audio
+2. **Performance optimizations**: Improving performance across all platforms
+3. **Enhanced VR interactions**: Adding more immersive VR interactions
+
+The modular structure has been completed, making it easier to implement these features. See [Documentation/aug/MultiplayerPreparation.md](./Documentation/aug/MultiplayerPreparation.md) for details on the multiplayer implementation plan and [Documentation/aug/ModularStructure.md](./Documentation/aug/ModularStructure.md) for information about the modular code structure.
 
 ## Contributing
 

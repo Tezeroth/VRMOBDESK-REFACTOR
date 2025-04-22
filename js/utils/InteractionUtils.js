@@ -1,6 +1,6 @@
 /**
  * InteractionUtils - Utility functions for object interactions
- * 
+ *
  * This module provides helper functions for:
  * - Raycasting and intersection testing
  * - Visual feedback for interactions
@@ -16,30 +16,35 @@ const InteractionUtils = {
    */
   getIntersectedElement(raycaster, selector) {
     if (!raycaster || !raycaster.components || !raycaster.components.raycaster) {
+      console.warn('InteractionUtils: Invalid raycaster', raycaster);
       return null;
     }
-    
-    const intersections = raycaster.components.raycaster.intersections;
-    if (!intersections || intersections.length === 0) {
+
+    // Get intersected elements from raycaster
+    const intersectedEls = raycaster.components.raycaster.intersectedEls;
+
+    if (!intersectedEls || intersectedEls.length === 0) {
       return null;
     }
-    
-    // If no selector, return first intersection
+
+    console.log('Found intersected elements:', intersectedEls.length);
+
+    // If no selector, return first intersected element
     if (!selector) {
-      return intersections[0].object.el;
+      return intersectedEls[0];
     }
-    
-    // Find first intersection that matches selector
-    for (const intersection of intersections) {
-      const el = intersection.object.el;
-      if (el && el.matches(selector)) {
+
+    // Find first intersected element that matches selector
+    for (const el of intersectedEls) {
+      if (el && el.matches && el.matches(selector)) {
+        console.log('Found matching element:', el.id || el.tagName);
         return el;
       }
     }
-    
+
     return null;
   },
-  
+
   /**
    * Update cursor visual based on interaction state
    * @param {Element} cursor - The cursor element
@@ -48,9 +53,9 @@ const InteractionUtils = {
    */
   updateCursorVisual(cursor, state, chargeRatio = 0) {
     if (!cursor) return;
-    
+
     const baseScale = 0.025;
-    
+
     switch (state) {
       case 'idle':
       case 'holding':
@@ -58,25 +63,25 @@ const InteractionUtils = {
         cursor.setAttribute('geometry', 'radiusOuter', baseScale);
         cursor.setAttribute('material', 'color', 'lime');
         break;
-        
+
       case 'inspecting':
         cursor.setAttribute('geometry', 'radiusInner', baseScale * 0.8);
         cursor.setAttribute('geometry', 'radiusOuter', baseScale);
         cursor.setAttribute('material', 'color', 'red');
         break;
-        
+
       case 'charging':
         const maxScaleMultiplier = 2.0;
         const scale = baseScale * (1 + chargeRatio * (maxScaleMultiplier - 1));
         const color = new THREE.Color(0xffff00).lerp(new THREE.Color(0xff0000), chargeRatio);
-        
+
         cursor.setAttribute('geometry', 'radiusInner', scale * 0.8);
         cursor.setAttribute('geometry', 'radiusOuter', scale);
         cursor.setAttribute('material', 'color', `#${color.getHexString()}`);
         break;
     }
   },
-  
+
   /**
    * Calculate relative rotation between two frames
    * @param {THREE.Quaternion} prevQuat - Previous quaternion
@@ -87,7 +92,7 @@ const InteractionUtils = {
     resultQuat.copy(prevQuat).conjugate();
     resultQuat.premultiply(currentQuat);
   },
-  
+
   /**
    * Calculate object position relative to camera
    * @param {THREE.Object3D} cameraObject - Camera object3D
@@ -98,10 +103,10 @@ const InteractionUtils = {
     const tempDirection = new THREE.Vector3(0, 0, -1);
     const tempPosition = new THREE.Vector3();
     const tempQuaternion = new THREE.Quaternion();
-    
+
     cameraObject.getWorldPosition(tempPosition);
     cameraObject.getWorldQuaternion(tempQuaternion);
-    
+
     tempDirection.applyQuaternion(tempQuaternion);
     resultVector.copy(tempPosition).add(tempDirection.multiplyScalar(distance));
   }

@@ -32,11 +32,44 @@
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
 
+    <!-- Legacy scripts for backward compatibility -->
+    <script src="model-utils.js"></script>
+
     <!-- Optimized modular code structure -->
     <script type="module" src="js/main.js"></script>
 
-    <!-- Legacy scripts for components not yet migrated -->
-    <script src="model-utils.js"></script>
+    <!-- Uncomment these if modular structure has issues -->
+    <!--
+    <script src="VR.js"></script>
+    <script src="navigate-on-click.js"></script>
+    <script src="MOBDESK.js"></script>
+    <script src="control-manager.js"></script>
+    -->
+
+    <!-- Debug script to help diagnose issues -->
+    <script>
+      // Add global error handler
+      window.addEventListener('error', function(event) {
+        console.error('Global error:', event.error);
+      });
+
+      // Log when scene is loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          scene.addEventListener('loaded', function() {
+            console.log('Scene loaded');
+
+            // Check if components are registered
+            console.log('Registered components:', Object.keys(AFRAME.components));
+
+            // Check if desktop-mobile-controls is working
+            const dmc = scene.components['desktop-mobile-controls'];
+            console.log('desktop-mobile-controls component:', dmc);
+          });
+        }
+      });
+    </script>
 
     <link rel="stylesheet" href="MOBDESK.css">
 
