@@ -1,5 +1,10 @@
 # VRMOBDESK
 
+#link to hosted demo: https://tezeroth.github.io/VRMOBDESK-REFACTOR/
+
+# ![image](https://github.com/user-attachments/assets/a34c4914-99d2-4ed7-b4c5-fd17ac83a68d)
+
+
 VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with A-Frame. It provides a versatile platform for creating immersive experiences that work across multiple devices.
 
 ## Features
