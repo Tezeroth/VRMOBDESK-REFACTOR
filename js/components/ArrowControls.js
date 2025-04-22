@@ -12,7 +12,7 @@ import InteractionUtils from '../utils/InteractionUtils.js';
 
 const ArrowControls = {
   schema: {
-    moveSpeed: { type: 'number', default: 0.2 }
+    moveSpeed: { type: 'number', default: 2.0 }
   },
 
   init: function() {
@@ -257,8 +257,15 @@ const ArrowControls = {
     const moveSpeed = this.data.moveSpeed * (delta / 1000);
     const cameraRig = document.querySelector('#cameraRig');
 
-    if (!cameraRig || !cameraRig.hasAttribute('movement-controls')) {
+    if (!cameraRig) {
       return;
+    }
+
+    // Ensure cameraRig has movement-controls
+    if (!cameraRig.hasAttribute('movement-controls')) {
+      console.log('ArrowControls: Adding movement-controls to cameraRig');
+      cameraRig.setAttribute('movement-controls', 'enabled: true; controls: keyboard; speed: 1.0; fly: false;');
+      return; // Skip this frame to let the component initialize
     }
 
     // Skip if movement controls are disabled
@@ -282,18 +289,18 @@ const ArrowControls = {
     sideDirection.y = 0;
     sideDirection.normalize();
 
-    // Apply movement
+    // Apply movement with correct directions and speed
     if (this.moveState.up) {
-      cameraRig.object3D.position.addScaledVector(direction, moveSpeed);
+      cameraRig.object3D.position.addScaledVector(direction, -moveSpeed); // Reversed
     }
     if (this.moveState.down) {
-      cameraRig.object3D.position.addScaledVector(direction, -moveSpeed);
+      cameraRig.object3D.position.addScaledVector(direction, moveSpeed); // Reversed
     }
     if (this.moveState.left) {
-      cameraRig.object3D.position.addScaledVector(sideDirection, moveSpeed);
+      cameraRig.object3D.position.addScaledVector(sideDirection, -moveSpeed);
     }
     if (this.moveState.right) {
-      cameraRig.object3D.position.addScaledVector(sideDirection, -moveSpeed);
+      cameraRig.object3D.position.addScaledVector(sideDirection, moveSpeed);
     }
   }
 };

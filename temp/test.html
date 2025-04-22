@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VRMOBDESK Test (Original Files)</title>
-  
+  <title>VRMOBDESK Test</title>
+
   <!-- A-Frame and dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.7.1/dist/aframe-master.min.js"></script>
   <script src="lib/physx.min.js"></script>
-  
-  <!-- Original scripts -->
+
+  <!-- Legacy scripts for components not yet migrated -->
   <script src="model-utils.js"></script>
-  <script src="VR.js"></script>
-  <script src="navigate-on-click.js"></script>
-  <script src="MOBDESK.js"></script>
-  <script src="control-manager.js"></script>
-  
+
+  <!-- Optimized modular code structure -->
+  <script type="module" src="js/main.js"></script>
+
   <style>
     .loading-overlay {
       position: fixed;
@@ -32,11 +31,11 @@
       font-family: sans-serif;
       z-index: 1000;
     }
-    
+
     .loading-content {
       text-align: center;
     }
-    
+
     .loader {
       border: 16px solid #333;
       border-top: 16px solid #3498db;
@@ -46,7 +45,7 @@
       animation: spin 2s linear infinite;
       margin: 0 auto 20px;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -60,18 +59,16 @@
       <span>Loading...</span>
     </div>
   </div>
-  
+
   <a-scene
     control-manager
     physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 4; fixedTimeStep: 1/60;"
     physx="autoLoad: true; wasmUrl: lib/physx.release.wasm"
+    loading-screen-manager
   >
-    <a-box position="0 0.5 -3" color="red" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-box>
-    <a-sphere position="1 0.5 -3" color="blue" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-sphere>
-    <a-cylinder position="-1 0.5 -3" color="green" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-cylinder>
-    
-    <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="gray" physx-body="type: static;"></a-plane>
-    
+    <a-box position="0 0.5 -3" color="red"></a-box>
+    <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="green"></a-plane>
+
     <a-entity
       id="cameraRig"
       position="0 0 0"
@@ -79,27 +76,18 @@
       <a-entity
         id="camera"
         camera="near:0.01;"
-        look-controls="pointerLockEnabled: true"
+        look-controls="pointerLockEnabled: true; magicWindowTrackingEnabled: false"
         position="0 1.6 0"
       >
         <a-entity id="cursor"
           position="0 0 -1"
           geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-          material="color: lime; shader: flat; opacity: 0.9" 
+          material="color: lime; shader: flat; opacity: 0.9"
           raycaster="objects: .clickable, .blocker, .pickupable"
           cursor="fuse: false;"
         ></a-entity>
       </a-entity>
     </a-entity>
-    
-    <a-sky color="#ECECEC"></a-sky>
   </a-scene>
-  
-  <script>
-    // Hide loading overlay when scene is loaded
-    document.querySelector('a-scene').addEventListener('loaded', function () {
-      document.getElementById('loading-overlay').style.display = 'none';
-    });
-  </script>
 </body>
 </html>

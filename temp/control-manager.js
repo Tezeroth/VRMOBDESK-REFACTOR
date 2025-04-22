@@ -8,7 +8,7 @@ AFRAME.registerComponent('control-manager', {
     this.leftHand = document.querySelector('#leftHand');
     this.rightHand = document.querySelector('#rightHand');
     // Find the entity holding the handy-controls component directly
-    this.handyControlsEntity = document.querySelector('[handy-controls]'); 
+    this.handyControlsEntity = document.querySelector('[handy-controls]');
 
     if (!this.handyControlsEntity) {
       // Attempt to find it via the material if the direct attribute selector fails (fallback)
@@ -22,18 +22,18 @@ AFRAME.registerComponent('control-manager', {
 
     this.isVRMode = false;
     // We will set this.isMobile after DeviceManager finishes
-    this.isMobile = false; 
+    this.isMobile = false;
 
     this.sceneEl.addEventListener('enter-vr', () => {
       console.log("Event: enter-vr detected.");
-      this.isVRMode = true; 
+      this.isVRMode = true;
       this.removeDesktopMobileMode();
       this.setupVRMode();
     });
 
     this.sceneEl.addEventListener('exit-vr', () => {
       console.log("Event: exit-vr detected.");
-      if (this.isVRMode) { 
+      if (this.isVRMode) {
         this.isVRMode = false;
         this.removeVRMode();
         this.setupDesktopMobileMode();
@@ -45,11 +45,11 @@ AFRAME.registerComponent('control-manager', {
       // Update mobile status now that DeviceManager is ready
       this.isMobile = DeviceManager.isMobile;
       console.log(`Control Manager: Initial Device Check - isVR: ${DeviceManager.isVR}, isMobile: ${this.isMobile}`);
-      
+
       // Conditionally remove static colliders and disable shadows on mobile
       if (this.isMobile) {
           console.log("Mobile detected. Disabling shadows...");
-          
+
           // Disable shadows from main light immediately
           const light = this.sceneEl.querySelector('#dirlight');
           if (light) {
@@ -66,9 +66,9 @@ AFRAME.registerComponent('control-manager', {
           } else {
                console.warn("Could not find #dirlight to disable shadows for mobile.");
           }
-          
+
           // --- RE-ATTEMPT COMMENT OUT Mobile Collider Removal ---
-          /* 
+          /*
           console.log("Queueing collider removal for mobile...");
           // Delay removal slightly to ensure physics system is ready
           setTimeout(() => {
@@ -86,9 +86,9 @@ AFRAME.registerComponent('control-manager', {
           */
           // ---
       }
-      
+
       if (DeviceManager.isVR) {
-        this.isVRMode = true; 
+        this.isVRMode = true;
         console.log("Initial state IS VR. Removing Desktop/Mobile components.");
         this.removeDesktopMobileMode();
       } else {
@@ -168,12 +168,15 @@ AFRAME.registerComponent('control-manager', {
 
     // Add necessary components if not present
     if (cameraEl && !cameraEl.hasAttribute('look-controls')) {
-        cameraEl.setAttribute('look-controls', 'pointerLockEnabled: true');
+        cameraEl.setAttribute('look-controls', 'pointerLockEnabled: true; magicWindowTrackingEnabled: false');
+    } else if (cameraEl) {
+        // Ensure magicWindowTrackingEnabled is false for existing look-controls
+        cameraEl.setAttribute('look-controls', 'magicWindowTrackingEnabled', false);
     }
-    
+
     if (cameraRig && !cameraRig.hasAttribute('movement-controls')) {
         // Use movement-controls, enabling keyboard for WASD
-        cameraRig.setAttribute('movement-controls', 'enabled: true; controls: keyboard; speed: 0.2; fly: false;'); 
+        cameraRig.setAttribute('movement-controls', 'enabled: true; controls: keyboard; speed: 0.2; fly: false;');
         console.log("Setting movement-controls (keyboard) on cameraRig.");
     } else if (cameraRig) {
         // If it exists, ensure keyboard is enabled and set speed
@@ -182,7 +185,7 @@ AFRAME.registerComponent('control-manager', {
         cameraRig.setAttribute('movement-controls', 'speed', 0.2);
         console.log("Updating existing movement-controls (keyboard) on cameraRig.");
     }
-    
+
     // Add Navmesh Constraint for Desktop/Mobile
     if (cameraRig && !cameraRig.hasAttribute('simple-navmesh-constraint')) {
         cameraRig.setAttribute('simple-navmesh-constraint', 'navmesh:.navmesh;fall:0.5;height:0.01;exclude:.navmesh-hole;');
@@ -193,7 +196,7 @@ AFRAME.registerComponent('control-manager', {
     if (DeviceManager.isMobile) {
         console.log("Mobile detected, adding arrow controls UI.");
         if (!sceneEl.components['arrow-controls']) {
-             sceneEl.setAttribute('arrow-controls', ''); 
+             sceneEl.setAttribute('arrow-controls', '');
         }
     } else {
          // Ensure arrow controls are removed if on desktop
@@ -219,7 +222,7 @@ AFRAME.registerComponent('control-manager', {
     if (this.camera) {
       this.camera.setAttribute('look-controls', 'enabled', false);
     }
-    
+
     // Add constraint and movement-controls removal from cameraRig
     if (this.cameraRig) {
         this.cameraRig.removeAttribute('simple-navmesh-constraint');
@@ -227,7 +230,7 @@ AFRAME.registerComponent('control-manager', {
         this.cameraRig.removeAttribute('movement-controls');
         console.log("Removed movement-controls from cameraRig.");
     }
-    
+
     console.log("Desktop/Mobile Mode Components Removed.");
   },
 
@@ -241,4 +244,4 @@ AFRAME.registerComponent('control-manager', {
     this.removeDesktopMobileMode();
     console.log("Control Manager Removed.");
   }
-}); 
+});

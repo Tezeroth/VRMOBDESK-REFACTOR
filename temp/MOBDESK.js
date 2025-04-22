@@ -28,7 +28,7 @@ const DeviceManager = {
   isVR: false,
   isMobile: false,
   hasGyro: false,
-  
+
   async init() {
     let vrSupported = false;
     // VR check
@@ -39,17 +39,17 @@ const DeviceManager = {
         vrSupported = false;
       }
     }
-    
+
     // Mobile check
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
-    
+
     // Refined VR check: Consider VR true ONLY if supported AND NOT mobile
     this.isVR = vrSupported && !this.isMobile;
-    
+
     // Gyro check
     this.hasGyro = window.DeviceOrientationEvent !== undefined;
-    
+
     console.log(`DeviceManager Init Complete: vrSupported=${vrSupported}, isMobile=${this.isMobile}, Final isVR=${this.isVR}`); // Added detailed log
     return true;
   },
@@ -71,11 +71,11 @@ const DeviceManager = {
 const LookModeManager = {
   currentMode: 'swipe',
   gyroEnabled: false,
-  
+
   init() {
     this.currentMode = localStorage.getItem('lookMode') || 'swipe';
     this.createToggleButton();
-    
+
     if (DeviceManager.hasGyro) {
       this.initGyro();
     }
@@ -85,7 +85,7 @@ const LookModeManager = {
     const button = document.createElement('button');
     button.className = 'look-mode-btn';
     this.updateButtonText(button);
-    
+
     button.addEventListener('click', async () => {
       if (this.currentMode === 'swipe') {
         if (await DeviceManager.requestGyroPermission()) {
@@ -97,7 +97,7 @@ const LookModeManager = {
         this.setMode('swipe');
       }
     });
-    
+
     document.body.appendChild(button);
   },
 
@@ -111,7 +111,7 @@ const LookModeManager = {
     this.currentMode = mode;
     localStorage.setItem('lookMode', mode);
     this.updateButtonText(document.querySelector('.look-mode-btn'));
-    
+
     if (mode === 'gyro') {
       this.enableGyro();
     } else {
@@ -129,11 +129,11 @@ const LookModeManager = {
         <button>OK</button>
       </div>
     `;
-    
+
     overlay.querySelector('button').onclick = () => {
       overlay.remove();
     };
-    
+
     document.body.appendChild(overlay);
   },
 
@@ -143,25 +143,25 @@ const LookModeManager = {
 
   handleGyro(event) {
     if (!this.gyroEnabled || this.currentMode !== 'gyro') return;
-    
+
     const camera = document.querySelector('#camera');
     if (!camera) return;
 
     const lookControls = camera.components['look-controls'];
-    if (lookControls && lookControls.data.enabled) { 
-        const yawObject = lookControls.yawObject; 
+    if (lookControls && lookControls.data.enabled) {
+        const yawObject = lookControls.yawObject;
         const pitchObject = lookControls.pitchObject;
 
         // Revert to simple mapping: beta for pitch, -gamma for yaw
         const betaRad = THREE.MathUtils.degToRad(event.beta);
         const gammaRad = THREE.MathUtils.degToRad(-event.gamma); // Negate gamma often needed
 
-        // Apply pitch 
-        pitchObject.rotation.x = betaRad; 
+        // Apply pitch
+        pitchObject.rotation.x = betaRad;
 
-        // Apply yaw 
+        // Apply yaw
         yawObject.rotation.y = gammaRad;
-        
+
     }
   },
 
@@ -194,23 +194,23 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     this.cursor = document.querySelector('#cursor');
     this._tickFunction = null;
     this._originalPhysicsState = null;
-    
+
     // Throwing mechanics vars
     this.chargeStartTime = 0;
     this.maxChargeTime = 1500; // Max charge time in ms (e.g., 1.5 seconds)
-    this.minThrowForce = 5;  
+    this.minThrowForce = 5;
     this.maxThrowForce = 10; // << REDUCED again for buddy (was 12)
     this.secondClickStartTime = 0; // Track the start time of a potential charge/drop click
     this.chargeThreshold = 200;  // ms threshold to differentiate click-drop from charge-hold
 
-    // --- State for Relative Rotation (Optimized) --- 
-    this.prevCameraWorldQuat = new THREE.Quaternion();      
-    this.currentCameraWorldQuat = new THREE.Quaternion(); 
-    this.deltaQuat = new THREE.Quaternion();             
+    // --- State for Relative Rotation (Optimized) ---
+    this.prevCameraWorldQuat = new THREE.Quaternion();
+    this.currentCameraWorldQuat = new THREE.Quaternion();
+    this.deltaQuat = new THREE.Quaternion();
     // <<< ADD Reusable Vectors for Tick >>>
     this.tempCameraWorldPos = new THREE.Vector3();
     this.tempDirection = new THREE.Vector3();
-    this.targetPosition = new THREE.Vector3(); 
+    this.targetPosition = new THREE.Vector3();
 
     // --- State for Examine Mode Camera Restoration (Revised) ---
     this.cameraPitchOnEnterInspect = 0; // Store pitchObject.rotation.x
@@ -252,30 +252,30 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     window.removeEventListener('touchmove', this.onTouchMove);
     window.removeEventListener('touchstart', this.onTouchStart);
     window.removeEventListener('touchend', this.onTouchEnd);
-    
+
     if (this._tickFunction) {
       this.el.sceneEl.removeEventListener('tick', this._tickFunction);
       this._tickFunction = null;
     }
-    
+
     if (this.heldObject) {
       // Ensure dropped state is correct on removal
       if (this.releaseObject) {
-          this.releaseObject(); 
+          this.releaseObject();
       } else if (this.dropObject) { // Fallback if releaseObject wasn't defined yet
           this.dropObject();
       }
     }
     this.interactionState = 'idle';
   },
-  
+
   // --- Input Handlers ---
 
   onClick: function (evt) {
     // Primarily handle non-pickupable clickables now
     if (DeviceManager.isMobile) return;
     if (this.interactionState !== 'idle') return; // Don't interfere if holding/charging/inspecting
-    if (evt.target.classList.contains('arrow-btn') || evt.target.classList.contains('action-btn') || evt.target.closest('.arrow-controls')) return; 
+    if (evt.target.classList.contains('arrow-btn') || evt.target.classList.contains('action-btn') || evt.target.closest('.arrow-controls')) return;
 
     const headCursor = document.querySelector('#camera > #cursor');
     if (!headCursor || !headCursor.components.raycaster) return;
@@ -285,7 +285,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     const clickedEl = intersection.object.el;
     if (clickedEl.classList.contains('clickable')) {
       console.log("Desktop click on .clickable:", clickedEl.id);
-      clickedEl.emit('click', null, false); 
+      clickedEl.emit('click', null, false);
     }
     // Pickup is handled by onMouseDown now
   },
@@ -320,14 +320,14 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
       if (evt.button !== 0) return;
 
       if (this.interactionState === 'charging') {
-          // Finish throw 
+          // Finish throw
           const chargeDuration = Math.min(Date.now() - this.chargeStartTime, this.maxChargeTime);
           const chargeRatio = chargeDuration / this.maxChargeTime;
           const throwForce = this.minThrowForce + (this.maxThrowForce - this.minThrowForce) * chargeRatio;
           console.log(`Throwing with force: ${throwForce} (Charge: ${chargeRatio.toFixed(2)})`);
 
           const camera = this.camera;
-          const direction = new THREE.Vector3(0, 0.2, -1); 
+          const direction = new THREE.Vector3(0, 0.2, -1);
           const quaternion = new THREE.Quaternion();
           camera.object3D.getWorldQuaternion(quaternion);
           direction.applyQuaternion(quaternion);
@@ -335,7 +335,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
           this.releaseObject(throwVelocity);
           this.resetCursorVisual();
-          
+
           // <<< FIX: Re-enable movement-controls on cameraRig >>>
           const cameraRig = document.querySelector('#cameraRig');
           if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
@@ -343,7 +343,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
              console.log("Re-enabled movement-controls on rig after throwing.");
           }
           // <<< END FIX >>>
-          
+
       } else if (this.interactionState === 'holding' && this.secondClickStartTime > 0) {
           // Mouse was released *before* charge threshold was met in tick -> Quick click, so drop.
           console.log("Quick second click detected -> Dropping object.");
@@ -359,9 +359,9 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     console.log("desktop-and-mobile-controls: pickupObject - Attempting to pick up:", el.id);
     if (this.interactionState !== 'idle') { // Check state instead of just heldObject
         console.warn("desktop-and-mobile-controls: pickupObject - Cannot pick up, current state is:", this.interactionState);
-        return; 
+        return;
     }
-    
+
     const currentBody = el.getAttribute('physx-body');
     if (!currentBody) {
         console.error("desktop-and-mobile-controls: pickupObject - Target has no physx-body!", el.id);
@@ -369,23 +369,23 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     }
     this._originalPhysicsState = AFRAME.utils.extend({}, currentBody);
     console.log("desktop-and-mobile-controls: pickupObject - Stored original state:", JSON.stringify(this._originalPhysicsState));
-    
-    // --- Destroy existing body and create fresh kinematic one --- 
+
+    // --- Destroy existing body and create fresh kinematic one ---
     try {
         console.log("pickupObject: Removing existing physx-body...");
-        el.removeAttribute('physx-body'); 
+        el.removeAttribute('physx-body');
         console.log("pickupObject: Re-adding as kinematic...");
         el.setAttribute('physx-body', 'type', 'kinematic');
         console.log("desktop-and-mobile-controls: pickupObject - Set physx-body to kinematic for", el.id);
-        
-        this.heldObject = el;
-        this.interactionState = 'holding'; 
 
-        // --- Set Initial Object Rotation & Store Camera Quat --- 
+        this.heldObject = el;
+        this.interactionState = 'holding';
+
+        // --- Set Initial Object Rotation & Store Camera Quat ---
         const camera = this.camera;
         if (camera) {
             camera.object3D.getWorldQuaternion(this.prevCameraWorldQuat); // Store current camera rotation for first tick
-            
+
             // Calculate and apply default target world rotation (based on current camera, facing away)
             const rotYPi = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
             const initialObjectQuat = new THREE.Quaternion();
@@ -399,12 +399,12 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
     } catch (e) {
       console.error("desktop-and-mobile-controls: pickupObject - Error removing/re-adding physx-body:", e);
-      this.heldObject = null; 
-      this.interactionState = 'idle'; 
+      this.heldObject = null;
+      this.interactionState = 'idle';
       this._originalPhysicsState = null;
       return;
     }
-    // --- Remove old velocity zeroing - not needed for fresh body --- 
+    // --- Remove old velocity zeroing - not needed for fresh body ---
 
     // Attach tick listener
     if (this._tickFunction) {
@@ -414,7 +414,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     this.el.sceneEl.addEventListener('tick', this._tickFunction);
     console.log("desktop-and-mobile-controls: pickupObject - Added tick listener.");
   },
-  
+
   // Renamed dropObject to releaseObject, handles both drop and throw
   releaseObject: function (velocity = null) { // Accepts optional velocity
     if (!this.heldObject) return;
@@ -424,9 +424,9 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
     const position = el.object3D.position.clone();
     const quaternion = el.object3D.quaternion.clone();
-    const originalDynamicState = this._originalPhysicsState ? AFRAME.utils.extend({}, this._originalPhysicsState) : { type: 'dynamic', mass: 1 }; 
+    const originalDynamicState = this._originalPhysicsState ? AFRAME.utils.extend({}, this._originalPhysicsState) : { type: 'dynamic', mass: 1 };
     originalDynamicState.type = 'dynamic';
-    const previousHeldObject = el; 
+    const previousHeldObject = el;
 
     // Stop the tick listener immediately
     if (this._tickFunction) {
@@ -437,17 +437,17 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
     // --- State Cleanup (do this first) ---
     this.heldObject = null;
-    this.interactionState = 'idle'; 
-    this.chargeStartTime = 0; 
-    this.secondClickStartTime = 0; 
+    this.interactionState = 'idle';
+    this.chargeStartTime = 0;
+    this.secondClickStartTime = 0;
     console.log("Cleared component state.");
 
-    // --- Physics Handling: Destroy kinematic, Recreate dynamic, optionally apply velocity --- 
+    // --- Physics Handling: Destroy kinematic, Recreate dynamic, optionally apply velocity ---
     try {
         // Destroy the current kinematic body
         console.log("releaseObject: Removing kinematic physx-body...");
         previousHeldObject.removeAttribute('physx-body');
-        
+
         // Recreate the dynamic body using original stored state
         console.log("releaseObject: Re-adding as dynamic using stored state:", originalDynamicState);
         previousHeldObject.setAttribute('physx-body', originalDynamicState);
@@ -457,7 +457,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
         previousHeldObject.object3D.quaternion.copy(quaternion);
         previousHeldObject.object3D.updateMatrix();
         console.log("Restored transform after recreating dynamic body.");
-        
+
         // --- Apply Velocity with Minimal Delay ---
         if (velocity) {
             console.log(`Calculated throwVelocity: x=${velocity.x.toFixed(3)}, y=${velocity.y.toFixed(3)}, z=${velocity.z.toFixed(3)}`);
@@ -474,14 +474,14 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
                 const rigidBody = bodyComponent.rigidBody;
                 const currentType = bodyComponent.data.type;
                 console.log(`Timeout (0ms): Body type: ${currentType}, rigidBody exists? ${!!rigidBody}`);
-                
-                if (rigidBody && currentType === 'dynamic') { 
+
+                if (rigidBody && currentType === 'dynamic') {
                     try {
                         const plainVelocity = { x: velocity.x, y: velocity.y, z: velocity.z };
-                        const zeroAngular = { x: 0, y: 0, z: 0 }; 
+                        const zeroAngular = { x: 0, y: 0, z: 0 };
                         console.log("Applying plain JS velocity object (0ms delay):", plainVelocity);
-                        rigidBody.setAngularVelocity(zeroAngular, true); 
-                        rigidBody.setLinearVelocity(plainVelocity, true); 
+                        rigidBody.setAngularVelocity(zeroAngular, true);
+                        rigidBody.setLinearVelocity(plainVelocity, true);
                         rigidBody.wakeUp();
                         console.log("Timeout (0ms): Successfully called setLinearVelocity/setAngularVelocity.");
                     } catch (eVelocity) {
@@ -530,7 +530,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     // Follow camera if holding OR charging - Incremental Relative Rotation (Revised Position Logic)
     if ((this.interactionState === 'holding' || this.interactionState === 'charging') && this.heldObject) {
         const isCharging = this.interactionState === 'charging';
-        
+
         const camera = this.camera;
         const object3D = this.heldObject.object3D;
         const currentPosition = object3D.position.clone(); // Clone for logging
@@ -548,7 +548,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
         tempDirection.applyQuaternion(currentCameraWorldQuat); // Apply camera rot to direction vec
         targetPosition.copy(tempCameraWorldPos).add(tempDirection.multiplyScalar(2)); // Calculate target pos
         object3D.position.copy(targetPosition); // Apply final calculated position to object
-        
+
         // Calculate Rotation Delta (Optimized)
         deltaQuat.copy(prevCameraWorldQuat).conjugate();
         deltaQuat.premultiply(currentCameraWorldQuat);
@@ -557,15 +557,15 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
         // Store current camera rotation for next frame
         prevCameraWorldQuat.copy(currentCameraWorldQuat);
-        
+
     }
-    
+
     // Update charge visual feedback (only needs to happen if charging)
     if (this.interactionState === 'charging' && this.heldObject) {
         const chargeDuration = Math.min(Date.now() - this.chargeStartTime, this.maxChargeTime);
         const chargeRatio = chargeDuration / this.maxChargeTime;
         if (this.cursor) {
-            const baseScale = 0.025; 
+            const baseScale = 0.025;
             const maxScaleMultiplier = 2.0;
             const scale = baseScale * (1 + chargeRatio * (maxScaleMultiplier - 1));
             const color = new THREE.Color(0xffff00).lerp(new THREE.Color(0xff0000), chargeRatio);
@@ -573,7 +573,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
             this.cursor.setAttribute('geometry', 'radiusOuter', scale);
             this.cursor.setAttribute('material', 'color', `#${color.getHexString()}`);
         }
-    } 
+    }
     // No tick updates needed if 'idle' or 'inspecting'
   },
 
@@ -582,7 +582,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     if (evt.code === 'Space') {
         if (this.interactionState === 'holding' && this.heldObject) {
              console.log("onKeyPress: Space detected while holding -> Entering inspect.");
-             this.toggleInspectionMode(); 
+             this.toggleInspectionMode();
         } else if (this.interactionState === 'charging') {
             console.log("onKeyPress: Space detected while charging -> Cancelling throw.");
             // <<< FIX: Re-enable movement-controls on cameraRig >>>
@@ -594,8 +594,8 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
             // <<< END FIX >>>
             this.interactionState = 'holding'; // Set state AFTER enabling controls
             this.chargeStartTime = 0;
-            this.secondClickStartTime = 0; 
-            this.resetCursorVisual(); 
+            this.secondClickStartTime = 0;
+            this.resetCursorVisual();
         } else if (this.interactionState === 'inspecting') {
              console.log("onKeyPress: Space detected while inspecting -> Exiting inspect.");
              this.toggleInspectionMode();
@@ -611,7 +611,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
       this.toggleInspectionMode();
       return;
     }
-    
+
     // Ignore taps on UI buttons
     if (evt.target.classList.contains('arrow-btn') || evt.target.classList.contains('action-btn')) {
       return;
@@ -624,7 +624,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
     this.isSwiping = false;
     this.prevMouseX = evt.touches[0].clientX;
     this.prevMouseY = evt.touches[0].clientY;
-    
+
     // If holding an object, touching screen could potentially start charge?
     // Let's use the ACTION button for charge/throw on mobile for clarity.
     // So, onTouchStart doesn't initiate charge here.
@@ -639,17 +639,17 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
           const sensitivity = 0.005;
           const moveDeltaX = (touch.clientX - this.prevMouseX) * sensitivity;
           const moveDeltaY = (touch.clientY - this.prevMouseY) * sensitivity;
-          
+
           const threshold = 0.001;
           const absX = Math.abs(moveDeltaX);
           const absY = Math.abs(moveDeltaY);
-          
+
           // Use objectBeingInspected for rotation
           const objectToRotate = this.objectBeingInspected.object3D;
           const camera = document.querySelector('#camera'); // Still need camera for axis
           const cameraQuaternion = new THREE.Quaternion();
           camera.object3D.getWorldQuaternion(cameraQuaternion);
-          
+
            if (absX > threshold && absX > absY * 2) {
               const yAxis = new THREE.Vector3(0, 1, 0);
               const rotation = new THREE.Quaternion().setFromAxisAngle(yAxis, -moveDeltaX);
@@ -660,13 +660,13 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
               objectToRotate.quaternion.multiply(rotation);
           }
           objectToRotate.updateMatrix();
-          
+
           this.prevMouseX = touch.clientX;
           this.prevMouseY = touch.clientY;
           this.isSwiping = true; // Prevent tap if inspecting
           return; // Exit function after handling inspection rotation
     }
-    
+
     // Standard swipe look controls (only run if not inspecting)
     if (evt.touches.length !== 1) return;
     const touch = evt.touches[0];
@@ -693,7 +693,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
   onTouchEnd: function (evt) {
     // Handle UI button taps separately (modified in arrow-controls potentially)
     if (evt.target.classList.contains('arrow-btn') || evt.target.classList.contains('action-btn')) {
-      return; 
+      return;
     }
 
     // If it was a swipe, or if inspecting, don't process as a tap for pickup/drop
@@ -701,8 +701,8 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
         this.isSwiping = false;
         return;
     }
-    
-    // --- Simplified Tap Logic --- 
+
+    // --- Simplified Tap Logic ---
     // Single tap to attempt pickup (if idle)
     // Double tap to drop (if holding)
     // Charging/Throwing handled by action buttons below
@@ -725,17 +725,17 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
             console.log("Mobile double-tap: Dropping object");
             this.releaseObject(); // Simple drop
             this.resetCursorVisual();
-        } 
+        }
         this.lastTapTime = currentTime;
     }
-    
+
     this.isSwiping = false;
   },
 
   toggleInspectionMode: function () {
     console.log("toggleInspectionMode called, current state:", this.interactionState);
-    
-    if (!this.heldObject && this.interactionState !== 'inspecting') { 
+
+    if (!this.heldObject && this.interactionState !== 'inspecting') {
         console.warn("Cannot toggle inspection from state:", this.interactionState, "Held object:", this.heldObject);
         // Ensure reset if called in weird state
         this.interactionState = 'idle';
@@ -745,9 +745,9 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
         this.resetCursorVisual();
         return;
     }
-    
+
     const cameraEl = this.camera;
-    const cameraRig = document.querySelector('#cameraRig'); 
+    const cameraRig = document.querySelector('#cameraRig');
     const lookControls = cameraEl ? cameraEl.components['look-controls'] : null;
     const arrowControlsComp = this.el.sceneEl.components['arrow-controls'];
     const objectToToggle = this.interactionState === 'holding' ? this.heldObject : this.objectBeingInspected;
@@ -756,7 +756,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
         // --- Entering inspection ---
         console.log("Entering inspection mode for:", objectToToggle.id);
 
-        // --- Store Camera/Rig Euler Rotations from look-controls --- 
+        // --- Store Camera/Rig Euler Rotations from look-controls ---
         if (lookControls && lookControls.pitchObject && lookControls.yawObject) {
             this.cameraPitchOnEnterInspect = lookControls.pitchObject.rotation.x;
             this.rigYawOnEnterInspect = lookControls.yawObject.rotation.y;
@@ -765,53 +765,53 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
              console.warn("Could not store look-controls pitch/yaw on entering inspect.");
         }
         // ---
-        
-        this.inspectionMode = true; 
+
+        this.inspectionMode = true;
         this.interactionState = 'inspecting';
         this.objectBeingInspected = objectToToggle;
-        this.heldObject = null; 
+        this.heldObject = null;
         console.log("Stored objectBeingInspected, nulled heldObject.");
-        
+
         // Remove body / stop tick
-        objectToToggle.removeAttribute('physx-body'); 
+        objectToToggle.removeAttribute('physx-body');
         console.log("Removed physx-body for inspection.");
         if (this._tickFunction) {
             this.el.sceneEl.removeEventListener('tick', this._tickFunction);
             this._tickFunction = null;
              console.log("Removed tick listener for inspection.");
         }
-        
+
         // <<< REVERT to using enabled flag >>>
         if (lookControls) { lookControls.data.enabled = false; console.log("Disabled look-controls."); }
-        if (cameraRig && cameraRig.hasAttribute('movement-controls')) { 
+        if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
             // Set enabled to false
-            cameraRig.setAttribute('movement-controls', 'enabled', false); 
-            console.log("Disabled movement-controls on rig for inspection."); 
+            cameraRig.setAttribute('movement-controls', 'enabled', false);
+            console.log("Disabled movement-controls on rig for inspection.");
         }
         // <<< END REVERT >>>
 
         if (this.cursor) this.cursor.setAttribute('material', 'color', 'red');
 
     } else if (this.interactionState === 'inspecting'){
-        if (!this.objectBeingInspected) { 
+        if (!this.objectBeingInspected) {
              console.error("Exiting inspect: Lost reference!");
-             this.interactionState = 'idle'; 
+             this.interactionState = 'idle';
              this.inspectionMode = false;
              this.heldObject = null;
-             this.objectBeingInspected = null; 
+             this.objectBeingInspected = null;
              this.resetCursorVisual(); // Reset cursor AFTER state is idle
              return;
         }
-        const objRef = this.objectBeingInspected; 
+        const objRef = this.objectBeingInspected;
 
-       // --- Exiting inspection --- 
+       // --- Exiting inspection ---
         console.log("Exiting inspection mode for:", objRef.id);
         this.inspectionMode = false;
 
-       const inspectQuaternion = objRef.object3D.quaternion.clone(); 
-       const inspectPosition = objRef.object3D.position.clone(); 
+       const inspectQuaternion = objRef.object3D.quaternion.clone();
+       const inspectPosition = objRef.object3D.position.clone();
 
-       // --- Restore look-controls pitch/yaw BEFORE enabling --- 
+       // --- Restore look-controls pitch/yaw BEFORE enabling ---
        if (lookControls && lookControls.pitchObject && lookControls.yawObject) {
            lookControls.pitchObject.rotation.x = this.cameraPitchOnEnterInspect;
            lookControls.yawObject.rotation.y = this.rigYawOnEnterInspect;
@@ -839,14 +839,14 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
        // <<< REVERT to using enabled flag >>>
        if (lookControls) { lookControls.data.enabled = true; console.log("Re-enabled look-controls."); }
-       if (cameraRig && cameraRig.hasAttribute('movement-controls')) { 
+       if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
            // Set enabled to true
-           cameraRig.setAttribute('movement-controls', 'enabled', true); 
-           console.log("Re-enabled movement-controls on rig after inspection."); 
+           cameraRig.setAttribute('movement-controls', 'enabled', true);
+           console.log("Re-enabled movement-controls on rig after inspection.");
            // ... diagnostic log for speed (can keep for now) ...
        }
        // <<< END REVERT >>>
-       
+
        // Request pointer lock (only if not mobile) - Needs to happen AFTER enabling controls
        if (!DeviceManager.isMobile) {
            setTimeout(() => {
@@ -866,10 +866,10 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
        try {
            objRef.setAttribute('physx-body', 'type', 'dynamic');
            console.log(`SetAttribute physx-body type: dynamic`);
-           objRef.object3D.position.copy(inspectPosition); 
+           objRef.object3D.position.copy(inspectPosition);
            objRef.object3D.updateMatrix();
-           
-           // Schedule kinematic switch 
+
+           // Schedule kinematic switch
            console.log("Scheduling kinematic switch (100ms delay)...", inspectQuaternion);
            setTimeout(() => {
                console.log(`Timeout (100ms): Setting back to kinematic for: ${objRef.id}`);
@@ -877,46 +877,46 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
                     objRef.setAttribute('physx-body', 'type', 'kinematic');
                     console.log("Timeout (100ms): Set physx-body type to kinematic.");
 
-                    // --- Apply Final Inspect Rotation & Store Camera Quat --- 
+                    // --- Apply Final Inspect Rotation & Store Camera Quat ---
                     objRef.object3D.quaternion.copy(inspectQuaternion); // Apply final rotation
-                    if (cameraEl) { 
+                    if (cameraEl) {
                         cameraEl.object3D.getWorldQuaternion(this.prevCameraWorldQuat); // Store camera's rotation for next tick
                     }
                     console.log("Applied final inspect rotation and stored camera quat.");
-                    // --- 
+                    // ---
 
-                    // Restore holding state fully 
+                    // Restore holding state fully
                     this.interactionState = 'holding';
-                    this.heldObject = objRef; 
-                    this.objectBeingInspected = null; 
+                    this.heldObject = objRef;
+                    this.objectBeingInspected = null;
                     if (!this._tickFunction) {
                         this._tickFunction = this.tick.bind(this);
                         this.el.sceneEl.addEventListener('tick', this._tickFunction);
                         console.log("Timeout (100ms): Re-attached tick listener.");
                     }
-                    this._originalPhysicsState = null; 
+                    this._originalPhysicsState = null;
                     console.log("Timeout (100ms): Cleared original physics state.");
-                    this.resetCursorVisual(); 
+                    this.resetCursorVisual();
 
                 } catch (eKinematic) {
                     console.error("Timeout (100ms): Error setting kinematic:", eKinematic);
                     this.interactionState = 'idle';
                     this.heldObject = null;
                     this.objectBeingInspected = null;
-                    this._originalPhysicsState = null; 
+                    this._originalPhysicsState = null;
                     this.resetCursorVisual();
                 }
-           }, 100); 
+           }, 100);
 
        } catch (eDynamic) {
            console.error("Error setting dynamic physics body on inspect exit:", eDynamic);
            this.interactionState = 'idle';
            this.heldObject = null;
            this.objectBeingInspected = null;
-           this._originalPhysicsState = null; 
+           this._originalPhysicsState = null;
            this.resetCursorVisual();
        }
-        
+
     } else {
          console.warn("Cannot toggle inspection from state:", this.interactionState, "Held object:", this.heldObject);
          // Ensure reset if called in weird state
@@ -927,7 +927,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
          this.resetCursorVisual();
     }
   },
-  
+
   resetCursorVisual: function() {
       if (this.cursor) {
           const baseScale = 0.025;
@@ -960,7 +960,7 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 AFRAME.registerComponent('arrow-controls', {
   init: function() {
     if (DeviceManager && DeviceManager.isVR) {
-      return; 
+      return;
     }
 
     this.moveState = {
@@ -987,7 +987,7 @@ AFRAME.registerComponent('arrow-controls', {
 
     document.body.appendChild(arrowControls);
   },
-  
+
   // <<< ADD Helper Method >>>
   getMainControls: function() {
       // Add extra logging for debugging
@@ -1003,7 +1003,7 @@ AFRAME.registerComponent('arrow-controls', {
       btn.className = 'arrow-btn';
       btn.id = `${direction}Btn`;
       btn.innerHTML = symbol;
-      
+
       ['mousedown', 'touchstart'].forEach(eventType => {
         btn.addEventListener(eventType, (e) => {
           e.preventDefault(); e.stopPropagation();
@@ -1024,26 +1024,26 @@ AFRAME.registerComponent('arrow-controls', {
 
       return btn;
   },
-  
+
   createActionButton: function(action, label) {
       const btn = document.createElement('button');
       btn.className = 'action-btn';
       btn.id = `${action}Btn`;
       btn.innerHTML = label;
-      
+
       // Use mousedown/touchstart for starting actions
       ['mousedown', 'touchstart'].forEach(eventType => {
          btn.addEventListener(eventType, (e) => {
              e.preventDefault(); e.stopPropagation();
              // <<< CALL Helper Method >>>
              const controls = this.getMainControls();
-             if (!controls) { 
-                 console.error(`Action button (${action}, ${eventType}) pressed, but controls component not found!`); 
-                 return; 
+             if (!controls) {
+                 console.error(`Action button (${action}, ${eventType}) pressed, but controls component not found!`);
+                 return;
              }
-             
+
              this.actionButtonDown[action] = true;
-             
+
              if (action === 'pickup') {
                  if (controls.interactionState === 'idle') {
                      // Attempt pickup
@@ -1061,7 +1061,7 @@ AFRAME.registerComponent('arrow-controls', {
                      controls.interactionState = 'charging';
                      controls.chargeStartTime = Date.now();
                      // this.pickupButtonStartTime = Date.now(); // Not needed if using chargeStartTime from controls
-                     if (controls.cursor) controls.cursor.setAttribute('material', 'color', 'yellow'); 
+                     if (controls.cursor) controls.cursor.setAttribute('material', 'color', 'yellow');
                  }
              } else if (action === 'examine') {
                   if (controls.interactionState === 'holding') {
@@ -1069,9 +1069,9 @@ AFRAME.registerComponent('arrow-controls', {
                       controls.toggleInspectionMode();
                   } else if (controls.interactionState === 'charging') {
                      console.log("Action Button: Cancelling throw charge");
-                     controls.interactionState = 'holding'; 
+                     controls.interactionState = 'holding';
                      controls.chargeStartTime = 0;
-                     controls.resetCursorVisual(); 
+                     controls.resetCursorVisual();
                   } else if (controls.interactionState === 'inspecting') {
                       console.log("Action Button: Toggling inspection mode (exiting)");
                       controls.toggleInspectionMode(); // Exit inspection
@@ -1079,19 +1079,19 @@ AFRAME.registerComponent('arrow-controls', {
              }
          }, { passive: false, capture: true });
       });
-      
+
       // Use mouseup/touchend for finishing actions
       ['mouseup', 'touchend'].forEach(eventType => {
           btn.addEventListener(eventType, (e) => {
               e.preventDefault(); e.stopPropagation();
               // <<< CALL Helper Method >>>
               const controls = this.getMainControls();
-               if (!controls) { 
-                   // console.warn(`Action button (${action}, ${eventType}) released, but controls component not found.`); 
-                   return; 
+               if (!controls) {
+                   // console.warn(`Action button (${action}, ${eventType}) released, but controls component not found.`);
+                   return;
                }
-               
-              if (!this.actionButtonDown[action]) return; 
+
+              if (!this.actionButtonDown[action]) return;
               this.actionButtonDown[action] = false;
 
               if (action === 'pickup') {
@@ -1103,16 +1103,16 @@ AFRAME.registerComponent('arrow-controls', {
                         console.log(`Mobile: Throwing with force: ${throwForce} (Charge: ${chargeRatio.toFixed(2)})`);
 
                         const camera = controls.camera;
-                        const direction = new THREE.Vector3(0, 0.2, -1); 
+                        const direction = new THREE.Vector3(0, 0.2, -1);
                         const quaternion = new THREE.Quaternion();
                         if (!camera || !camera.object3D) { console.error("Throw: Camera not found!"); return; }
                         camera.object3D.getWorldQuaternion(quaternion);
                         direction.applyQuaternion(quaternion);
                         const throwVelocity = direction.multiplyScalar(throwForce);
 
-                        controls.releaseObject(throwVelocity); 
+                        controls.releaseObject(throwVelocity);
                         controls.resetCursorVisual();
-                  } 
+                  }
               }
               // this.pickupButtonStartTime = 0; // Reset here if used
           }, { capture: true });
@@ -1122,14 +1122,14 @@ AFRAME.registerComponent('arrow-controls', {
       btn.addEventListener('mouseleave', (e) => {
            // <<< CALL Helper Method >>>
            const controls = this.getMainControls();
-           
+
            if (this.actionButtonDown[action]) {
                console.log("Mouse left button while charging, cancelling.");
                this.actionButtonDown[action] = false;
-               if (action === 'pickup' && controls && controls.interactionState === 'charging') { 
-                  controls.interactionState = 'holding'; 
+               if (action === 'pickup' && controls && controls.interactionState === 'charging') {
+                  controls.interactionState = 'holding';
                   controls.chargeStartTime = 0;
-                  controls.resetCursorVisual(); 
+                  controls.resetCursorVisual();
                }
                // this.pickupButtonStartTime = 0; // Reset here if used
            }
@@ -1138,23 +1138,30 @@ AFRAME.registerComponent('arrow-controls', {
       return btn;
   },
 
-  tick: function() { 
-    // --- Check if inspecting --- 
+  tick: function() {
+    // --- Check if inspecting ---
     const controls = this.el.sceneEl.components['desktop-and-mobile-controls'];
     if (controls && controls.interactionState === 'inspecting') {
         console.log("Arrow controls movement blocked due to inspecting state."); // Keep this active
         return; // Do not process movement if inspecting
     }
     // ---
-    
+
     if (!this.moveState) return;
-    const cameraRig = document.querySelector('#cameraRig'); 
+    const cameraRig = document.querySelector('#cameraRig');
     if (!cameraRig) return;
-    
+
+    // Ensure cameraRig has movement-controls
+    if (!cameraRig.hasAttribute('movement-controls')) {
+      console.log('ArrowControls: Adding movement-controls to cameraRig');
+      cameraRig.setAttribute('movement-controls', 'enabled: true; controls: keyboard; speed: 0.2; fly: false;');
+      return; // Skip this frame to let the component initialize
+    }
+
     const camera = document.querySelector('#camera');
     if (!camera) return;
     const lookControls = camera.components['look-controls'];
-    if (!lookControls) return; 
+    if (!lookControls) return;
 
     const moveVector = new THREE.Vector3(0, 0, 0);
     const moveSpeed = 0.1875; // <<< REDUCE speed by 25% >>>
@@ -1164,25 +1171,25 @@ AFRAME.registerComponent('arrow-controls', {
     if (this.moveState.left)  moveVector.x -= 1;
     if (this.moveState.right) moveVector.x += 1;
 
-    if (moveVector.lengthSq() === 0) return; 
+    if (moveVector.lengthSq() === 0) return;
 
     const yaw = lookControls.yawObject.rotation.y;
     const rotation = new THREE.Euler(0, yaw, 0, 'YXZ');
     moveVector.applyEuler(rotation);
     moveVector.normalize();
     moveVector.multiplyScalar(moveSpeed);
-    
+
     // --- Negate the vector to reverse directions ---
-    moveVector.negate(); 
+    moveVector.negate();
     // ---
-    
+
     cameraRig.object3D.position.add(moveVector);
   }
 });
 
 AFRAME.registerComponent('loading-screen-manager', {
     init: function () {
-        console.log("loading-screen-manager: init called."); 
+        console.log("loading-screen-manager: init called.");
         this.boundOnLoad = this.onload.bind(this); // Bind once
 
         // Check if window.load already fired
@@ -1202,42 +1209,42 @@ AFRAME.registerComponent('loading-screen-manager', {
     onload: function () {
         console.log("loading-screen-manager: onload triggered."); // Simplified log message
         const loadingOverlay = document.getElementById('loading-overlay');
-        let timer = null; 
+        let timer = null;
 
         const hideOverlay = () => {
-            console.log("loading-screen-manager: hideOverlay function entered."); 
+            console.log("loading-screen-manager: hideOverlay function entered.");
             if (!loadingOverlay) {
-                 console.error("loading-screen-manager: hideOverlay - Could not find #loading-overlay element!"); 
+                 console.error("loading-screen-manager: hideOverlay - Could not find #loading-overlay element!");
                  return;
             }
-            console.log("loading-screen-manager: hideOverlay - Found #loading-overlay element."); 
-            
+            console.log("loading-screen-manager: hideOverlay - Found #loading-overlay element.");
+
             try {
                  if (loadingOverlay.style.display !== 'none') {
-                    console.log("loading-screen-manager: hideOverlay - Setting opacity to 0..."); 
+                    console.log("loading-screen-manager: hideOverlay - Setting opacity to 0...");
                     loadingOverlay.style.opacity = '0';
                     setTimeout(() => {
-                        console.log("loading-screen-manager: hideOverlay - Setting display to 'none' after fade."); 
+                        console.log("loading-screen-manager: hideOverlay - Setting display to 'none' after fade.");
                         loadingOverlay.style.display = 'none';
-                        console.log("Hiding loading overlay (triggered by simple 10s timer)."); 
-                    }, 500); 
+                        console.log("Hiding loading overlay (triggered by simple 10s timer).");
+                    }, 500);
                  } else {
-                     console.log("loading-screen-manager: hideOverlay - Overlay already hidden."); 
+                     console.log("loading-screen-manager: hideOverlay - Overlay already hidden.");
                  }
             } catch (e) {
-                console.error("loading-screen-manager: hideOverlay - Error applying styles:", e); 
+                console.error("loading-screen-manager: hideOverlay - Error applying styles:", e);
             }
         };
 
-        // --- Simplified Logic: Just use a timer --- 
+        // --- Simplified Logic: Just use a timer ---
         console.log("Starting simple 10-second timer for loading screen...");
         timer = setTimeout(() => {
-            console.warn("10s timer triggered: Calling hideOverlay()."); 
-            hideOverlay(); 
-        }, 10000); 
+            console.warn("10s timer triggered: Calling hideOverlay().");
+            hideOverlay();
+        }, 10000);
         // --- End Simplified Logic ---
     }
-}); 
+});
 
 // --- Function to Lock Screen Orientation ---
 async function lockInitialOrientation() {
@@ -1246,7 +1253,7 @@ async function lockInitialOrientation() {
         // Check for screen.orientation support
         if (screen && screen.orientation && typeof screen.orientation.lock === 'function') {
             let lockType = "default"; // Corresponds to device default, often portrait
-            
+
             // Determine current orientation type
             const currentType = screen.orientation.type;
             console.log(`Current orientation type: ${currentType}`);
@@ -1260,7 +1267,7 @@ async function lockInitialOrientation() {
             console.log(`Attempting to lock to: ${lockType}`);
             await screen.orientation.lock(lockType);
             console.log(`Screen orientation successfully locked to ${lockType}.`);
-        
+
         } else {
             console.warn("Screen Orientation Lock API not fully supported on this browser/device.");
         }
@@ -1274,28 +1281,28 @@ async function lockInitialOrientation() {
 
 window.addEventListener('load', async () => {
   await DeviceManager.init();
-  
-  if (DeviceManager.isMobile) { 
+
+  if (DeviceManager.isMobile) {
       await lockInitialOrientation();
   }
 
   // Initialize Managers needed before hiding overlay
   if (!DeviceManager.isVR) {
-    LookModeManager.init(); 
+    LookModeManager.init();
     // Make sure Control Manager setup is called *before* the timeout starts.
     // Assuming control-manager component initializes itself, or is triggered elsewhere early.
   }
-  
+
   // <<< ADD Check after load >>>
   setTimeout(() => {
-      console.log("Check inside window.load (after 1s delay): AFRAME.components['loading-screen-manager'] exists?", 
+      console.log("Check inside window.load (after 1s delay): AFRAME.components['loading-screen-manager'] exists?",
                   AFRAME.components.hasOwnProperty('loading-screen-manager'));
   }, 1000);
   // <<< End Add Check >>>
-  
-}); 
+
+});
 
 // <<< ADD Check at end of script >>>
-console.log("Check at end of MOBDESK.js: AFRAME.components['loading-screen-manager'] exists?", 
+console.log("Check at end of MOBDESK.js: AFRAME.components['loading-screen-manager'] exists?",
             AFRAME.components.hasOwnProperty('loading-screen-manager'));
-// <<< End Add Check >>> 
+// <<< End Add Check >>>

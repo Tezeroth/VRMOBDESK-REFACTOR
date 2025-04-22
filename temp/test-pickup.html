@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VRMOBDESK Pickup Test</title>
-  
+
   <!-- A-Frame and dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.7.1/dist/aframe-master.min.js"></script>
   <script src="lib/physx.min.js"></script>
-  
+
   <!-- Modular code structure -->
   <script type="module" src="js/main.js"></script>
-  
+
   <style>
     .loading-overlay {
       position: fixed;
@@ -28,11 +28,11 @@
       font-family: sans-serif;
       z-index: 1000;
     }
-    
+
     .loading-content {
       text-align: center;
     }
-    
+
     .loader {
       border: 16px solid #333;
       border-top: 16px solid #3498db;
@@ -42,12 +42,12 @@
       animation: spin 2s linear infinite;
       margin: 0 auto 20px;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    
+
     .debug-panel {
       position: fixed;
       top: 10px;
@@ -71,12 +71,12 @@
       <span>Loading...</span>
     </div>
   </div>
-  
+
   <div id="debug-panel" class="debug-panel">
     <h3>Debug Info</h3>
     <div id="debug-content"></div>
   </div>
-  
+
   <a-scene
     control-manager
     desktop-mobile-controls
@@ -87,15 +87,15 @@
     <a-assets>
       <!-- Add any assets you need here -->
     </a-assets>
-    
+
     <!-- Test objects -->
     <a-box id="red-box" position="0 0.5 -3" color="red" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-box>
     <a-sphere id="blue-sphere" position="1 0.5 -3" color="blue" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-sphere>
     <a-cylinder id="green-cylinder" position="-1 0.5 -3" color="green" class="pickupable" toggle-physics physx-body="type: dynamic; mass: 1;"></a-cylinder>
-    
+
     <!-- Floor -->
     <a-plane position="0 0 0" rotation="-90 0 0" width="10" height="10" color="gray" physx-body="type: static;"></a-plane>
-    
+
     <!-- Camera rig -->
     <a-entity
       id="cameraRig"
@@ -104,22 +104,22 @@
       <a-entity
         id="camera"
         camera="near:0.01;"
-        look-controls="pointerLockEnabled: true"
+        look-controls="pointerLockEnabled: true; magicWindowTrackingEnabled: false"
         position="0 1.6 0"
       >
         <a-entity id="cursor"
           position="0 0 -1"
           geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-          material="color: lime; shader: flat; opacity: 0.9" 
+          material="color: lime; shader: flat; opacity: 0.9"
           raycaster="objects: .clickable, .blocker, .pickupable"
           cursor="fuse: false;"
         ></a-entity>
       </a-entity>
     </a-entity>
-    
+
     <a-sky color="#ECECEC"></a-sky>
   </a-scene>
-  
+
   <script>
     // Debug logging
     function log(message) {
@@ -127,38 +127,38 @@
       const entry = document.createElement('div');
       entry.textContent = message;
       debugContent.appendChild(entry);
-      
+
       // Limit entries
       if (debugContent.children.length > 20) {
         debugContent.removeChild(debugContent.firstChild);
       }
-      
+
       // Auto-scroll
       debugContent.scrollTop = debugContent.scrollHeight;
-      
+
       console.log(message);
     }
-    
+
     // Hide loading overlay when scene is loaded
     document.querySelector('a-scene').addEventListener('loaded', function () {
       document.getElementById('loading-overlay').style.display = 'none';
       log('Scene loaded');
-      
+
       // Check if components are registered
       log('Registered components: ' + Object.keys(AFRAME.components).join(', '));
-      
+
       // Check if desktop-mobile-controls is working
       const scene = document.querySelector('a-scene');
       const dmc = scene.components['desktop-mobile-controls'];
       log('desktop-mobile-controls component: ' + (dmc ? 'Found' : 'Not found'));
-      
+
       // Add event listeners to pickupable objects
       document.querySelectorAll('.pickupable').forEach(el => {
         el.addEventListener('mousedown', () => {
           log(`Clicked on ${el.id}`);
         });
       });
-      
+
       // Monitor state changes
       document.addEventListener('statechange', (e) => {
         log(`State changed: ${e.detail.from} -> ${e.detail.to}`);

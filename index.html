@@ -38,13 +38,8 @@
     <!-- Optimized modular code structure -->
     <script type="module" src="js/main.js"></script>
 
-    <!-- Uncomment these if modular structure has issues -->
-    <!--
-    <script src="VR.js"></script>
-    <script src="navigate-on-click.js"></script>
-    <script src="MOBDESK.js"></script>
-    <script src="control-manager.js"></script>
-    -->
+    <!-- Legacy scripts moved to temp directory -->
+    <!-- Using only the modular structure now -->
 
     <!-- Debug script to help diagnose issues -->
     <script>
@@ -310,7 +305,7 @@
       <a-entity
         id="camera"
         camera="near:0.01;"
-        look-controls="pointerLockEnabled: true"
+        look-controls="pointerLockEnabled: true; magicWindowTrackingEnabled: false"
         position="0 1.65 0"
       >
         <a-entity id="cursor"

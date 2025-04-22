@@ -202,7 +202,10 @@ const ControlManager = {
 
     // Add necessary components if not present
     if (cameraEl && !cameraEl.hasAttribute('look-controls')) {
-      cameraEl.setAttribute('look-controls', 'pointerLockEnabled: true');
+      cameraEl.setAttribute('look-controls', 'pointerLockEnabled: true; magicWindowTrackingEnabled: false');
+    } else if (cameraEl) {
+      // Ensure magicWindowTrackingEnabled is false for existing look-controls
+      cameraEl.setAttribute('look-controls', 'magicWindowTrackingEnabled', false);
     }
 
     if (cameraRig && !cameraRig.hasAttribute('movement-controls')) {
