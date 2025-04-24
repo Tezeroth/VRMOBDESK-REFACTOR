@@ -77,6 +77,8 @@ The project has been refactored into a modular structure:
   - PhysicsSleepManager: Optimizes physics by managing sleep states of objects
   - PhysicsOptimizer: Adjusts physics settings based on device capabilities
   - LoadingScreenManager: Manages the loading screen and initialization sequence
+  - MakeTransparent: Makes GLTF models transparent for invisible colliders
+  - SimpleNavmeshConstraint: Constrains movement to a navigation mesh
 - **[js/managers/](./js/managers)**: Manager modules
   - DeviceManager: Handles device detection, permissions, and capabilities
   - LookModeManager: Handles switching between swipe and gyro modes
@@ -87,7 +89,7 @@ The project has been refactored into a modular structure:
   - StateMachine: A simple state machine implementation
   - PerformanceOptimizer: Optimizes performance for first-time interactions
 
-Legacy code has been moved to the `temp/` directory for reference while keeping the main codebase clean and organized.
+Some legacy code has been moved to the `temp/` directory, while essential components like model-utils.js remain in the root directory for backward compatibility.
 
 ## Development
 
@@ -107,7 +109,7 @@ VRMOBDESK/
 ├── temp/               # Legacy code and test files
 ├── index.html          # Main HTML file
 ├── MOBDESK.css         # CSS styles
-├── model-utils.js      # Legacy component utilities
+├── model-utils.js      # Legacy components for lightmap and glass rendering
 └── README.md           # This file
 ```
 
@@ -120,6 +122,7 @@ The project is now ready for the next phase of development:
    - Create instanced colliders to improve physics performance
    - Add level-of-detail (LOD) system for complex models
    - Implement occlusion culling for better rendering performance
+   - Modernize remaining legacy components (lightmap, glass rendering)
 
 2. **Multiplayer Implementation**
    - Develop WebRTC/WebSocket-based networking

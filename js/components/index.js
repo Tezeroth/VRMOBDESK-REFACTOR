@@ -10,6 +10,8 @@ import NavigateOnClick from './NavigateOnClick.js';
 import ControlManager from './ControlManager.js';
 import DesktopMobileControls from './DesktopMobileControls.js';
 import ArrowControls from './ArrowControls.js';
+import MakeTransparent from './MakeTransparent.js';
+import SimpleNavmeshConstraint from './SimpleNavmeshConstraint.js';
 
 // Register components with A-Frame
 AFRAME.registerComponent('toggle-physics', TogglePhysics);
@@ -20,6 +22,8 @@ AFRAME.registerComponent('navigate-on-click', NavigateOnClick);
 AFRAME.registerComponent('control-manager', ControlManager);
 AFRAME.registerComponent('desktop-mobile-controls', DesktopMobileControls);
 AFRAME.registerComponent('arrow-controls', ArrowControls);
+AFRAME.registerComponent('make-transparent', MakeTransparent);
+AFRAME.registerComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
 
 // Export components for potential direct usage
 export {
@@ -30,5 +34,7 @@ export {
   NavigateOnClick,
   ControlManager,
   DesktopMobileControls,
-  ArrowControls
+  ArrowControls,
+  MakeTransparent,
+  SimpleNavmeshConstraint
 };

@@ -39,7 +39,9 @@ import {
   TogglePhysics,
   PhysicsSleepManager,
   PhysicsOptimizer,
-  LoadingScreenManager
+  LoadingScreenManager,
+  MakeTransparent,
+  SimpleNavmeshConstraint
 } from './components/index.js';
 import PerformanceOptimizer from './utils/PerformanceOptimizer.js';
 
@@ -59,6 +61,8 @@ function registerComponents() {
   safeRegisterComponent('physics-sleep-manager', PhysicsSleepManager);
   safeRegisterComponent('physics-optimizer', PhysicsOptimizer);
   safeRegisterComponent('loading-screen-manager', LoadingScreenManager);
+  safeRegisterComponent('make-transparent', MakeTransparent);
+  safeRegisterComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
 
   console.log('Component registration complete');
 }
@@ -252,5 +256,8 @@ export {
   PhysicsSleepManager,
   PhysicsOptimizer,
   LoadingScreenManager,
-  MultiplayerManager
+  MultiplayerManager,
+  // New modular components
+  MakeTransparent,
+  SimpleNavmeshConstraint
 };
