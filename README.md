@@ -69,13 +69,18 @@ The project has been refactored into a modular structure:
   - ArrowControls: Provides on-screen controls for mobile devices
   - NavigateOnClick: Handles navigation to other pages on click
   - TogglePhysics: Handles physics state for VR object interaction
+  - PhysicsSleepManager: Optimizes physics by managing sleep states of objects
+  - PhysicsOptimizer: Adjusts physics settings based on device capabilities
+  - LoadingScreenManager: Manages the loading screen and initialization sequence
 - **[js/managers/](./js/managers)**: Manager modules
   - DeviceManager: Handles device detection, permissions, and capabilities
   - LookModeManager: Handles switching between swipe and gyro modes
+  - MultiplayerManager: Handles multiplayer functionality (in development)
 - **[js/utils/](./js/utils)**: Utility functions and helpers
   - PhysicsUtils: Utility functions for physics operations
   - InteractionUtils: Utility functions for object interactions
   - StateMachine: A simple state machine implementation
+  - PerformanceOptimizer: Optimizes performance for first-time interactions
 
 The legacy code is still available in the root directory for reference and fallback if needed.
 
@@ -87,16 +92,17 @@ The legacy code is still available in the root directory for reference and fallb
 VRMOBDESK/
 ├── Assets/             # 3D models, textures, and other assets
 ├── Documentation/      # Project documentation
-│   ├── aug/            # Detailed documentation
+│   ├── Docs/           # Detailed documentation
 │   └── UML/            # UML diagrams
-├── js/                 # New modular JavaScript structure (in development)
+├── js/                 # Modular JavaScript structure
 │   ├── components/     # A-Frame components
 │   ├── managers/       # Manager modules
 │   └── utils/          # Utility functions
 ├── lib/                # External libraries
-├── *.js                # Original JavaScript files (currently in use)
+├── temp/               # Legacy code and test files
 ├── index.html          # Main HTML file
 ├── MOBDESK.css         # CSS styles
+├── model-utils.js      # Legacy component utilities
 └── README.md           # This file
 ```
 
@@ -108,7 +114,7 @@ The project is now ready for:
 2. **Performance optimizations**: Improving performance across all platforms
 3. **Enhanced VR interactions**: Adding more immersive VR interactions
 
-The modular structure has been completed, making it easier to implement these features. See [Documentation/aug/MultiplayerPreparation.md](./Documentation/aug/MultiplayerPreparation.md) for details on the multiplayer implementation plan and [Documentation/aug/ModularStructure.md](./Documentation/aug/ModularStructure.md) for information about the modular code structure.
+The modular structure has been completed, making it easier to implement these features. See [Documentation/Docs/MultiplayerPreparation.md](./Documentation/Docs/MultiplayerPreparation.md) for details on the multiplayer implementation plan and [Documentation/Docs/ModularStructure.md](./Documentation/Docs/ModularStructure.md) for information about the modular code structure. For performance optimization details, see [Documentation/Docs/OptimizationSummary.md](./Documentation/Docs/OptimizationSummary.md).
 
 ## Contributing
 

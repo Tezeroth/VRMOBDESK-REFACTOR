@@ -5,6 +5,7 @@
  * - Converting between physics body types
  * - Applying velocities
  * - Managing physics states
+ * - Sleep state management
  */
 
 const PhysicsUtils = {
@@ -126,8 +127,18 @@ const PhysicsUtils = {
           console.log('Setting linear velocity:', plainVelocity);
           rigidBody.setLinearVelocity(plainVelocity, true);
 
-          console.log('Waking up rigid body');
-          rigidBody.wakeUp();
+          // Check if wakeUp method exists
+          if (typeof rigidBody.wakeUp === 'function') {
+            console.log('Waking up rigid body');
+            rigidBody.wakeUp();
+          } else {
+            console.log('Rigid body does not support wakeUp method');
+          }
+
+          // Update activity timestamp for sleep management
+          if (el.lastActivityTime !== undefined) {
+            el.lastActivityTime = Date.now();
+          }
 
           console.log(`Successfully applied velocity`);
           return true;
@@ -160,6 +171,68 @@ const PhysicsUtils = {
     direction.applyQuaternion(quaternion);
 
     return direction.multiplyScalar(force);
+  },
+
+  /**
+   * Wake up a physics object
+   * @param {Element} el - The entity element
+   * @returns {boolean} Success status
+   */
+  wakeObject(el) {
+    if (!el) return false;
+
+    try {
+      const bodyComponent = el.components['physx-body'];
+      if (!bodyComponent || !bodyComponent.rigidBody) {
+        console.warn("physx-body component or rigidBody not found");
+        return false;
+      }
+
+      // Check if wakeUp method exists
+      if (typeof bodyComponent.rigidBody.wakeUp === 'function') {
+        // Wake up the rigid body
+        bodyComponent.rigidBody.wakeUp();
+      }
+
+      // Always update activity timestamp for sleep management
+      if (el.lastActivityTime !== undefined) {
+        el.lastActivityTime = Date.now();
+      }
+
+      return true;
+    } catch (e) {
+      console.error("Error waking object:", e);
+      return false;
+    }
+  },
+
+  /**
+   * Check if a physics object is moving
+   * @param {Element} el - The entity element
+   * @param {number} threshold - Velocity threshold to consider as moving
+   * @returns {boolean} Whether the object is moving
+   */
+  isObjectMoving(el, threshold = 0.05) {
+    if (!el) return false;
+
+    try {
+      const bodyComponent = el.components['physx-body'];
+      if (!bodyComponent || !bodyComponent.rigidBody) return false;
+
+      // Get current velocity
+      const velocity = bodyComponent.rigidBody.getLinearVelocity();
+      const speed = Math.sqrt(
+        velocity.x * velocity.x +
+        velocity.y * velocity.y +
+        velocity.z * velocity.z
+      );
+
+      // Check if speed is above threshold
+      return speed > threshold;
+    } catch (e) {
+      console.error("Error checking if object is moving:", e);
+      return false;
+    }
   }
 };
 

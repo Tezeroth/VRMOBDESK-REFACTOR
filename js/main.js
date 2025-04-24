@@ -30,85 +30,34 @@ import PhysicsUtils from './utils/PhysicsUtils.js';
 import InteractionUtils from './utils/InteractionUtils.js';
 import StateMachine from './utils/StateMachine.js';
 
-// Import components conditionally
-import ControlManager from './components/ControlManager.js';
-import DesktopMobileControls from './components/DesktopMobileControls.js';
-import ArrowControls from './components/ArrowControls.js';
-import NavigateOnClick from './components/NavigateOnClick.js';
-import TogglePhysics from './components/TogglePhysics.js';
-
-// Loading screen manager component
-const LoadingScreenManager = {
-
-  init: function() {
-    // Get loading overlay element
-    this.loadingOverlay = document.getElementById('loading-overlay');
-    if (!this.loadingOverlay) {
-      console.warn('Loading overlay element not found');
-      return;
-    }
-
-    // Listen for asset loading events
-    const assetItems = document.querySelectorAll('a-asset-item');
-    let loadedCount = 0;
-    const totalCount = assetItems.length;
-
-    // Function to update loading progress
-    const updateProgress = () => {
-      loadedCount++;
-      const progress = Math.floor((loadedCount / totalCount) * 100);
-      console.log(`Loading progress: ${progress}%`);
-
-      // Update loading screen if needed
-      // (could add a progress bar here)
-    };
-
-    // Add load event listeners to all assets
-    assetItems.forEach(item => {
-      item.addEventListener('loaded', updateProgress);
-    });
-
-    // Listen for scene loaded event
-    this.el.addEventListener('loaded', () => {
-      console.log('Scene loaded');
-      this.hideLoadingScreen();
-    });
-
-    // Fallback timeout to hide loading screen
-    setTimeout(() => {
-      if (this.loadingOverlay.style.display !== 'none') {
-        console.warn('Loading screen timeout - forcing hide');
-        this.hideLoadingScreen();
-      }
-    }, 30000); // 30 second timeout
-  },
-
-  /**
-   * Hide the loading screen
-   */
-  hideLoadingScreen: function() {
-    if (this.loadingOverlay) {
-      // Fade out loading screen
-      this.loadingOverlay.style.opacity = '0';
-      setTimeout(() => {
-        this.loadingOverlay.style.display = 'none';
-      }, 500); // Wait for fade animation
-
-      console.log('Loading screen hidden');
-    }
-  }
-};
+// Import components from index file
+import {
+  ControlManager,
+  DesktopMobileControls,
+  ArrowControls,
+  NavigateOnClick,
+  TogglePhysics,
+  PhysicsSleepManager,
+  PhysicsOptimizer,
+  LoadingScreenManager
+} from './components/index.js';
+import PerformanceOptimizer from './utils/PerformanceOptimizer.js';
 
 // Register components safely
 function registerComponents() {
   console.log('Registering components...');
 
-  // Register core components
+  // Import and register all components from index.js
+  // This is handled by the index.js file itself
+
+  // For debugging purposes, we'll still log each component registration
   safeRegisterComponent('control-manager', ControlManager);
   safeRegisterComponent('desktop-mobile-controls', DesktopMobileControls);
   safeRegisterComponent('arrow-controls', ArrowControls);
   safeRegisterComponent('navigate-on-click', NavigateOnClick);
   safeRegisterComponent('toggle-physics', TogglePhysics);
+  safeRegisterComponent('physics-sleep-manager', PhysicsSleepManager);
+  safeRegisterComponent('physics-optimizer', PhysicsOptimizer);
   safeRegisterComponent('loading-screen-manager', LoadingScreenManager);
 
   console.log('Component registration complete');
@@ -136,13 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // Add scene loaded handler
       scene.addEventListener('loaded', () => {
         console.log('Scene loaded');
+        // The loading-screen-manager component will handle hiding the loading screen
 
-        // Hide loading screen
-        const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay) {
-          console.log('Loading screen hidden');
-          loadingOverlay.style.display = 'none';
-        }
+        // Initialize performance optimizations
+        PerformanceOptimizer.init();
       });
     }
 
@@ -303,6 +249,8 @@ export {
   ArrowControls,
   NavigateOnClick,
   TogglePhysics,
+  PhysicsSleepManager,
+  PhysicsOptimizer,
   LoadingScreenManager,
   MultiplayerManager
 };

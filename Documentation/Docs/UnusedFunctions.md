@@ -1,6 +1,6 @@
-# VRMOBDESK Unused Functions
+# VRMOBDESK Unused Functions and Code Analysis
 
-This document identifies functions and code segments that appear to be unused or commented out in the VRMOBDESK application.
+This document identifies functions and code segments that appear to be unused or commented out in the VRMOBDESK application, as well as potential issues with newly added components.
 
 ## 1. Commented Out Code in MOBDESK.js
 
@@ -31,7 +31,7 @@ disableGyro() {
 ## 2. Commented Out Mobile Collider Removal in control-manager.js
 
 ```javascript
-/* 
+/*
 console.log("Queueing collider removal for mobile...");
 // Delay removal slightly to ensure physics system is ready
 setTimeout(() => {
@@ -91,7 +91,7 @@ ar-hit-test="target:#my-ar-objects;type:footprint;footprintDepth:0.2;" --DOESN'T
 ### Commented Out Button Event Listener
 
 ```html
-<!-- Event listener for the button 
+<!-- Event listener for the button
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const buttonEl = document.querySelector('#teleport-button');
@@ -196,12 +196,12 @@ There are several CSS class definitions that appear twice in the file:
 
 ```html
 <!-- Single merged static collider - REVERTED -->
-<!-- 
-<a-gltf-model 
-    id="merged-static-colliders" 
-    src="#mergedcolliders-glb" 
-    physx-body="type: static;" 
-    make-transparent 
+<!--
+<a-gltf-model
+    id="merged-static-colliders"
+    src="#mergedcolliders-glb"
+    physx-body="type: static;"
+    make-transparent
     position="0 0 0">
 </a-gltf-model>
 -->
@@ -212,6 +212,74 @@ There are several CSS class definitions that appear twice in the file:
 **Why Unused**: As noted in the comment "REVERTED", this approach was tried but then reverted back to using individual colliders.
 
 **Can Be Removed**: Yes, this commented code can be safely removed.
+
+## 8. Fixed Issues with PhysicsOptimizer Component
+
+The PhysicsOptimizer component previously showed a warning in the console:
+
+```
+PhysicsOptimizer.js:64 PhysicsOptimizer: Physics system not found
+```
+
+**Issue**: The component was attempting to access the physics system too early in the initialization process.
+
+**Why It Happened**: The component was initialized when the scene was loaded, but the physics system wasn't fully initialized at that point.
+
+**Fix Applied**: The component now properly waits for the 'physx-ready' event instead of just the 'loaded' event before attempting to optimize physics settings. It also includes additional checks to ensure the physics system is fully initialized.
+
+## 9. Redundant Sleep State Checks in PhysicsSleepManager
+
+The PhysicsSleepManager component has some redundant checks:
+
+```javascript
+// Check if the rigid body supports sleep states
+const supportsWakeUp = typeof bodyComponent.rigidBody.wakeUp === 'function';
+const supportsIsAwake = typeof bodyComponent.rigidBody.isAwake === 'function';
+
+// Only manage sleep states if the rigid body supports it
+if (supportsWakeUp) {
+  // If we can check awake state, do so
+  let isAwake = true; // Default to true if we can't check
+  if (supportsIsAwake) {
+    isAwake = bodyComponent.rigidBody.isAwake();
+  } else {
+    // If we can't check awake state, use velocity as a proxy
+    isAwake = isMoving;
+  }
+
+  // Update state if needed
+  if (shouldBeAwake && (!isAwake || !supportsIsAwake)) {
+    // ...
+  }
+}
+```
+
+**Issue**: The code checks `supportsIsAwake` multiple times and has a redundant condition `(!isAwake || !supportsIsAwake)`.
+
+**Why It Happens**: The code was written to handle cases where `isAwake()` is not available, but the logic could be simplified.
+
+**Fix Needed**: Simplify the conditional logic to reduce redundancy.
+
+## 10. Unused Debug Parameter in PhysicsSleepManager
+
+The PhysicsSleepManager component has a debug parameter that is rarely used:
+
+```javascript
+schema: {
+  enabled: { type: 'boolean', default: true },
+  distanceThreshold: { type: 'number', default: 25 },
+  sleepVelocityThreshold: { type: 'number', default: 0.2 },
+  inactivityTimeout: { type: 'number', default: 10000 },
+  checkInterval: { type: 'number', default: 2000 },
+  debug: { type: 'boolean', default: false }
+},
+```
+
+**Issue**: The debug parameter is set to false by default and most debug logs are only shown when it's enabled, making them effectively unused in production.
+
+**Why It Happens**: Debug logs are useful during development but not needed in production.
+
+**Fix Needed**: Consider removing debug logs in a production build or implementing a more comprehensive logging system.
 
 ## Recommendations
 
@@ -224,3 +292,9 @@ There are several CSS class definitions that appear twice in the file:
 4. **Move Debugging Components**: Move debugging components like `magnet-range-debug` to a separate file that is only included during development.
 
 5. **Document Intentional Comments**: If any commented code is intentionally kept for future reference, add clear documentation explaining why it's kept and under what circumstances it might be used.
+
+6. **✓ Fixed PhysicsOptimizer Initialization**: The PhysicsOptimizer component now properly waits for the 'physx-ready' event before attempting to optimize physics settings.
+
+7. **Simplify PhysicsSleepManager Logic**: Refactor the sleep state checking logic in PhysicsSleepManager to reduce redundancy.
+
+8. **Implement Better Logging**: Replace the simple debug parameter with a more comprehensive logging system that can be easily disabled in production.

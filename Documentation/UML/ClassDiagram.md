@@ -10,7 +10,7 @@ classDiagram
         +async init()
         +async requestGyroPermission()
     }
-    
+
     class LookModeManager {
         -string currentMode
         -boolean gyroEnabled
@@ -24,7 +24,7 @@ classDiagram
         +enableGyro()
         +disableGyro()
     }
-    
+
     class ControlManager {
         -Element sceneEl
         -Element cameraRig
@@ -41,8 +41,8 @@ classDiagram
         +removeDesktopMobileMode()
         +remove()
     }
-    
-    class DesktopAndMobileControls {
+
+    class DesktopMobileControls {
         -Element camera
         -Element heldObject
         -Element objectBeingInspected
@@ -84,7 +84,7 @@ classDiagram
         +resetCursorVisual()
         +onMouseMove(evt)
     }
-    
+
     class ArrowControls {
         -Object moveState
         -Object actionButtonDown
@@ -94,14 +94,14 @@ classDiagram
         +createArrowButton(direction, symbol)
         +createActionButton(action, label)
     }
-    
+
     class NavigateOnClick {
         -Map originalColors
         +init()
         +navigate()
         +storeOriginalProperties()
     }
-    
+
     class SimpleNavmeshConstraint {
         -boolean enabled
         -string navmesh
@@ -120,12 +120,72 @@ classDiagram
         +update()
         +tick(time, delta)
     }
-    
+
     class TogglePhysics {
-        +events: pickup()
-        +events: putdown(e)
+        -Element el
+        +init()
+        +remove()
+        +onPickup(evt)
+        +onPutdown(evt)
     }
-    
+
+    class PhysicsSleepManager {
+        -Array physicsObjects
+        -number lastCheckTime
+        -Vector3 cameraPosition
+        -Vector3 objectPosition
+        -Frustum frustum
+        -Matrix4 projScreenMatrix
+        -Set grabbedObjects
+        -boolean isInitialized
+        -Object3D camera
+        +init()
+        +onSceneLoaded()
+        +remove()
+        +collectPhysicsObjects()
+        +onObjectGrabbed(evt)
+        +onObjectReleased(evt)
+        +wakeObject(el)
+        +isInView(object3D)
+        +isMoving(rigidBody)
+        +checkSleepStates()
+        +tick(time, deltaTime)
+    }
+
+    class PhysicsOptimizer {
+        -boolean enabled
+        -number mobileFixedTimeStep
+        -number desktopFixedTimeStep
+        -number mobileMaxSubSteps
+        -number desktopMaxSubSteps
+        -boolean debug
+        +init()
+        +remove()
+        +onPhysicsReady()
+        +optimizePhysics()
+    }
+
+    class PhysicsUtils {
+        +convertToKinematic(el)
+        +restoreOriginalState(el, originalState, velocity)
+        +applyVelocity(el, velocity)
+        +calculateThrowVelocity(camera, force)
+        +wakeObject(el)
+        +isObjectMoving(el, threshold)
+    }
+
+    class StateMachine {
+        -string currentState
+        -Object states
+        +transition(action, ...args)
+        +onStateChange(newState)
+    }
+
+    class InteractionUtils {
+        +findIntersectedElement(raycaster, selector)
+        +getIntersection(evt, selector)
+    }
+
     %% Utility Components
     class LightMap {
         -string src
@@ -138,36 +198,47 @@ classDiagram
         +init()
         +update()
     }
-    
+
     class DepthWrite {
         -boolean default
         +init()
         +update()
     }
-    
+
     class HideParts {
         -string default
         +init()
         +update()
     }
-    
+
     class NoToneMapping {
         -string default
         +init()
         +update()
     }
-    
+
     class MakeTransparent {
         +init()
     }
-    
+
+    class LoadingScreenManager {
+        -Element loadingOverlay
+        +init()
+        +hideLoadingScreen()
+    }
+
     %% Relationships
     DeviceManager <-- LookModeManager : uses
     DeviceManager <-- ControlManager : uses
-    ControlManager --> DesktopAndMobileControls : manages
+    ControlManager --> DesktopMobileControls : manages
     ControlManager --> ArrowControls : manages
-    DesktopAndMobileControls <-- ArrowControls : references
-    
+    DesktopMobileControls <-- ArrowControls : references
+    DesktopMobileControls --> PhysicsUtils : uses
+    DesktopMobileControls --> InteractionUtils : uses
+    DesktopMobileControls --> StateMachine : uses
+    PhysicsSleepManager --> TogglePhysics : monitors
+    PhysicsOptimizer --> DeviceManager : uses
+
     %% Inheritance/Implementation
     SimpleNavmeshConstraint --|> AFrameComponent : implements
     LightMap --|> AFrameComponent : implements
@@ -178,6 +249,9 @@ classDiagram
     NavigateOnClick --|> AFrameComponent : implements
     TogglePhysics --|> AFrameComponent : implements
     ControlManager --|> AFrameComponent : implements
-    DesktopAndMobileControls --|> AFrameComponent : implements
+    DesktopMobileControls --|> AFrameComponent : implements
     ArrowControls --|> AFrameComponent : implements
+    PhysicsSleepManager --|> AFrameComponent : implements
+    PhysicsOptimizer --|> AFrameComponent : implements
+    LoadingScreenManager --|> AFrameComponent : implements
 ```

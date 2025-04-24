@@ -32,14 +32,8 @@
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
 
-    <!-- Legacy scripts for backward compatibility -->
-    <script src="model-utils.js"></script>
-
     <!-- Optimized modular code structure -->
     <script type="module" src="js/main.js"></script>
-
-    <!-- Legacy scripts moved to temp directory -->
-    <!-- Using only the modular structure now -->
 
     <!-- Debug script to help diagnose issues -->
     <script>
@@ -106,6 +100,8 @@
     renderer="antialias: true; precision: mediump;"
     physx="autoLoad: true; wasmUrl: lib/physx.release.wasm"
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
+    physics-sleep-manager="enabled: true; distanceThreshold: 25; sleepVelocityThreshold: 0.2; inactivityTimeout: 10000; checkInterval: 2000; debug: false;"
+    physics-optimizer="enabled: true; mobileFixedTimeStep: 0.033; desktopFixedTimeStep: 0.016; mobileMaxSubSteps: 1; desktopMaxSubSteps: 2; debug: false;"
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"
@@ -305,14 +301,14 @@
       <a-entity
         id="camera"
         camera="near:0.01;"
-        look-controls="pointerLockEnabled: true; magicWindowTrackingEnabled: false"
+        look-controls="pointerLockEnabled: true; magicWindowTrackingEnabled: false; reverseMouseDrag: false; touchEnabled: true; smoothingFactor: 0.1"
         position="0 1.65 0"
       >
         <a-entity id="cursor"
            position="0 0 -1"
            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
            material="color: lime; shader: flat; opacity: 0.9"
-           raycaster="objects: .clickable, .blocker, .pickupable"
+           raycaster="objects: .clickable; far: 10"
            cursor="fuse: false;"
         >
         </a-entity>

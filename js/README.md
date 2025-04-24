@@ -18,6 +18,7 @@ This folder contains the optimized, modular code structure for the VRMOBDESK app
 
 - **DeviceManager.js** - Handles device detection and capabilities
 - **LookModeManager.js** - Manages camera control modes (swipe vs gyro)
+- **MultiplayerManager.js** - Handles multiplayer functionality (in development)
 
 ### Components
 
@@ -26,12 +27,16 @@ This folder contains the optimized, modular code structure for the VRMOBDESK app
 - **ArrowControls.js** - Provides on-screen controls for mobile devices
 - **NavigateOnClick.js** - Handles navigation to other pages on click
 - **TogglePhysics.js** - Handles physics state for VR object interaction
+- **PhysicsSleepManager.js** - Optimizes physics by managing sleep states of objects
+- **PhysicsOptimizer.js** - Adjusts physics settings based on device capabilities
+- **LoadingScreenManager.js** - Manages the loading screen and initialization sequence
 
 ### Utilities
 
 - **PhysicsUtils.js** - Utility functions for physics operations
 - **InteractionUtils.js** - Utility functions for object interactions
 - **StateMachine.js** - A simple state machine implementation
+- **PerformanceOptimizer.js** - Optimizes performance for first-time interactions
 
 ## Improvements
 
@@ -58,9 +63,13 @@ The new code structure is loaded via the module script tag in index.html:
 <script type="module" src="js/main.js"></script>
 ```
 
-Legacy scripts are still included for compatibility:
+Legacy scripts have been moved to the temp/ folder for reference:
 
-```html
-<script src="model-utils.js"></script>
-<script src="VR.js"></script>
+```
+temp/
+├── control-manager.js
+├── MOBDESK.js
+├── navigate-on-click.js
+├── VR.js
+└── model-utils.js
 ```

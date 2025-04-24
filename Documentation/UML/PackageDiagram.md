@@ -9,74 +9,80 @@ flowchart TD
     Models[Model Utilities]
     Navigation[Navigation System]
     UI[User Interface]
-    
+    Utils[Utilities]
+
     %% Core Package
     Core --> index.html
-    Core --> MOBDESK.js
-    Core --> MOBDESK.css
-    
+    Core --> main.js
+    Core --> styles.css
+
     %% Control Systems Package
-    Controls --> control-manager.js
-    Controls --> VR.js
-    Controls --> desktop-and-mobile-controls
-    Controls --> arrow-controls
-    Controls --> handy-controls
-    
+    Controls --> components/ControlManager.js
+    Controls --> components/DesktopMobileControls.js
+    Controls --> components/ArrowControls.js
+    Controls --> managers/DeviceManager.js
+    Controls --> managers/LookModeManager.js
+
     %% Physics System Package
     Physics --> PhysX
-    Physics --> physx-body
-    Physics --> toggle-physics
-    
+    Physics --> components/TogglePhysics.js
+    Physics --> components/PhysicsSleepManager.js
+    Physics --> components/PhysicsOptimizer.js
+    Physics --> utils/PhysicsUtils.js
+
     %% Model Utilities Package
-    Models --> model-utils.js
-    Models --> lightmap
-    Models --> depthwrite
-    Models --> hideparts
-    Models --> no-tonemapping
-    Models --> make-transparent
-    
+    Models --> components/lightmap.js
+    Models --> components/depthwrite.js
+    Models --> components/hideparts.js
+    Models --> components/no-tonemapping.js
+    Models --> components/make-transparent.js
+
     %% Navigation System Package
-    Navigation --> navigate-on-click.js
-    Navigation --> simple-navmesh-constraint
-    Navigation --> movement-controls
-    
+    Navigation --> components/NavigateOnClick.js
+    Navigation --> components/simple-navmesh-constraint.js
+    Navigation --> components/movement-controls.js
+
     %% User Interface Package
-    UI --> look-mode-btn
-    UI --> arrow-controls-ui
-    UI --> permission-overlay
-    UI --> loading-overlay
-    
+    UI --> components/LoadingScreenManager.js
+    UI --> components/arrow-controls-ui.js
+    UI --> components/permission-overlay.js
+
+    %% Utilities Package
+    Utils --> utils/StateMachine.js
+    Utils --> utils/InteractionUtils.js
+
     %% Dependencies
     Controls --> Core
     Physics --> Core
     Models --> Core
     Navigation --> Core
     UI --> Core
-    
+    Utils --> Core
+
     Navigation --> Physics
     Controls --> Physics
     Controls --> Navigation
     Controls --> UI
-    
+    Controls --> Utils
+    Physics --> Utils
+
     %% External Dependencies
     AFrame[A-Frame]
     ThreeJS[THREE.js]
     PhysXLib[PhysX Library]
-    HandyWork[Handy-Work Library]
-    
+
     Core --> AFrame
     AFrame --> ThreeJS
     Physics --> PhysXLib
-    Controls --> HandyWork
-    
+
     %% Styling
     classDef package fill:#f9f,stroke:#333,stroke-width:2px
     classDef module fill:#bbf,stroke:#333,stroke-width:1px
     classDef component fill:#bfb,stroke:#333,stroke-width:1px
     classDef external fill:#ddd,stroke:#333,stroke-width:2px
-    
-    class Core,Controls,Physics,Models,Navigation,UI package
-    class index.html,MOBDESK.js,MOBDESK.css,control-manager.js,VR.js,model-utils.js,navigate-on-click.js module
-    class desktop-and-mobile-controls,arrow-controls,handy-controls,physx-body,toggle-physics,lightmap,depthwrite,hideparts,no-tonemapping,make-transparent,simple-navmesh-constraint,movement-controls component
-    class AFrame,ThreeJS,PhysXLib,HandyWork external
+
+    class Core,Controls,Physics,Models,Navigation,UI,Utils package
+    class index.html,main.js,styles.css,managers/DeviceManager.js,managers/LookModeManager.js,utils/PhysicsUtils.js,utils/StateMachine.js,utils/InteractionUtils.js module
+    class components/ControlManager.js,components/DesktopMobileControls.js,components/ArrowControls.js,components/TogglePhysics.js,components/PhysicsSleepManager.js,components/PhysicsOptimizer.js,components/lightmap.js,components/depthwrite.js,components/hideparts.js,components/no-tonemapping.js,components/make-transparent.js,components/NavigateOnClick.js,components/simple-navmesh-constraint.js,components/movement-controls.js,components/LoadingScreenManager.js component
+    class AFrame,ThreeJS,PhysXLib external
 ```

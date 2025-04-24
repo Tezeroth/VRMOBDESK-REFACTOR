@@ -4,6 +4,7 @@
  * This component:
  * - Tracks grabbed state for objects
  * - Applies velocity when objects are released in VR
+ * - Updates activity timestamps for sleep management
  */
 
 // Component implementation
@@ -16,6 +17,9 @@ const TogglePhysics = {
     // Add event listeners
     this.el.addEventListener('pickup', this.onPickup);
     this.el.addEventListener('putdown', this.onPutdown);
+
+    // Initialize last activity time for sleep management
+    this.el.lastActivityTime = Date.now();
   },
 
   remove: function() {
@@ -30,6 +34,18 @@ const TogglePhysics = {
    */
   onPickup: function(evt) {
     this.el.addState('grabbed');
+
+    // Update activity timestamp for sleep management
+    this.el.lastActivityTime = Date.now();
+
+    // Emit grab-start event for sleep manager
+    this.el.sceneEl.emit('grab-start', { target: this.el, el: this.el });
+
+    // Ensure object is awake
+    const physxBody = this.el.components['physx-body'];
+    if (physxBody && physxBody.rigidBody) {
+      physxBody.rigidBody.wakeUp();
+    }
   },
 
   /**
@@ -38,6 +54,12 @@ const TogglePhysics = {
    */
   onPutdown: function(evt) {
     this.el.removeState('grabbed');
+
+    // Update activity timestamp for sleep management
+    this.el.lastActivityTime = Date.now();
+
+    // Emit grab-end event for sleep manager
+    this.el.sceneEl.emit('grab-end', { target: this.el, el: this.el });
 
     // Apply velocity from controller if available
     if (evt.detail.frame && evt.detail.inputSource) {
