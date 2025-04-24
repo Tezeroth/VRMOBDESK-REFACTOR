@@ -1,19 +1,21 @@
 # VRMOBDESK
 
-#link to hosted demo: https://tezeroth.github.io/VRMOBDESK-REFACTOR/
+### [Live Demo](https://tezeroth.github.io/VRMOBDESK-REFACTOR/)
 
-# ![image](https://github.com/user-attachments/assets/a34c4914-99d2-4ed7-b4c5-fd17ac83a68d)
+![VRMOBDESK Preview](https://github.com/user-attachments/assets/a34c4914-99d2-4ed7-b4c5-fd17ac83a68d)
 
-
-VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with A-Frame. It provides a versatile platform for creating immersive experiences that work across multiple devices.
+VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with A-Frame. It provides a versatile platform for creating immersive experiences that work across multiple devices with optimized performance and intuitive controls.
 
 ## Features
 
-- **Multi-platform support**: Works on VR headsets, mobile devices, and desktop browsers
-- **Physics-based interactions**: Realistic object manipulation using PhysX
-- **Adaptive controls**: Different control schemes for VR, mobile, and desktop
-- **Navigation system**: Movement within the 3D environment with collision detection
-- **Object manipulation**: Pick up, examine, throw, and interact with 3D objects
+- **Multi-platform support**: Works seamlessly on VR headsets, mobile devices, and desktop browsers
+- **Physics-based interactions**: Realistic object manipulation using PhysX with optimized performance
+- **Adaptive controls**: Intelligent control schemes that adapt to VR, mobile, and desktop devices
+- **Navigation system**: Smooth movement within the 3D environment with collision detection
+- **Object manipulation**: Pick up, examine, throw, and interact with 3D objects naturally
+- **Performance optimized**: Implements sleep management for physics objects and device-specific optimizations
+- **Mobile-friendly**: Supports both touch controls and gyroscope-based camera movement
+- **Modular architecture**: Well-organized codebase ready for extension and customization
 
 ## Getting Started
 
@@ -53,11 +55,14 @@ Comprehensive documentation is available in the `Documentation` folder:
 - **[Documentation/Docs](./Documentation/Docs)**: Detailed documentation of the application's functionality, dependencies, and architecture
 - **[Documentation/UML](./Documentation/UML)**: UML diagrams showing the application's structure and behavior
 
-For specific documentation:
-- [Functionality](./Documentation/Docs/Functionality.md)
-- [Dependencies](./Documentation/Docs/Dependencies.md)
-- [Program Flow](./Documentation/Docs/ProgramFlow.md)
-- [Modular Structure](./Documentation/Docs/ModularStructure.md)
+### Key Documentation Files:
+
+- [Functionality](./Documentation/Docs/Functionality.md) - Overview of application features and capabilities
+- [Dependencies](./Documentation/Docs/Dependencies.md) - External libraries and dependencies
+- [Program Flow](./Documentation/Docs/ProgramFlow.md) - Application initialization and execution flow
+- [Modular Structure](./Documentation/Docs/ModularStructure.md) - Details of the modular code architecture
+- [Performance Notes](./Documentation/Docs/PerformanceNotes.md) - Performance optimization documentation
+- [Multiplayer Preparation](./Documentation/Docs/MultiplayerPreparation.md) - Plans for multiplayer implementation
 
 ## Project Structure
 
@@ -82,7 +87,7 @@ The project has been refactored into a modular structure:
   - StateMachine: A simple state machine implementation
   - PerformanceOptimizer: Optimizes performance for first-time interactions
 
-The legacy code is still available in the root directory for reference and fallback if needed.
+Legacy code has been moved to the `temp/` directory for reference while keeping the main codebase clean and organized.
 
 ## Development
 
@@ -106,15 +111,32 @@ VRMOBDESK/
 └── README.md           # This file
 ```
 
-### Future Development
+### Future Development Roadmap
 
-The project is now ready for:
+The project is now ready for the next phase of development:
 
-1. **Multiplayer functionality**: Adding support for multiple users with positional audio
-2. **Performance optimizations**: Improving performance across all platforms
-3. **Enhanced VR interactions**: Adding more immersive VR interactions
+1. **Draw Call Optimization**
+   - Implement texture atlasing to reduce draw calls
+   - Create instanced colliders to improve physics performance
+   - Add level-of-detail (LOD) system for complex models
+   - Implement occlusion culling for better rendering performance
 
-The modular structure has been completed, making it easier to implement these features. See [Documentation/Docs/MultiplayerPreparation.md](./Documentation/Docs/MultiplayerPreparation.md) for details on the multiplayer implementation plan and [Documentation/Docs/ModularStructure.md](./Documentation/Docs/ModularStructure.md) for information about the modular code structure. For performance optimization details, see [Documentation/Docs/OptimizationSummary.md](./Documentation/Docs/OptimizationSummary.md).
+2. **Multiplayer Implementation**
+   - Develop WebRTC/WebSocket-based networking
+   - Implement state synchronization for physics objects
+   - Create avatar systems for player representation
+   - Add positional audio for immersive communication
+
+3. **Enhanced VR Interactions**
+   - Improve hand tracking and gesture recognition
+   - Add haptic feedback for more immersive interactions
+   - Implement two-handed object manipulation
+   - Create specialized VR UI elements
+
+The modular architecture provides a solid foundation for these features. For detailed implementation plans, see:
+- [Multiplayer Preparation](./Documentation/Docs/MultiplayerPreparation.md)
+- [Performance Optimization](./Documentation/Docs/PerformanceNotes.md)
+- [Modular Structure](./Documentation/Docs/ModularStructure.md)
 
 ## Contributing
 
@@ -126,7 +148,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- [A-Frame](https://aframe.io/) - WebVR framework
-- [PhysX](https://github.com/c-frame/physx) - Physics engine
-- [Handy Controls](https://github.com/c-frame/handy-work) - Hand tracking and interaction
-
+- [A-Frame](https://aframe.io/) - WebVR framework for building immersive experiences
+- [PhysX](https://github.com/c-frame/physx) - High-performance physics engine
+- [Handy Controls](https://github.com/c-frame/handy-work) - Hand tracking and interaction system
+- [A-Frame Environment](https://github.com/supermedium/aframe-environment-component) - Environment generation
+- [A-Frame Extras](https://github.com/c-frame/aframe-extras) - Additional components and controls
