@@ -18,12 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified object examination in desktop mode to use right mouse button (RMB) exclusively
 - Removed spacebar functionality for object examination to avoid conflicts with jumping
 - Dedicated spacebar exclusively for jumping functionality
+- Improved jump animation with increased height and adjusted timing for more realistic feel
+- Enhanced jump easing functions for more natural movement
 - Updated documentation in Interactions.md, ProgramFlow.md, and Functionality.md to reflect these changes
 
 ### Fixed
 - Prevented browser context menu from appearing when right-clicking for object examination
 - Implemented navmesh constraint integration to prevent conflicts during jumps
 - Fixed conflict between jumping and object inspection when using spacebar
+- Prevented jumping while in inspection mode to maintain consistent interaction states
+- Added jump-collider component with visual feedback for wall collision detection
+- Implemented immediate landing when colliding with walls during jumps
+- Fixed position restoration to prevent resetting to world origin when hitting walls
+- Improved jump animation with increased height and adjusted timing for more realistic feel
 
 ## [1.0.0] - 2024-04-25
 

@@ -13,6 +13,8 @@ import ArrowControls from './ArrowControls.js';
 import MakeTransparent from './MakeTransparent.js';
 import SimpleNavmeshConstraint from './SimpleNavmeshConstraint.js';
 import JumpControl from './JumpControl.js';
+import JumpCollider from './JumpCollider.js';
+import PlayerCollider from './PlayerCollider.js';
 
 // Register components with A-Frame
 AFRAME.registerComponent('toggle-physics', TogglePhysics);
@@ -26,6 +28,8 @@ AFRAME.registerComponent('arrow-controls', ArrowControls);
 AFRAME.registerComponent('make-transparent', MakeTransparent);
 AFRAME.registerComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
 AFRAME.registerComponent('jump-control', JumpControl);
+AFRAME.registerComponent('jump-collider', JumpCollider);
+AFRAME.registerComponent('player-collider', PlayerCollider);
 
 // Export components for potential direct usage
 export {
@@ -39,5 +43,7 @@ export {
   ArrowControls,
   MakeTransparent,
   SimpleNavmeshConstraint,
-  JumpControl
+  JumpControl,
+  JumpCollider,
+  PlayerCollider
 };

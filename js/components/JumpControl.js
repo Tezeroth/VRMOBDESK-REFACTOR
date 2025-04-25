@@ -11,11 +11,12 @@ import DeviceManager from '../managers/DeviceManager.js';
 const JumpControl = {
   schema: {
     enabled: { type: 'boolean', default: true },
-    height: { type: 'number', default: 1.5 },
-    duration: { type: 'number', default: 700 },
+    height: { type: 'number', default: 2.5 },  // Increased jump height for more dramatic effect
+    duration: { type: 'number', default: 1000 }, // Longer overall duration
     cooldown: { type: 'number', default: 500 },
-    upDuration: { type: 'number', default: 400 },
-    downDuration: { type: 'number', default: 300 }
+    upDuration: { type: 'number', default: 500 }, // Longer up phase
+    downDuration: { type: 'number', default: 500 }, // Longer down phase
+    respectNavmesh: { type: 'boolean', default: true }
   },
 
   init: function () {
@@ -29,6 +30,13 @@ const JumpControl = {
     this.jumpMomentum = { x: 0, z: 0 };
     this.lastCameraRotation = new THREE.Euler();
     this.cameraAngularVelocity = new THREE.Vector3();
+
+    // Store last valid position on navmesh
+    this.lastValidPosition = new THREE.Vector3();
+    this.navmeshLastValidPosition = new THREE.Vector3();
+
+    // Store initial XZ position for collision handling
+    this.initialXZ = { x: 0, z: 0 };
 
     // Bind methods
     this.jump = this.jump.bind(this);
@@ -156,6 +164,17 @@ const JumpControl = {
       return;
     }
 
+    // Check if we're in inspection mode - don't jump if examining an object
+    const desktopMobileControls = document.querySelector('[desktop-mobile-controls]')?.components['desktop-mobile-controls'];
+    const isInspecting = desktopMobileControls &&
+                         desktopMobileControls.stateMachine &&
+                         desktopMobileControls.stateMachine.is('inspecting');
+
+    if (isInspecting) {
+      console.log('Cannot jump while in inspection mode');
+      return;
+    }
+
     console.log('Jump initiated');
 
     // Set state
@@ -167,31 +186,54 @@ const JumpControl = {
     this.startY = currentPos.y;
     this.maxY = this.startY + this.data.height;
 
+    // Store the current position as the last valid position
+    this.lastValidPosition.copy(currentPos);
+
+    // Also store the last valid position from the navmesh constraint
+    // This is important for returning to a valid position if we hit a wall
+    const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
+    if (navmeshConstraint && navmeshConstraint.lastValidPosition) {
+      console.log('Storing last valid navmesh position before jump');
+      this.navmeshLastValidPosition = navmeshConstraint.lastValidPosition.clone();
+    }
+
+    // No ceiling collision check needed - the navmesh constraint
+    // will handle preventing movement through obstacles
+
     // Store momentum if movement-controls is present
     const movementControls = this.el.components['movement-controls'];
     if (movementControls && movementControls.velocity) {
+      // Store current velocity and boost it slightly for a more satisfying jump
+      const boostFactor = 1.2; // Boost momentum by 20%
       this.jumpMomentum = {
-        x: movementControls.velocity.x,
-        z: movementControls.velocity.z
+        x: movementControls.velocity.x * boostFactor,
+        z: movementControls.velocity.z * boostFactor
       };
     }
 
-    // Disable navmesh constraint during jump
+    // Temporarily disable navmesh constraint during jump
+    // This allows for proper vertical movement
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', false);
     }
+
+    // Store the initial XZ position for collision handling
+    this.initialXZ = {
+      x: this.el.object3D.position.x,
+      z: this.el.object3D.position.z
+    };
 
     // Remove any existing animations first
     this.el.removeAttribute('animation__up');
     this.el.removeAttribute('animation__down');
 
-    // Start up animation
+    // Start up animation with improved easing for more natural movement
     this.el.setAttribute('animation__up', {
       property: 'object3D.position.y',
       from: this.startY,
       to: this.maxY,
       dur: this.data.upDuration,
-      easing: 'easeOutQuad',
+      easing: 'easeOutCubic', // More pronounced initial acceleration
       autoplay: true
     });
 
@@ -218,19 +260,83 @@ const JumpControl = {
       // Remove any existing down animation first
       this.el.removeAttribute('animation__down');
 
-      // Start down animation
+      // Start down animation with improved easing for more natural falling
       this.el.setAttribute('animation__down', {
         property: 'object3D.position.y',
         from: currentPos.y,
         to: this.startY,
         dur: this.data.downDuration,
-        easing: 'easeInQuad',
+        easing: 'easeInCubic', // More pronounced acceleration for realistic gravity
         autoplay: true
       });
     } else if (phase === 'down') {
       console.log('Down animation complete, jump finished');
+
+      // Hide the jump collider
+      const jumpCollider = this.el.components['jump-collider'];
+      if (jumpCollider) {
+        jumpCollider.hideCollider();
+      }
+
       this.resetJump();
     }
+  },
+
+
+
+  /**
+   * End the jump early (e.g., when hitting a wall)
+   */
+  endJumpEarly: function() {
+    console.log('Ending jump early due to wall collision');
+
+    // Store current Y position before resetting
+    const currentY = this.el.object3D.position.y;
+
+    // IMMEDIATELY re-enable the navmesh constraint
+    if (this.el.hasAttribute('simple-navmesh-constraint')) {
+      console.log('Re-enabling navmesh constraint immediately');
+      this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+    }
+
+    // Force position back to initial XZ position (where the jump started)
+    console.log('Forcing position to initial jump position');
+    this.el.object3D.position.x = this.initialXZ.x;
+    this.el.object3D.position.z = this.initialXZ.z;
+
+    // Keep the current Y position for the drop animation
+    this.el.object3D.position.y = currentY;
+
+    // Remove any existing animations
+    this.el.removeAttribute('animation__up');
+    this.el.removeAttribute('animation__down');
+
+    // Start a quick drop animation
+    this.el.setAttribute('animation__drop', {
+      property: 'object3D.position.y',
+      from: this.el.object3D.position.y,
+      to: this.startY,
+      dur: 200, // Very quick drop
+      easing: 'easeInQuad',
+      autoplay: true
+    });
+
+    // Listen for the drop animation to complete
+    const onDropComplete = () => {
+      this.el.removeEventListener('animationcomplete__drop', onDropComplete);
+      this.resetJump();
+    };
+
+    this.el.addEventListener('animationcomplete__drop', onDropComplete);
+
+    // Hide the jump collider
+    const jumpCollider = this.el.components['jump-collider'];
+    if (jumpCollider) {
+      jumpCollider.hideCollider();
+    }
+
+    // Reset jumping state immediately
+    this.isJumping = false;
   },
 
   /**
@@ -253,6 +359,12 @@ const JumpControl = {
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
     }
 
+    // Hide the jump collider
+    const jumpCollider = this.el.components['jump-collider'];
+    if (jumpCollider) {
+      jumpCollider.hideCollider();
+    }
+
     // Set cooldown
     console.log('Setting jump cooldown for ' + this.data.cooldown + 'ms');
     this.jumpTimeout = setTimeout(() => {
@@ -273,13 +385,34 @@ const JumpControl = {
       return;
     }
 
-    // Apply momentum during jump if we have movement controls
+    // During jump, apply forward momentum for more convincing jumps
     if (this.isJumping) {
       const movementControls = this.el.components['movement-controls'];
       if (movementControls && movementControls.velocity) {
-        // Apply stored momentum during jump
+        // Apply the stored momentum during the jump
+        // This will maintain the player's direction of movement
         movementControls.velocity.x = this.jumpMomentum.x;
         movementControls.velocity.z = this.jumpMomentum.z;
+      }
+
+      // Use the jump-collider component to detect wall collisions
+      const jumpCollider = this.el.components['jump-collider'];
+      if (jumpCollider) {
+        // Show the collider during jumps
+        jumpCollider.showCollider();
+
+        // Check for collisions
+        const collisionResult = jumpCollider.checkCollisions();
+        if (collisionResult.collision) {
+          console.log('Wall collision detected during jump!');
+
+          // Stop horizontal movement immediately
+          movementControls.velocity.x = 0;
+          movementControls.velocity.z = 0;
+
+          // End the jump immediately and drop to the ground
+          this.endJumpEarly();
+        }
       }
     }
 
@@ -300,7 +433,9 @@ const JumpControl = {
 
       this.lastCameraRotation.copy(currentRotation);
     }
-  }
+  },
+
+
 };
 
 export default JumpControl;

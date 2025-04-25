@@ -176,23 +176,47 @@ this.el.setAttribute('animation__up', {
 });
 ```
 
+### State Restrictions
+
+Jumping is prevented in certain states:
+- Cannot jump while in inspection mode
+- Cannot jump while already jumping (cooldown period)
+- Cannot jump when the jump control is disabled
+
 ### Two-Phase Animation Sequence
 
 The jump is split into two distinct phases:
 - **Rising Phase**: Moving upward with easeOutQuad easing (slows down at the top)
 - **Falling Phase**: Moving downward with easeInQuad easing (accelerates toward the ground)
 
-### Navmesh Integration
+### Navmesh and Collision Integration
 
-To prevent conflicts with the navmesh constraint system:
-1. Temporarily disable the constraint during jumps
-2. Re-enable the constraint when landing
+To prevent conflicts with the navmesh constraint system while maintaining proper collision detection:
+1. Temporarily disable the navmesh constraint during jumps (allows vertical movement)
+2. Use raycasting to detect and prevent collisions with walls and ceilings
+3. Use ground collision detection to prevent falling through floors
+4. Re-enable the navmesh constraint when landing
 
 ```javascript
 // Disable constraint during jump
 this.el.setAttribute('simple-navmesh-constraint', 'enabled', false);
 
-// Re-enable when landing
+// Check for collisions during jump
+const collisionDetected = this.checkCollisions(velocityX, velocityZ);
+if (collisionDetected) {
+  // Stop horizontal movement if collision detected
+  movementControls.velocity.x = 0;
+  movementControls.velocity.z = 0;
+}
+
+// Check for ground collision to prevent falling through floors
+const groundCollision = this.checkGroundCollision();
+if (groundCollision.hasCollision && groundCollision.distance < 0.1) {
+  // Force position to be at ground level
+  this.el.object3D.position.y = groundCollision.point.y;
+}
+
+// Re-enable constraint when landing
 this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
 ```
 
