@@ -47,6 +47,9 @@ const JumpCollider = {
 
     // Initially hide the collider
     this.collider.setAttribute('visible', false);
+
+    // Bind tick function to ensure collider stays attached
+    this.tick = this.tick.bind(this);
   },
 
   setupCollisionDetection: function() {
@@ -109,10 +112,29 @@ const JumpCollider = {
             backDirection.multiplyScalar(safeOffset)
           );
 
+        // Ensure the safe position is valid (not NaN)
+        if (isNaN(safePosition.x) || isNaN(safePosition.y) || isNaN(safePosition.z)) {
+          console.warn('Invalid safe position calculated, using player position');
+          safePosition.copy(position);
+        }
+
+        // Log the safe position for debugging
+        console.log('Calculated safe position:', safePosition);
+
+        // Store the direction vector for debugging
+        this.lastCollisionDirection = direction.clone();
+        this.lastCollisionPoint = collisionPoint.clone();
+
+        // Calculate the normal vector (perpendicular to the wall)
+        // In this case, it's the opposite of the direction we're checking
+        const normal = direction.clone().negate();
+
         return {
           collision: true,
           collisionPoint: collisionPoint,
-          safePosition: safePosition
+          safePosition: safePosition,
+          direction: direction.clone(),
+          normal: normal
         };
       }
     }
@@ -160,13 +182,60 @@ const JumpCollider = {
   showCollider: function() {
     if (this.collider) {
       this.collider.setAttribute('visible', true);
+      console.log('Showing jump collider');
+    } else {
+      console.warn('Cannot show collider - it does not exist');
+      // Recreate the collider if it doesn't exist
+      this.recreateCollider();
     }
   },
 
   hideCollider: function() {
     if (this.collider) {
       this.collider.setAttribute('visible', false);
+    } else {
+      console.warn('Cannot hide collider - it does not exist');
     }
+  },
+
+  recreateCollider: function() {
+    console.log('Recreating jump collider');
+
+    // Remove old collider if it exists
+    if (this.collider && this.collider.parentNode) {
+      this.collider.parentNode.removeChild(this.collider);
+    }
+
+    // Create a new collider
+    this.collider = document.createElement('a-entity');
+    this.collider.setAttribute('id', 'jump-collider');
+
+    // Set up the collider with a cylinder geometry
+    this.collider.setAttribute('geometry', {
+      primitive: 'cylinder',
+      height: this.data.height,
+      radius: this.data.radius
+    });
+
+    // Make the collider semi-transparent
+    this.collider.setAttribute('material', {
+      color: 'red',
+      opacity: this.data.opacity,
+      transparent: true
+    });
+
+    // Add the collider to the camera rig
+    this.el.appendChild(this.collider);
+
+    // Position the collider relative to the camera rig
+    this.collider.setAttribute('position', {
+      x: 0,
+      y: this.data.height / 2, // Center the cylinder vertically
+      z: 0
+    });
+
+    // Initially hide the collider
+    this.collider.setAttribute('visible', false);
   },
 
   update: function() {
@@ -189,6 +258,50 @@ const JumpCollider = {
     }
   },
 
+  /**
+   * Tick function to ensure collider stays attached and properly positioned
+   */
+  tick: function() {
+    // Skip if collider doesn't exist
+    if (!this.collider) {
+      // If the collider doesn't exist, recreate it
+      this.recreateCollider();
+      return;
+    }
+
+    // Check if collider is still attached to the parent
+    if (!this.collider.parentNode || this.collider.parentNode !== this.el) {
+      console.warn('Jump collider detached, re-attaching');
+
+      // Re-attach the collider if it's detached
+      if (this.collider.parentNode) {
+        this.collider.parentNode.removeChild(this.collider);
+      }
+      this.el.appendChild(this.collider);
+    }
+
+    // Ensure the collider's position is correct (with some tolerance)
+    const currentPos = this.collider.getAttribute('position');
+    const expectedY = this.data.height / 2;
+
+    // Only correct if position is significantly off
+    const tolerance = 0.01;
+    if (Math.abs(currentPos.x) > tolerance ||
+        Math.abs(currentPos.y - expectedY) > tolerance ||
+        Math.abs(currentPos.z) > tolerance) {
+
+      console.log('Correcting jump collider position');
+      this.collider.setAttribute('position', {
+        x: 0,
+        y: expectedY,
+        z: 0
+      });
+    }
+  },
+
+  /**
+   * Clean up when component is removed
+   */
   remove: function() {
     // Clean up when component is removed
     if (this.collider && this.collider.parentNode) {

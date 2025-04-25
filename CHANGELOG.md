@@ -29,8 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevented jumping while in inspection mode to maintain consistent interaction states
 - Added jump-collider component with visual feedback for wall collision detection
 - Implemented immediate landing when colliding with walls during jumps
-- Fixed position restoration to prevent resetting to world origin when hitting walls
+- Added wall proximity detection to perform vertical-only jumps when near walls
+- Kept navmesh constraint enabled during vertical-only jumps to prevent wall clipping
+- Added player-collider component to prevent jumping through walls and ceilings
+- Implemented simple collision detection during jumps to prevent moving through walls
 - Improved jump animation with increased height and adjusted timing for more realistic feel
+- Enhanced collider attachment to prevent detachment during repeated wall collisions
+- Added automatic collider recreation to ensure jumping functionality is maintained
+- Implemented safety check to prevent permanently losing the ability to jump
 
 ## [1.0.0] - 2024-04-25
 
