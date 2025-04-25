@@ -581,14 +581,12 @@ const DesktopMobileControls = {
   },
 
   onKeyPress: function (evt) {
-    if (evt.code === 'Space') {
-      if (this.stateMachine.is('holding')) {
-        this.stateMachine.transition('onInspect');
-      } else if (this.stateMachine.is('charging')) {
-        this.stateMachine.transition('onCancel');
-      } else if (this.stateMachine.is('inspecting')) {
-        this.stateMachine.transition('onExitInspect');
-      }
+    // Only handle non-spacebar keys here
+    // Spacebar is now exclusively for jumping via the JumpControl component
+
+    // We still need to handle canceling charge with other keys
+    if (evt.code === 'Escape' && this.stateMachine.is('charging')) {
+      this.stateMachine.transition('onCancel');
     }
   },
 

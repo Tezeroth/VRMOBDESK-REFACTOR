@@ -15,13 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added momentum preservation during jumps
 
 ### Changed
-- Modified object examination in desktop mode to use right mouse button (RMB) as the primary method
-- Kept spacebar functionality as an alternative method for backward compatibility
+- Modified object examination in desktop mode to use right mouse button (RMB) exclusively
+- Removed spacebar functionality for object examination to avoid conflicts with jumping
+- Dedicated spacebar exclusively for jumping functionality
 - Updated documentation in Interactions.md, ProgramFlow.md, and Functionality.md to reflect these changes
 
 ### Fixed
 - Prevented browser context menu from appearing when right-clicking for object examination
 - Implemented navmesh constraint integration to prevent conflicts during jumps
+- Fixed conflict between jumping and object inspection when using spacebar
 
 ## [1.0.0] - 2024-04-25
 

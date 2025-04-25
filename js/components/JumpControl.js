@@ -139,8 +139,10 @@ const JumpControl = {
    * @param {Event} evt - The keydown event
    */
   onKeyDown: function (evt) {
-    // Space key triggers jump
+    // Space key always triggers jump
     if (evt.code === 'Space' && !evt.repeat) {
+      // Prevent event propagation to stop other components from handling it
+      evt.stopPropagation();
       this.jump();
     }
   },

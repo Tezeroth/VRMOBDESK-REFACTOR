@@ -37,7 +37,6 @@ if (DeviceManager.isVR) {
 - **WASD Keys**: Move forward, left, backward, right
 - **Mouse**: Look around (with pointer lock)
 - **Right Mouse Button**: Toggle inspection mode when holding an object
-- **Space**: Alternative way to toggle inspection mode
 - **Space**: Press to jump
 
 ### Object Interaction
@@ -47,11 +46,10 @@ if (DeviceManager.isVR) {
    - Object becomes kinematic and follows the camera
 
 2. **Examine**:
-   - Right-click while holding an object (primary method)
-   - Or press Space while holding an object (alternative method)
+   - Right-click while holding an object
    - Camera controls are disabled
    - Mouse movement rotates the object
-   - Right-click or press Space again to exit examine mode
+   - Right-click again to exit examine mode
 
 3. **Throw**:
    - While holding an object, click and hold

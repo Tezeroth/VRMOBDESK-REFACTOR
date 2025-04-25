@@ -327,13 +327,13 @@ if (this.interactionState === 'charging') {
 
 ### Inspection Mode Flow
 
-1. User right-clicks or presses Space/taps Examine button while holding an object
+1. User right-clicks (desktop) or taps Examine button (mobile) while holding an object
 2. The state machine transitions to 'inspecting' state via the 'onInspect' action
 3. Camera and movement controls are disabled
 4. The object is detached from the camera
 5. The interaction state changes to 'inspecting'
 6. Mouse/touch movement rotates the object
-7. User right-clicks or presses Space/taps Cancel to exit inspection mode
+7. User right-clicks (desktop) or taps Cancel (mobile) to exit inspection mode
 8. The state machine transitions back to 'holding' state via the 'onExitInspect' action
 9. Camera and movement controls are re-enabled
 10. The object is reattached to the camera
