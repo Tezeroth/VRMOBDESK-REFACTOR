@@ -27,7 +27,8 @@ Based on this information, the application adapts its interface and controls to 
 - Mouse for looking around
 - Left-click to pick up objects
 - Second click while holding to charge and throw objects
-- Space bar to examine objects
+- Right-click to examine objects (primary method)
+- Space bar to examine objects (alternative method)
 
 #### Mobile Controls
 - On-screen arrow buttons for movement

@@ -11,7 +11,7 @@ const DeviceManager = {
   isVR: false,
   isMobile: false,
   hasGyro: false,
-  
+
   async init() {
     // Detect VR support
     // Detect mobile device
@@ -36,7 +36,8 @@ if (DeviceManager.isVR) {
 
 - **WASD Keys**: Move forward, left, backward, right
 - **Mouse**: Look around (with pointer lock)
-- **Space**: Toggle inspection mode when holding an object
+- **Right Mouse Button**: Toggle inspection mode when holding an object
+- **Space**: Alternative way to toggle inspection mode
 
 ### Object Interaction
 
@@ -45,10 +46,11 @@ if (DeviceManager.isVR) {
    - Object becomes kinematic and follows the camera
 
 2. **Examine**:
-   - Press Space while holding an object
+   - Right-click while holding an object (primary method)
+   - Or press Space while holding an object (alternative method)
    - Camera controls are disabled
    - Mouse movement rotates the object
-   - Press Space again to exit examine mode
+   - Right-click or press Space again to exit examine mode
 
 3. **Throw**:
    - While holding an object, click and hold
@@ -97,12 +99,12 @@ Mobile devices with gyroscope support can switch between swipe and gyroscope mod
 const LookModeManager = {
   currentMode: 'swipe',
   gyroEnabled: false,
-  
+
   init() {
     // Initialize look mode from localStorage or default to swipe
     // Create toggle button
   },
-  
+
   setMode(mode) {
     // Switch between 'swipe' and 'gyro' modes
   }
@@ -234,7 +236,7 @@ The application uses PhysX for physics-based interactions:
   ```javascript
   // Store original state
   this._originalPhysicsState = AFRAME.utils.extend({}, currentBody);
-  
+
   // Remove existing body and create kinematic one
   el.removeAttribute('physx-body');
   el.setAttribute('physx-body', 'type', 'kinematic');
@@ -245,7 +247,7 @@ The application uses PhysX for physics-based interactions:
   // Recreate dynamic body
   previousHeldObject.removeAttribute('physx-body');
   previousHeldObject.setAttribute('physx-body', originalDynamicState);
-  
+
   // Apply velocity for throwing
   if (velocity) {
     rigidBody.setLinearVelocity(plainVelocity, true);

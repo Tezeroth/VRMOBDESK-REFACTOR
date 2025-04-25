@@ -438,6 +438,9 @@ const DesktopMobileControls = {
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
 
+    // Bind context menu prevention
+    this.onContextMenu = this.onContextMenu.bind(this);
+
     // Add event listeners
     window.addEventListener('click', this.onClick);
     window.addEventListener('mousedown', this.onMouseDown);
@@ -447,6 +450,7 @@ const DesktopMobileControls = {
     window.addEventListener('touchmove', this.onTouchMove);
     window.addEventListener('touchstart', this.onTouchStart);
     window.addEventListener('touchend', this.onTouchEnd);
+    window.addEventListener('contextmenu', this.onContextMenu);
 
     // Initialize cursor visual
     const cursor = document.querySelector('#camera > #cursor');
@@ -465,6 +469,7 @@ const DesktopMobileControls = {
     window.removeEventListener('touchmove', this.onTouchMove);
     window.removeEventListener('touchstart', this.onTouchStart);
     window.removeEventListener('touchend', this.onTouchEnd);
+    window.removeEventListener('contextmenu', this.onContextMenu);
 
     // Remove tick function
     this._removeTickFunction();
@@ -500,15 +505,35 @@ const DesktopMobileControls = {
   },
 
   onMouseDown: function (evt) {
-    console.log('Mouse down event');
+    console.log('Mouse down event, button:', evt.button);
     if (DeviceManager.isMobile) {
       console.log('Ignoring mouse down on mobile');
       return;
     }
-    if (evt.button !== 0) {
-      console.log('Ignoring non-left mouse button');
-      return; // Only react to left mouse button
+
+    // Handle right mouse button (button 2) for inspection mode
+    if (evt.button === 2) {
+      console.log('Right mouse button detected');
+      if (this.stateMachine.is('holding')) {
+        console.log('State: holding - Entering inspection mode with right mouse button');
+        this.stateMachine.transition('onInspect');
+        evt.preventDefault(); // Prevent context menu
+        return;
+      } else if (this.stateMachine.is('inspecting')) {
+        console.log('State: inspecting - Exiting inspection mode with right mouse button');
+        this.stateMachine.transition('onExitInspect');
+        evt.preventDefault(); // Prevent context menu
+        return;
+      }
+      return;
     }
+
+    // Handle left mouse button (button 0) for normal interactions
+    if (evt.button !== 0) {
+      console.log('Ignoring mouse button that is not left or right');
+      return;
+    }
+
     if (evt.target.classList.contains('arrow-btn') ||
         evt.target.classList.contains('action-btn') ||
         evt.target.closest('.arrow-controls')) {
@@ -707,6 +732,15 @@ const DesktopMobileControls = {
 
       inspectedObject.object3D.rotateY(-deltaX);
       inspectedObject.object3D.rotateX(deltaY);
+    }
+  },
+
+  onContextMenu: function (evt) {
+    // Prevent context menu from appearing when right-clicking
+    // This is important for using right mouse button as a control
+    if (this.stateMachine.is('holding') || this.stateMachine.is('inspecting')) {
+      evt.preventDefault();
+      return false;
     }
   },
 
