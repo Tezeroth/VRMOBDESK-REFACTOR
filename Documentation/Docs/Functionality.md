@@ -29,6 +29,7 @@ Based on this information, the application adapts its interface and controls to 
 - Second click while holding to charge and throw objects
 - Right-click to examine objects (primary method)
 - Space bar to examine objects (alternative method)
+- Space bar to jump
 
 #### Mobile Controls
 - On-screen arrow buttons for movement
@@ -36,6 +37,7 @@ Based on this information, the application adapts its interface and controls to 
 - Tap to pick up objects
 - Double-tap to drop objects
 - Action buttons for throwing and examining objects
+- Jump button for jumping
 - Optional gyroscope controls for looking around
 
 #### VR Controls

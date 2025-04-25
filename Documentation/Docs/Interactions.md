@@ -38,6 +38,7 @@ if (DeviceManager.isVR) {
 - **Mouse**: Look around (with pointer lock)
 - **Right Mouse Button**: Toggle inspection mode when holding an object
 - **Space**: Alternative way to toggle inspection mode
+- **Space**: Press to jump
 
 ### Object Interaction
 
@@ -69,6 +70,7 @@ if (DeviceManager.isVR) {
 ### Movement Controls
 
 - **Arrow Buttons**: On-screen buttons for movement
+- **Jump Button**: On-screen button for jumping
 - **Swipe**: Swipe to look around
 - **Gyroscope** (if available): Toggle between swipe and gyroscope modes with the look-mode button
 
@@ -157,6 +159,60 @@ The application uses the `handy-controls` component for hand tracking:
      class="magnet-left magnet-right">
    </a-entity>
    ```
+
+## Jump Functionality
+
+The application implements a reliable jumping system using A-Frame's animation system rather than physics:
+
+### Animation-Based Approach
+
+```javascript
+// Up animation (rising phase)
+this.el.setAttribute('animation__up', {
+  property: 'object3D.position.y',  // Directly animate Y position
+  from: this.startY,                // Start from ground level
+  to: this.maxY,                    // Jump to maximum height
+  dur: 400,                         // 400ms duration
+  easing: 'easeOutQuad',            // Slow down as we reach the top
+  autoplay: true                    // Start immediately
+});
+```
+
+### Two-Phase Animation Sequence
+
+The jump is split into two distinct phases:
+- **Rising Phase**: Moving upward with easeOutQuad easing (slows down at the top)
+- **Falling Phase**: Moving downward with easeInQuad easing (accelerates toward the ground)
+
+### Navmesh Integration
+
+To prevent conflicts with the navmesh constraint system:
+1. Temporarily disable the constraint during jumps
+2. Re-enable the constraint when landing
+
+```javascript
+// Disable constraint during jump
+this.el.setAttribute('simple-navmesh-constraint', 'enabled', false);
+
+// Re-enable when landing
+this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+```
+
+### Momentum Preservation
+
+The system stores the player's horizontal momentum at the start of the jump and reapplies it during the falling phase:
+
+```javascript
+// Store momentum at jump start
+this.jumpMomentum = {
+  x: movementControls.velocity.x,
+  z: movementControls.velocity.z
+};
+
+// Apply momentum during fall
+movementControls.velocity.x = this.jumpMomentum.x;
+movementControls.velocity.z = this.jumpMomentum.z;
+```
 
 ## Interaction States
 

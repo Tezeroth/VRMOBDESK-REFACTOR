@@ -295,8 +295,7 @@
     -->
     <a-entity
       id="cameraRig"
-
-
+      jump-control="height: 1.5; upDuration: 400; downDuration: 300; cooldown: 500"
       position="0 0 0"
       rotation="0 180 0"
     >
@@ -311,7 +310,7 @@
            position="0 0 -1"
            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
            material="color: lime; shader: flat; opacity: 0.9"
-           raycaster="objects: .clickable; far: 10"
+           raycaster="objects: .clickable, .pickupable; far: 10"
            cursor="fuse: false;"
         >
         </a-entity>

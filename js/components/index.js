@@ -12,6 +12,7 @@ import DesktopMobileControls from './DesktopMobileControls.js';
 import ArrowControls from './ArrowControls.js';
 import MakeTransparent from './MakeTransparent.js';
 import SimpleNavmeshConstraint from './SimpleNavmeshConstraint.js';
+import JumpControl from './JumpControl.js';
 
 // Register components with A-Frame
 AFRAME.registerComponent('toggle-physics', TogglePhysics);
@@ -24,6 +25,7 @@ AFRAME.registerComponent('desktop-mobile-controls', DesktopMobileControls);
 AFRAME.registerComponent('arrow-controls', ArrowControls);
 AFRAME.registerComponent('make-transparent', MakeTransparent);
 AFRAME.registerComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
+AFRAME.registerComponent('jump-control', JumpControl);
 
 // Export components for potential direct usage
 export {
@@ -36,5 +38,6 @@ export {
   DesktopMobileControls,
   ArrowControls,
   MakeTransparent,
-  SimpleNavmeshConstraint
+  SimpleNavmeshConstraint,
+  JumpControl
 };

@@ -12,7 +12,8 @@ VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with
 - **Physics-based interactions**: Realistic object manipulation using PhysX with optimized performance
 - **Adaptive controls**: Intelligent control schemes that adapt to VR, mobile, and desktop devices
 - **Navigation system**: Smooth movement within the 3D environment with collision detection
-- **Object manipulation**: Pick up, examine, throw, and interact with 3D objects naturally
+- **Jump functionality**: Animation-based jumping with momentum preservation and navmesh integration
+- **Object manipulation**: Pick up, examine (using right-click in desktop mode), throw, and interact with 3D objects naturally
 - **Performance optimized**: Implements sleep management for physics objects and device-specific optimizations
 - **Mobile-friendly**: Supports both touch controls and gyroscope-based camera movement
 - **Modular architecture**: Well-organized codebase ready for extension and customization
