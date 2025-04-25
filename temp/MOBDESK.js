@@ -515,7 +515,6 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
             this.interactionState = 'charging';
             this.chargeStartTime = this.secondClickStartTime;
             this.secondClickStartTime = 0;
-            if (this.cursor) this.cursor.setAttribute('material', 'color', 'yellow');
 
             // <<< FIX: Disable movement-controls on cameraRig >>>
             const cameraRig = document.querySelector('#cameraRig');
@@ -790,8 +789,6 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
         }
         // <<< END REVERT >>>
 
-        if (this.cursor) this.cursor.setAttribute('material', 'color', 'red');
-
     } else if (this.interactionState === 'inspecting'){
         if (!this.objectBeingInspected) {
              console.error("Exiting inspect: Lost reference!");
@@ -930,12 +927,8 @@ AFRAME.registerComponent('desktop-and-mobile-controls', {
 
   resetCursorVisual: function() {
       if (this.cursor) {
-          const baseScale = 0.025;
-          this.cursor.setAttribute('geometry', 'radiusInner', baseScale * 0.8);
-          this.cursor.setAttribute('geometry', 'radiusOuter', baseScale);
-          // Set color based on state (lime=idle/holding, red=inspecting)
-          const color = this.interactionState === 'inspecting' ? 'red' : 'lime';
-          this.cursor.setAttribute('material', 'color', color);
+          // Use InteractionUtils to update cursor visual based on current state
+          InteractionUtils.updateCursorVisual(this.cursor, this.interactionState);
       }
   },
 

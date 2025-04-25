@@ -111,6 +111,13 @@ const DesktopMobileControls = {
           }
         },
         holding: {
+          /**
+           * Called when transitioning from holding to charging state
+           * - Stores the charge start time for calculating throw force
+           * - Movement and looking remain enabled during charging
+           *
+           * @returns {string} The new state ('charging')
+           */
           onCharge: function() {
             this.setData('chargeStartTime', Date.now());
             return 'charging';
@@ -132,10 +139,18 @@ const DesktopMobileControls = {
 
             return 'idle';
           },
+          /**
+           * Called when transitioning from holding to inspecting state
+           * - Stores camera orientation to restore later
+           * - Disables both look and movement controls for inspection mode
+           * - Prepares the object for inspection
+           *
+           * @returns {string} The new state ('inspecting')
+           */
           onInspect: function() {
             const heldObject = this.getData('heldObject');
 
-            // Store camera orientation
+            // Store camera orientation to restore when exiting inspection
             const camera = document.querySelector('#camera');
             const lookControls = camera?.components['look-controls'];
             if (lookControls && lookControls.pitchObject && lookControls.yawObject) {
@@ -143,11 +158,14 @@ const DesktopMobileControls = {
               component.rigYawOnEnterInspect = lookControls.yawObject.rotation.y;
             }
 
-            // Disable controls
+            // Disable look controls for inspection mode
+            // This prevents camera movement while inspecting objects
             if (lookControls) {
               lookControls.data.enabled = false;
             }
 
+            // Disable movement controls for inspection mode
+            // This prevents player movement while inspecting objects
             const cameraRig = document.querySelector('#cameraRig');
             if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
               cameraRig.setAttribute('movement-controls', 'enabled', false);
@@ -165,22 +183,49 @@ const DesktopMobileControls = {
 
             return 'inspecting';
           },
+          /**
+           * Called when exiting the holding state
+           * - Updates cursor color based on the new state:
+           *   - 'inspecting': red in desktop/mobile mode, blue in VR mode
+           *   - 'charging': yellow to red gradient
+           *   - other states: lime green in desktop/mobile mode, blue in VR mode
+           * - Disables movement controls ONLY when transitioning to inspecting state
+           * - Keeps movement controls enabled when transitioning to charging state
+           *
+           * @param {string} newState - The state being transitioned to
+           */
           onExit: function(newState) {
-            if (newState === 'charging') {
-              const cursor = document.querySelector('#camera > #cursor');
-              if (cursor) {
+            // Update cursor visual for all state transitions
+            const cursor = document.querySelector('#camera > #cursor');
+            if (cursor) {
+              // For charging state, we need to pass the chargeRatio parameter
+              if (newState === 'charging') {
                 InteractionUtils.updateCursorVisual(cursor, 'charging', 0);
+              } else {
+                // For all other states (including 'inspecting'), update cursor visual
+                InteractionUtils.updateCursorVisual(cursor, newState);
               }
+            }
 
-              // Disable movement during charging
-              const cameraRig = document.querySelector('#cameraRig');
-              if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
+            // Handle movement controls
+            const cameraRig = document.querySelector('#cameraRig');
+            if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
+              // Disable movement ONLY during inspecting (not during charging)
+              if (newState === 'inspecting') {
                 cameraRig.setAttribute('movement-controls', 'enabled', false);
               }
             }
           }
         },
         charging: {
+          /**
+           * Called when throwing an object after charging
+           * - Calculates throw force based on charge time
+           * - Applies velocity to the object
+           * - Movement and looking remain enabled during and after throwing
+           *
+           * @returns {string} The new state ('idle')
+           */
           onThrow: function() {
             const heldObject = this.getData('heldObject');
             const originalState = this.getData('originalPhysicsState');
@@ -196,7 +241,7 @@ const DesktopMobileControls = {
             const chargeRatio = chargeDuration / maxChargeTime;
             const throwForce = minThrowForce + (maxThrowForce - minThrowForce) * chargeRatio;
 
-            // Calculate throw velocity
+            // Calculate throw velocity based on camera direction
             const camera = document.querySelector('#camera');
             const throwVelocity = PhysicsUtils.calculateThrowVelocity(camera, throwForce);
 
@@ -211,12 +256,27 @@ const DesktopMobileControls = {
 
             return 'idle';
           },
+          /**
+           * Called when canceling a charge (e.g., by pressing space)
+           * - Resets the charge start time
+           * - Movement and looking remain enabled
+           *
+           * @returns {string} The new state ('holding')
+           */
           onCancel: function() {
             this.setData('chargeStartTime', 0);
             return 'holding';
           },
+          /**
+           * Called when exiting the charging state
+           * - Re-enables movement controls if not transitioning to inspecting state
+           * - Updates cursor color based on the new state
+           *
+           * @param {string} newState - The state being transitioned to
+           */
           onExit: function(newState) {
             // Re-enable movement controls if not going to inspecting
+            // This ensures movement is re-enabled when throwing or canceling a charge
             if (newState !== 'inspecting') {
               const cameraRig = document.querySelector('#cameraRig');
               if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
@@ -224,7 +284,7 @@ const DesktopMobileControls = {
               }
             }
 
-            // Update cursor visual
+            // Update cursor visual based on the new state
             const cursor = document.querySelector('#camera > #cursor');
             if (cursor) {
               InteractionUtils.updateCursorVisual(cursor, newState);
@@ -232,10 +292,35 @@ const DesktopMobileControls = {
           }
         },
         inspecting: {
+          /**
+           * Called when entering the inspecting state
+           * - Updates cursor color to red in desktop/mobile mode
+           * - Preserves blue cursor color in VR mode
+           *
+           * @param {string} prevState - The previous state
+           */
+          onEnter: function(prevState) {
+            // Update cursor visual when entering inspection mode
+            // This will set cursor to red in desktop/mobile mode
+            // In VR mode, the blue color will be preserved by InteractionUtils.updateCursorVisual
+            const cursor = document.querySelector('#camera > #cursor');
+            if (cursor) {
+              InteractionUtils.updateCursorVisual(cursor, 'inspecting');
+            }
+            console.log('Entered inspection mode, cursor color updated to red');
+          },
+          /**
+           * Called when exiting the inspection mode
+           * - Restores camera orientation to pre-inspection state
+           * - Re-enables both look and movement controls
+           * - Prepares the object to be held again
+           *
+           * @returns {string} The new state ('holding')
+           */
           onExitInspect: function() {
             const inspectedObject = this.getData('inspectedObject');
 
-            // Restore camera orientation
+            // Restore camera orientation to what it was before inspection
             const camera = document.querySelector('#camera');
             const lookControls = camera?.components['look-controls'];
             if (lookControls && lookControls.pitchObject && lookControls.yawObject) {
@@ -243,11 +328,14 @@ const DesktopMobileControls = {
               lookControls.yawObject.rotation.y = component.rigYawOnEnterInspect;
             }
 
-            // Re-enable controls
+            // Re-enable look controls when exiting inspection mode
+            // This allows camera movement again
             if (lookControls) {
               lookControls.data.enabled = true;
             }
 
+            // Re-enable movement controls when exiting inspection mode
+            // This allows player movement again
             const cameraRig = document.querySelector('#cameraRig');
             if (cameraRig && cameraRig.hasAttribute('movement-controls')) {
               cameraRig.setAttribute('movement-controls', 'enabled', true);
@@ -300,6 +388,12 @@ const DesktopMobileControls = {
 
             return 'holding';
           },
+          /**
+           * Called when exiting the inspecting state
+           * - Requests pointer lock if not on mobile
+           * - Updates cursor color to lime green (holding state) in desktop/mobile mode
+           * - Preserves blue cursor color in VR mode
+           */
           onExit: function() {
             // Request pointer lock if not mobile
             if (!DeviceManager.isMobile) {
@@ -310,7 +404,8 @@ const DesktopMobileControls = {
               }, 50);
             }
 
-            // Update cursor visual
+            // Update cursor visual to 'holding' state (lime green in desktop/mobile mode)
+            // In VR mode, the blue color will be preserved by InteractionUtils.updateCursorVisual
             const cursor = document.querySelector('#camera > #cursor');
             if (cursor) {
               InteractionUtils.updateCursorVisual(cursor, 'holding');

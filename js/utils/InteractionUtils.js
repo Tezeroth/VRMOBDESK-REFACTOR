@@ -51,11 +51,51 @@ const InteractionUtils = {
    * @param {string} state - The interaction state
    * @param {number} [chargeRatio=0] - Optional charge ratio for charging state
    */
+  /**
+   * Updates the cursor visual appearance based on the current interaction state
+   *
+   * Cursor color behavior:
+   * - In VR mode: Cursor remains blue (set by ControlManager.js)
+   * - In Desktop/Mobile mode:
+   *   - idle/holding: lime green
+   *   - inspecting: red
+   *   - charging: yellow to red gradient based on charge ratio
+   *
+   * @param {Element} cursor - The cursor element to update
+   * @param {string} state - The current interaction state ('idle', 'holding', 'inspecting', 'charging')
+   * @param {number} chargeRatio - For 'charging' state, the ratio of current charge (0-1)
+   */
   updateCursorVisual(cursor, state, chargeRatio = 0) {
     if (!cursor) return;
 
     const baseScale = 0.025;
 
+    // Check if we're in VR mode - if cursor is blue, we should preserve that color
+    const currentColor = cursor.getAttribute('material').color;
+    const isVRMode = currentColor === 'blue';
+
+    // If in VR mode, only update geometry but keep the blue color
+    if (isVRMode) {
+      // Only update geometry in VR mode
+      switch (state) {
+        case 'idle':
+        case 'holding':
+        case 'inspecting':
+          cursor.setAttribute('geometry', 'radiusInner', baseScale * 0.8);
+          cursor.setAttribute('geometry', 'radiusOuter', baseScale);
+          break;
+
+        case 'charging':
+          const maxScaleMultiplier = 2.0;
+          const scale = baseScale * (1 + chargeRatio * (maxScaleMultiplier - 1));
+          cursor.setAttribute('geometry', 'radiusInner', scale * 0.8);
+          cursor.setAttribute('geometry', 'radiusOuter', scale);
+          break;
+      }
+      return; // Exit early, preserving the blue color
+    }
+
+    // Normal desktop/mobile mode color handling
     switch (state) {
       case 'idle':
       case 'holding':
