@@ -30,10 +30,11 @@ const PlayerCollider = {
       transparent: true
     });
 
-    // Add physics body to the collider
+    // Add physics body to the collider with CCD enabled
     // Use only supported properties for physx-body
     this.collider.setAttribute('physx-body', {
-      type: 'kinematic'
+      type: 'kinematic',
+      enableCCD: true // Enable Continuous Collision Detection to prevent tunneling
     });
 
     // Add class for collision detection
@@ -51,6 +52,10 @@ const PlayerCollider = {
 
     // Bind methods
     this.updateCollider = this.updateCollider.bind(this);
+    this.onCollisionStart = this.onCollisionStart.bind(this);
+
+    // Listen for collision events
+    this.collider.addEventListener('collisionstart', this.onCollisionStart);
   },
 
   update: function() {
@@ -66,6 +71,19 @@ const PlayerCollider = {
         y: this.data.height / 2,
         z: 0
       });
+    }
+  },
+
+  onCollisionStart: function(event) {
+    if (!this.data.enabled) return;
+
+    // Get the jump controller component
+    const jumpControl = this.el.components['jump-control'];
+    if (jumpControl && jumpControl.isJumping) {
+      console.log('PlayerCollider: Collision detected during jump');
+
+      // Notify the jump controller about the collision
+      jumpControl.handleWallCollision();
     }
   },
 
@@ -92,8 +110,14 @@ const PlayerCollider = {
 
   remove: function() {
     // Clean up when component is removed
-    if (this.collider && this.collider.parentNode) {
-      this.collider.parentNode.removeChild(this.collider);
+    if (this.collider) {
+      // Remove event listeners
+      this.collider.removeEventListener('collisionstart', this.onCollisionStart);
+
+      // Remove the collider
+      if (this.collider.parentNode) {
+        this.collider.parentNode.removeChild(this.collider);
+      }
     }
   }
 };

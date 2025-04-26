@@ -238,6 +238,31 @@ const JumpCollider = {
     this.collider.setAttribute('visible', false);
   },
 
+  /**
+   * Update the collider position to match the player
+   */
+  updateCollider: function() {
+    if (!this.collider) {
+      this.recreateCollider();
+      return;
+    }
+
+    // Make sure the collider is properly positioned
+    this.collider.setAttribute('position', {
+      x: 0,
+      y: this.data.height / 2, // Center the cylinder vertically
+      z: 0
+    });
+
+    // Ensure the collider is attached to the player
+    if (!this.collider.parentNode || this.collider.parentNode !== this.el) {
+      if (this.collider.parentNode) {
+        this.collider.parentNode.removeChild(this.collider);
+      }
+      this.el.appendChild(this.collider);
+    }
+  },
+
   update: function() {
     if (this.collider) {
       // Update collider properties when component data changes

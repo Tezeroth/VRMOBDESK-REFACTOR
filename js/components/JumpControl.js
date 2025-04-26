@@ -231,9 +231,16 @@ const JumpControl = {
     // Also store the last valid position from the navmesh constraint
     // This is important for returning to a valid position if we hit a wall
     const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
-    if (navmeshConstraint && navmeshConstraint.lastValidPosition) {
-      console.log('Storing last valid navmesh position before jump');
-      this.navmeshLastValidPosition = navmeshConstraint.lastValidPosition.clone();
+    if (navmeshConstraint) {
+      if (navmeshConstraint.lastPosition) {
+        console.log('Storing last valid navmesh position before jump');
+        // Make a deep copy of the last valid position
+        this.navmeshLastValidPosition = new THREE.Vector3().copy(navmeshConstraint.lastPosition);
+      } else {
+        // If the navmesh constraint doesn't have a last position yet,
+        // store the current position as the last valid position
+        this.navmeshLastValidPosition = new THREE.Vector3().copy(currentPos);
+      }
     }
 
     // Check if we're near a wall before jumping
@@ -333,16 +340,111 @@ const JumpControl = {
         easing: 'easeInCubic', // More pronounced acceleration for realistic gravity
         autoplay: true
       });
+
+      // DON'T re-enable the navmesh constraint before landing
+      // Instead, wait until we've fully landed and then handle it in the down animation complete handler
     } else if (phase === 'down') {
       console.log('Down animation complete, jump finished');
 
-      // Hide the jump collider
-      const jumpCollider = this.el.components['jump-collider'];
-      if (jumpCollider) {
-        jumpCollider.hideCollider();
+      // CRITICAL: First check for wall collisions and adjust position if needed
+      // Do this BEFORE re-enabling the navmesh constraint
+      this.checkPostLandingCollision();
+
+      // NOW re-enable the navmesh constraint after we've adjusted the position
+      if (this.el.hasAttribute('simple-navmesh-constraint')) {
+        console.log('Re-enabling navmesh constraint after position adjustment');
+        this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
       }
 
+      // Reset jump state
       this.resetJump();
+    }
+  },
+
+  /**
+   * Check if the player is about to phase through a wall after landing
+   * This is called right after landing from a jump
+   */
+  checkPostLandingCollision: function() {
+    console.warn('POST-LANDING: Checking for wall collisions after landing');
+
+    // Log current position
+    const currentPos = {
+      x: this.el.object3D.position.x.toFixed(3),
+      y: this.el.object3D.position.y.toFixed(3),
+      z: this.el.object3D.position.z.toFixed(3)
+    };
+    console.warn('POST-LANDING: Current position:', currentPos);
+
+    // Check if we're inside a wall using the jump collider
+    const jumpCollider = this.el.components['jump-collider'];
+    if (jumpCollider) {
+      // Show the collider temporarily
+      jumpCollider.showCollider();
+
+      // Check for collisions
+      const collisionResult = jumpCollider.checkCollisions();
+      if (collisionResult.collision) {
+        console.error('POST-LANDING: Wall collision detected after landing!');
+
+        // COMPLETELY DIFFERENT APPROACH: Push AWAY from the wall by a fixed amount
+        if (collisionResult.normal) {
+          // Push AWAY from the wall by 0.2 units
+          const pushDistance = 0.2;
+
+          // Store position before push
+          const beforePush = {
+            x: this.el.object3D.position.x.toFixed(3),
+            y: this.el.object3D.position.y.toFixed(3),
+            z: this.el.object3D.position.z.toFixed(3)
+          };
+
+          // Apply the push AWAY from the wall
+          this.el.object3D.position.x += collisionResult.normal.x * pushDistance;
+          this.el.object3D.position.z += collisionResult.normal.z * pushDistance;
+
+          // Log position after push
+          const afterPush = {
+            x: this.el.object3D.position.x.toFixed(3),
+            y: this.el.object3D.position.y.toFixed(3),
+            z: this.el.object3D.position.z.toFixed(3)
+          };
+
+          console.error('POST-LANDING: Pushing player AWAY from wall by 0.2 units');
+          console.error('POST-LANDING: Normal vector:', {
+            x: collisionResult.normal.x.toFixed(3),
+            y: collisionResult.normal.y.toFixed(3),
+            z: collisionResult.normal.z.toFixed(3)
+          });
+          console.error('POST-LANDING: Position before push:', beforePush);
+          console.error('POST-LANDING: Position after push:', afterPush);
+
+          // Double-check that we're now clear of the wall
+          const secondCheck = jumpCollider.checkCollisions();
+          if (secondCheck.collision) {
+            console.error('POST-LANDING: Still colliding after push, trying again with larger distance');
+
+            // Push even further away
+            this.el.object3D.position.x += collisionResult.normal.x * pushDistance;
+            this.el.object3D.position.z += collisionResult.normal.z * pushDistance;
+          }
+        }
+        // If we don't have a normal but have a safe position, use it
+        else if (collisionResult.safePosition) {
+          console.error('POST-LANDING: Using safe position from collision result');
+          this.el.object3D.position.x = collisionResult.safePosition.x;
+          this.el.object3D.position.z = collisionResult.safePosition.z;
+        }
+      } else {
+        console.warn('POST-LANDING: No wall collision detected after landing');
+      }
+    }
+
+    // Force the navmesh constraint to update its last position
+    const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
+    if (navmeshConstraint) {
+      console.warn('POST-LANDING: Forcing navmesh constraint to update');
+      navmeshConstraint.lastPosition = null;
     }
   },
 
@@ -365,6 +467,18 @@ const JumpControl = {
 
     // Keep the current Y position for the drop animation
     this.el.object3D.position.y = currentY;
+  },
+
+  /**
+   * Handle wall collision during jump (called by PlayerCollider)
+   */
+  handleWallCollision: function() {
+    if (!this.isJumping) return;
+
+    console.log('Wall collision detected by PlayerCollider');
+
+    // End the jump immediately
+    this.endJumpEarly();
 
     // Remove any existing animations
     this.el.removeAttribute('animation__up');
@@ -535,14 +649,88 @@ const JumpControl = {
         if (collisionResult.collision) {
           console.log('Wall collision detected during jump!');
 
-          // Re-enable the navmesh constraint immediately
-          if (this.el.hasAttribute('simple-navmesh-constraint')) {
-            console.log('Re-enabling navmesh constraint due to wall collision');
-            this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+          // Always move the player to a safe position first to prevent clipping
+          if (collisionResult.safePosition) {
+            this.el.object3D.position.x = collisionResult.safePosition.x;
+            this.el.object3D.position.z = collisionResult.safePosition.z;
           }
 
-          // End the jump and drop to the ground
-          this.endJumpEarly();
+          // If we have a normal vector, use it to implement wall sliding
+          if (collisionResult.normal) {
+            // Get the current movement velocity
+            const movementControls = this.el.components['movement-controls'];
+            if (movementControls && movementControls.velocity) {
+              // Create a velocity vector
+              const velocity = new THREE.Vector3(
+                movementControls.velocity.x,
+                0, // Ignore Y component for sliding
+                movementControls.velocity.z
+              );
+
+              // Project the velocity onto the wall plane (sliding)
+              const normal = collisionResult.normal.clone(); // Clone to avoid modifying the original
+              const dot = velocity.dot(normal);
+
+              // Calculate the sliding vector (velocity - (velocity·normal) * normal)
+              const slide = new THREE.Vector3()
+                .copy(velocity)
+                .sub(normal.multiplyScalar(dot));
+
+              // Reduce the sliding velocity for better control
+              slide.multiplyScalar(0.8);
+
+              // Apply the sliding velocity
+              movementControls.velocity.x = slide.x;
+              movementControls.velocity.z = slide.z;
+
+              // CRITICAL: Push the player TOWARDS the wall slightly to ensure they stay inside the navmesh
+              // This is the key to preventing phasing through walls after landing
+              const pushDistance = -0.05; // Negative value to push towards the wall, not away from it
+
+              // Log position before push
+              const posBeforePush = {
+                x: this.el.object3D.position.x.toFixed(3),
+                y: this.el.object3D.position.y.toFixed(3),
+                z: this.el.object3D.position.z.toFixed(3)
+              };
+
+              // Apply the push
+              this.el.object3D.position.x += normal.x * pushDistance;
+              this.el.object3D.position.z += normal.z * pushDistance;
+
+              // Log position after push
+              const posAfterPush = {
+                x: this.el.object3D.position.x.toFixed(3),
+                y: this.el.object3D.position.y.toFixed(3),
+                z: this.el.object3D.position.z.toFixed(3)
+              };
+
+              console.warn('WALL SLIDE: Pushing player towards wall by 0.05 units');
+              console.warn('Normal vector:', {
+                x: normal.x.toFixed(3),
+                y: normal.y.toFixed(3),
+                z: normal.z.toFixed(3)
+              });
+              console.warn('Position before push:', posBeforePush);
+              console.warn('Position after push:', posAfterPush);
+
+              // Check if navmesh constraint is enabled
+              const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
+              if (navmeshConstraint) {
+                console.warn('Navmesh constraint enabled:', navmeshConstraint.data.enabled);
+              }
+            }
+          } else {
+            // If we don't have a normal vector, just re-enable the navmesh constraint
+            // and end the jump early
+            if (this.el.hasAttribute('simple-navmesh-constraint')) {
+              console.log('Re-enabling navmesh constraint due to wall collision');
+              this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+            }
+
+            // End the jump and drop to the ground
+            this.endJumpEarly();
+          }
         }
       }
     }

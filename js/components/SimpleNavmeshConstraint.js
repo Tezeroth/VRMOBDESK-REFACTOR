@@ -1,6 +1,6 @@
 /**
  * SimpleNavmeshConstraint - Constrains movement to a navmesh
- * 
+ *
  * This component constrains an entity's movement to a navigation mesh,
  * which is useful for implementing walking on terrain with proper collision.
  */
@@ -103,7 +103,7 @@ const SimpleNavmeshConstraint = {
     const results = [];
     let yVel = 0;
     let firstTry = true;
-    
+
     return function tick(time, delta) {
       if (this.data.enabled === false) return;
       if (this.entitiesChanged) {
@@ -115,14 +115,70 @@ const SimpleNavmeshConstraint = {
         this.xzOrigin.object3D.getWorldPosition(this.lastPosition);
         if (this.data.xzOrigin) this.lastPosition.y -= this.xzOrigin.object3D.position.y;
       }
-      
+
       const el = this.el;
       if (this.objects.length === 0) return;
 
       this.xzOrigin.object3D.getWorldPosition(nextPosition);
       if (this.data.xzOrigin) nextPosition.y -= this.xzOrigin.object3D.position.y;
+
+      // CRITICAL: Check if we're outside the navmesh by casting a ray down
+      // This is a more direct way to detect if we're outside the navmesh
+      tempVec.copy(nextPosition);
+      tempVec.y += maxYVelocity;
+      tempVec.y -= this.data.height;
+      raycaster.set(tempVec, down);
+      raycaster.far = this.data.fall > 0 ? this.data.fall + maxYVelocity : Infinity;
+      raycaster.intersectObjects(this.objects, true, results);
+
+      // If no results, we're outside the navmesh
+      if (results.length === 0) {
+        console.error('CRITICAL: Outside navmesh detected!');
+        console.error('Current position:', {
+          x: nextPosition.x.toFixed(3),
+          y: nextPosition.y.toFixed(3),
+          z: nextPosition.z.toFixed(3)
+        });
+
+        // Check if we're jumping
+        const jumpControl = this.el.components['jump-control'];
+        if (jumpControl) {
+          console.error('Jump state:', jumpControl.isJumping ? 'JUMPING' : 'NOT JUMPING');
+        }
+
+        if (this.lastPosition) {
+          console.error('Last valid position:', {
+            x: this.lastPosition.x.toFixed(3),
+            y: this.lastPosition.y.toFixed(3),
+            z: this.lastPosition.z.toFixed(3)
+          });
+
+          // EMERGENCY: Teleport back to last valid position
+          console.error('EMERGENCY: Teleporting back to last valid position');
+
+          // Store current Y to maintain height
+          const currentY = nextPosition.y;
+
+          // Apply the teleport
+          this.el.object3D.position.x = this.lastPosition.x;
+          this.el.object3D.position.z = this.lastPosition.z;
+          this.el.object3D.position.y = currentY;
+
+          // Convert to local coordinates
+          this.el.object3D.parent.worldToLocal(this.el.object3D.position);
+
+          // Update nextPosition to match the teleported position
+          this.xzOrigin.object3D.getWorldPosition(nextPosition);
+          if (this.data.xzOrigin) nextPosition.y -= this.xzOrigin.object3D.position.y;
+        }
+      }
+
+      // Clear results array
+      results.splice(0);
+
+      // Skip if we haven't moved enough
       if (nextPosition.distanceTo(this.lastPosition) <= 0.01) return;
-      
+
       let didHit = false;
       // So that it does not get stuck it takes as few samples around the user and finds the most appropriate
       scanPatternLoop:
@@ -136,7 +192,7 @@ const SimpleNavmeshConstraint = {
         raycaster.set(tempVec, down);
         raycaster.far = this.data.fall > 0 ? this.data.fall + maxYVelocity : Infinity;
         raycaster.intersectObjects(this.objects, true, results);
-        
+
         if (results.length) {
           // If it hit something we want to avoid then ignore it and stop looking
           for (const result of results) {
@@ -159,20 +215,49 @@ const SimpleNavmeshConstraint = {
           tempVec.sub(this.xzOrigin.object3D.position);
           if (this.data.xzOrigin) tempVec.y += this.xzOrigin.object3D.position.y;
           this.el.object3D.position.add(tempVec);
-          
+
           this.lastPosition.copy(hitPos);
           didHit = true;
           break;
         }
       }
-      
+
       if (didHit) {
         firstTry = false;
       }
-      
+
       if (!firstTry && !didHit) {
+        // CRITICAL LOGGING: We're about to leave the navmesh!
+        console.warn('NAVMESH BOUNDARY CROSSED: Player is leaving the navmesh!');
+        console.warn('Current position:', JSON.stringify({
+          x: this.el.object3D.position.x.toFixed(3),
+          y: this.el.object3D.position.y.toFixed(3),
+          z: this.el.object3D.position.z.toFixed(3)
+        }));
+        console.warn('Last valid position:', JSON.stringify({
+          x: this.lastPosition.x.toFixed(3),
+          y: this.lastPosition.y.toFixed(3),
+          z: this.lastPosition.z.toFixed(3)
+        }));
+
+        // Check if the jump control component is active
+        const jumpControl = this.el.components['jump-control'];
+        if (jumpControl) {
+          console.warn('Jump state:', jumpControl.isJumping ? 'JUMPING' : 'NOT JUMPING');
+          if (jumpControl.isJumping) {
+            console.warn('Jump phase:',
+              this.el.hasAttribute('animation__up') ? 'RISING' :
+              this.el.hasAttribute('animation__down') ? 'FALLING' : 'UNKNOWN');
+          }
+        }
+
+        // Log the navmesh constraint state
+        console.warn('Navmesh constraint enabled:', this.data.enabled);
+
+        // Restore to last valid position
         this.el.object3D.position.copy(this.lastPosition);
         this.el.object3D.parent.worldToLocal(this.el.object3D.position);
+        console.warn('Restored to last valid position');
       }
     }
   }())
