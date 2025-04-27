@@ -22,6 +22,9 @@ const JumpControl = {
   init: function () {
     // Initialize state
     this.isJumping = false;
+    this.isFalling = false;
+    this.yVelocity = 0;
+    this.justLanded = false;
     this.canJump = true;
     this.jumpTimeout = null;
     this.safetyTimeout = null;
@@ -72,6 +75,16 @@ const JumpControl = {
     if (DeviceManager.isMobile) {
       this.createJumpButton();
     }
+
+    // Raycaster for ground detection during fall
+    this.fallRaycaster = new THREE.Raycaster();
+    this.downVector = new THREE.Vector3(0, -1, 0);
+    this.navmeshObjects = [];
+
+    // Get navmesh objects for raycasting
+    this.findNavmeshObjects();
+    this.el.sceneEl.addEventListener('child-attached', this.findNavmeshObjects.bind(this));
+    this.el.sceneEl.addEventListener('child-detached', this.findNavmeshObjects.bind(this));
   },
 
   remove: function () {
@@ -110,6 +123,10 @@ const JumpControl = {
     if (jumpButton) {
       jumpButton.remove();
     }
+
+    // Remove scene listeners
+    this.el.sceneEl.removeEventListener('child-attached', this.findNavmeshObjects.bind(this));
+    this.el.sceneEl.removeEventListener('child-detached', this.findNavmeshObjects.bind(this));
   },
 
   /**
@@ -323,41 +340,22 @@ const JumpControl = {
    */
   onAnimationComplete: function (phase) {
     if (phase === 'up') {
-      console.log('Up animation complete, starting down animation');
+      console.log('Jump up animation complete, starting down animation');
+      // Remove the up animation attribute
+      this.el.removeAttribute('animation__up');
 
-      // Get current position (might be different from maxY due to collisions)
-      const currentPos = this.el.object3D.position;
-
-      // Remove any existing down animation first
-      this.el.removeAttribute('animation__down');
-
-      // Start down animation with improved easing for more natural falling
-      this.el.setAttribute('animation__down', {
-        property: 'object3D.position.y',
-        from: currentPos.y,
-        to: this.startY,
-        dur: this.data.downDuration,
-        easing: 'easeInCubic', // More pronounced acceleration for realistic gravity
-        autoplay: true
-      });
-
-      // DON'T re-enable the navmesh constraint before landing
-      // Instead, wait until we've fully landed and then handle it in the down animation complete handler
+      // Start the fall
+      this.isFalling = true;
+      this.yVelocity = 0;
     } else if (phase === 'down') {
-      console.log('Down animation complete, jump finished');
+      console.log('Jump down animation completed (Fallback/Timeout)');
 
-      // CRITICAL: First check for wall collisions and adjust position if needed
-      // Do this BEFORE re-enabling the navmesh constraint
-      this.checkPostLandingCollision();
-
-      // NOW re-enable the navmesh constraint after we've adjusted the position
-      if (this.el.hasAttribute('simple-navmesh-constraint')) {
-        console.log('Re-enabling navmesh constraint after position adjustment');
-        this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+      // Only reset if we are still marked as jumping/falling
+      // This acts as a fallback if raycast landing fails
+      if (this.isJumping || this.isFalling) {
+        console.warn('Down animation finished before ground detected, forcing reset.');
+        this.resetJump();
       }
-
-      // Reset jump state
-      this.resetJump();
     }
   },
 
@@ -448,8 +446,6 @@ const JumpControl = {
     }
   },
 
-
-
   /**
    * End the jump early (e.g., when hitting a wall)
    */
@@ -533,6 +529,7 @@ const JumpControl = {
     this.isJumping = false;
     this.canJump = true; // Allow immediate jumping
     this.jumpStartTime = null;
+    this.yVelocity = 0;
 
     // Re-enable navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
@@ -569,6 +566,10 @@ const JumpControl = {
     // Reset state
     this.isJumping = false;
     this.jumpStartTime = null;
+    this.yVelocity = 0;
+
+    // Log before enabling constraint
+    console.log('JumpControl: Attempting to re-enable simple-navmesh-constraint...');
 
     // Re-enable navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
@@ -752,9 +753,69 @@ const JumpControl = {
 
       this.lastCameraRotation.copy(currentRotation);
     }
+
+    // Ground detection and manual gravity during fall
+    if (this.isFalling) {
+      const gravity = -9.8; // Define gravity strength
+      const dt = delta / 1000; // Delta time in seconds
+
+      // Apply gravity to velocity
+      this.yVelocity += gravity * dt;
+
+      // Update position based on velocity
+      this.el.object3D.position.y += this.yVelocity * dt;
+
+      // Ground Detection Raycast
+      if (this.navmeshObjects.length > 0) {
+        const currentPos = this.el.object3D.position;
+        // Start ray slightly higher to avoid starting inside ground
+        const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + 0.2, currentPos.z);
+
+        this.fallRaycaster.set(rayOrigin, this.downVector);
+        // Adjust ray length based on current velocity - check slightly ahead
+        this.fallRaycaster.far = Math.max(0.3, -this.yVelocity * dt * 1.5); // Min check distance 0.3
+
+        const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
+
+        if (intersects.length > 0) {
+          // Ground detected!
+          this.forceLand(intersects[0].point);
+          return; // Landed, exit tick early
+        }
+      }
+    }
+
+    // Reset justLanded flag at the end of tick
+    this.justLanded = false;
   },
 
+  // Function to find navmesh objects
+  findNavmeshObjects: function() {
+    const navmeshEls = document.querySelectorAll('.navmesh'); // Assuming navmesh has class 'navmesh'
+    this.navmeshObjects = Array.from(navmeshEls).map(el => el.object3D).filter(obj => obj);
+    if (this.navmeshObjects.length === 0) {
+      console.warn('JumpControl: No navmesh objects found for ground detection.');
+    }
+  },
 
+  // Function to handle actual landing
+  forceLand: function(hitPoint) {
+    console.log('Force landing at', hitPoint);
+    this.isFalling = false;
+    this.yVelocity = 0;
+    this.justLanded = true;
+
+    // Stop the down animation if it's running
+    this.el.removeAttribute('animation__down');
+
+    // Position player correctly on the ground
+    // Set the RIG's Y position directly to the hit point Y.
+    // The camera's internal offset handles eye height.
+    this.el.object3D.position.y = hitPoint.y;
+
+    // Reset the jump state (enables navmesh etc.)
+    this.resetJump();
+  },
 };
 
 export default JumpControl;

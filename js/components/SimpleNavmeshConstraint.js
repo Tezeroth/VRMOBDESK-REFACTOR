@@ -105,7 +105,16 @@ const SimpleNavmeshConstraint = {
     let firstTry = true;
 
     return function tick(time, delta) {
-      if (this.data.enabled === false) return;
+      // ---> ADDED: Declare jumpControl once at the start <---
+      const jumpControl = this.el.components['jump-control'];
+      // ---> END ADDED <---
+
+      // ---> ADDED: Log enabled state at start of tick <---
+      // console.log(`NavmeshConstraint Tick: Enabled=${this.data.enabled}`); // Log every frame - potentially noisy
+      if (!this.data.enabled) return; // Early exit if already disabled
+      // ---> END ADDED <---
+
+      if (this.data.enabled === false) return; // Original check (redundant now but safe)
       if (this.entitiesChanged) {
         this.updateNavmeshEntities();
       }
@@ -133,47 +142,15 @@ const SimpleNavmeshConstraint = {
 
       // If no results, we're outside the navmesh
       if (results.length === 0) {
-        console.error('CRITICAL: Outside navmesh detected!');
-        console.error('Current position:', {
-          x: nextPosition.x.toFixed(3),
-          y: nextPosition.y.toFixed(3),
-          z: nextPosition.z.toFixed(3)
-        });
-
-        // Check if we're jumping
-        const jumpControl = this.el.components['jump-control'];
-        if (jumpControl) {
-          console.error('Jump state:', jumpControl.isJumping ? 'JUMPING' : 'NOT JUMPING');
-        }
-
-        if (this.lastPosition) {
-          console.error('Last valid position:', {
-            x: this.lastPosition.x.toFixed(3),
-            y: this.lastPosition.y.toFixed(3),
-            z: this.lastPosition.z.toFixed(3)
-          });
-
-          // EMERGENCY: Teleport back to last valid position
-          console.error('EMERGENCY: Teleporting back to last valid position');
-
-          // Store current Y to maintain height
-          const currentY = nextPosition.y;
-
-          // Apply the teleport
-          this.el.object3D.position.x = this.lastPosition.x;
-          this.el.object3D.position.z = this.lastPosition.z;
-          this.el.object3D.position.y = currentY;
-
-          // Convert to local coordinates
-          this.el.object3D.parent.worldToLocal(this.el.object3D.position);
-
-          // Update nextPosition to match the teleported position
-          this.xzOrigin.object3D.getWorldPosition(nextPosition);
-          if (this.data.xzOrigin) nextPosition.y -= this.xzOrigin.object3D.position.y;
+        // Check if we're jumping - uses the jumpControl declared above
+        if (jumpControl && jumpControl.isJumping) {
+          // If jumping, let JumpControl handle the movement/landing
+          results.splice(0); // Clear results just in case
+          return; // Exit tick early, don't teleport
         }
       }
 
-      // Clear results array
+      // Clear results array (might have been populated by the jump check return)
       results.splice(0);
 
       // Skip if we haven't moved enough
@@ -204,18 +181,36 @@ const SimpleNavmeshConstraint = {
           const hitPos = results[0].point;
           results.splice(0);
           hitPos.y += this.data.height;
+
+          // ---> ADDED: Check jumpControl's justLanded flag <---
+          const skipPositionUpdate = jumpControl && jumpControl.justLanded;
+          // ---> END ADDED <---
+
           if (nextPosition.y - (hitPos.y - yVel*2) > 0.01) {
             yVel += Math.max(gravity * delta * 0.001, -maxYVelocity);
             hitPos.y = nextPosition.y + yVel;
           } else {
             yVel = 0;
           }
-          tempVec.copy(hitPos);
-          this.xzOrigin.object3D.parent.worldToLocal(tempVec);
-          tempVec.sub(this.xzOrigin.object3D.position);
-          if (this.data.xzOrigin) tempVec.y += this.xzOrigin.object3D.position.y;
-          this.el.object3D.position.add(tempVec);
 
+          // ---> MODIFIED: Only update position if not just landed <---
+          if (!skipPositionUpdate) {
+            tempVec.copy(hitPos);
+            this.xzOrigin.object3D.parent.worldToLocal(tempVec);
+            tempVec.sub(this.xzOrigin.object3D.position);
+            if (this.data.xzOrigin) tempVec.y += this.xzOrigin.object3D.position.y;
+            this.el.object3D.position.add(tempVec);
+          } else {
+            console.log('SimpleNavmeshConstraint: Skipping position update due to justLanded flag.');
+            // ---> ADDED: Log positions during skipped update <---
+            const playerY = nextPosition.y;
+            const constraintY = hitPos.y; // The Y value the constraint calculated
+            console.log(`  Player Y: ${playerY.toFixed(3)}, Constraint Calculated Y: ${constraintY.toFixed(3)}, Diff: ${(playerY - constraintY).toFixed(3)}`);
+            // ---> END ADDED <---
+          }
+          // ---> END MODIFIED <---
+
+          // Always update lastPosition
           this.lastPosition.copy(hitPos);
           didHit = true;
           break;
@@ -240,8 +235,7 @@ const SimpleNavmeshConstraint = {
           z: this.lastPosition.z.toFixed(3)
         }));
 
-        // Check if the jump control component is active
-        const jumpControl = this.el.components['jump-control'];
+        // Check if the jump control component is active - uses the jumpControl declared above
         if (jumpControl) {
           console.warn('Jump state:', jumpControl.isJumping ? 'JUMPING' : 'NOT JUMPING');
           if (jumpControl.isJumping) {
@@ -253,6 +247,16 @@ const SimpleNavmeshConstraint = {
 
         // Log the navmesh constraint state
         console.warn('Navmesh constraint enabled:', this.data.enabled);
+
+        // ---> ADDED: Log state before boundary recovery <---
+        console.warn(`NAVMESH_CONSTRAINT: Boundary Recovery (Not Jumping). Scan pattern failed.`);
+        console.warn(`  Current Position (el.object3D.position): x=${this.el.object3D.position.x.toFixed(3)}, y=${this.el.object3D.position.y.toFixed(3)}, z=${this.el.object3D.position.z.toFixed(3)}`);
+        if (this.lastPosition) {
+          console.warn(`  Last Valid Position: x=${this.lastPosition.x.toFixed(3)}, y=${this.lastPosition.y.toFixed(3)}, z=${this.lastPosition.z.toFixed(3)}`);
+        } else {
+          console.warn(`  Last Valid Position: null`);
+        }
+        // ---> END ADDED <---
 
         // Restore to last valid position
         this.el.object3D.position.copy(this.lastPosition);
