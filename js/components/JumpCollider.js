@@ -8,12 +8,47 @@
 // JumpDebug utility is attached to the window object in JumpDebug.js
 // Make sure to include the script in your HTML before this component
 
+// Vector pool for reusing vector objects to reduce garbage collection
+const VectorPool = {
+  _pool: [],
+  _inUse: new Set(),
+
+  get: function() {
+    // Reuse a vector from the pool if available
+    if (this._pool.length > 0) {
+      const vector = this._pool.pop();
+      this._inUse.add(vector);
+      return vector.set(0, 0, 0); // Reset to zero
+    }
+
+    // Create a new vector if none are available
+    const newVector = new THREE.Vector3();
+    this._inUse.add(newVector);
+    return newVector;
+  },
+
+  release: function(vector) {
+    if (this._inUse.has(vector)) {
+      this._inUse.delete(vector);
+      this._pool.push(vector);
+    }
+  },
+
+  releaseAll: function() {
+    this._inUse.forEach(vector => {
+      this._pool.push(vector);
+    });
+    this._inUse.clear();
+  }
+};
+
 const JumpCollider = {
   schema: {
     enabled: { type: 'boolean', default: true },
     height: { type: 'number', default: 1.6 },
     radius: { type: 'number', default: 0.3 }, // Optimized radius for accurate collision detection
-    opacity: { type: 'number', default: 0 }   // Default to invisible (0 opacity)
+    opacity: { type: 'number', default: 0 },  // Default to invisible (0 opacity)
+    cacheRefreshInterval: { type: 'number', default: 2000 } // How often to refresh wall cache (ms)
   },
 
   init: function() {
@@ -45,6 +80,10 @@ const JumpCollider = {
       z: 0
     });
 
+    // Initialize wall cache
+    this.cachedWalls = null;
+    this.lastCacheTime = 0;
+
     // Set up collision detection
     this.setupCollisionDetection();
 
@@ -53,51 +92,197 @@ const JumpCollider = {
 
     // Bind tick function to ensure collider stays attached
     this.tick = this.tick.bind(this);
+
+    // Initial cache population
+    this.refreshWallCache();
   },
 
   setupCollisionDetection: function() {
     // We'll use raycasting for collision detection
     this.raycaster = new THREE.Raycaster();
 
-    // Directions for raycasting (8 horizontal directions + 4 diagonal down directions)
-    this.directions = [];
+    // Store all possible directions for raycasting
+    this.allDirections = {
+      // Horizontal directions (8 directions around the cylinder)
+      horizontal: [],
+      // Diagonal downward directions to detect wall-floor junctions
+      diagonal: []
+    };
 
-    // Horizontal directions (8 directions around the cylinder)
+    // Create horizontal directions (8 directions around the cylinder)
     for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-      this.directions.push(new THREE.Vector3(
+      // Create permanent direction vectors (not pooled since these are permanent)
+      const direction = new THREE.Vector3(
         Math.cos(angle),
         0,
         Math.sin(angle)
-      ).normalize());
+      ).normalize();
+
+      this.allDirections.horizontal.push(direction);
     }
 
-    // Add diagonal downward directions to detect wall-floor junctions
+    // Create diagonal downward directions to detect wall-floor junctions
     // These are crucial for preventing falling through the floor
     for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 2) {
-      this.directions.push(new THREE.Vector3(
+      // Create permanent direction vectors (not pooled since these are permanent)
+      const direction = new THREE.Vector3(
         Math.cos(angle) * 0.7,  // Reduce horizontal component
         -0.7,                   // Add downward component
         Math.sin(angle) * 0.7   // Reduce horizontal component
-      ).normalize());
+      ).normalize();
+
+      this.allDirections.diagonal.push(direction);
     }
+
+    // Initialize the active directions array
+    this.directions = [...this.allDirections.horizontal, ...this.allDirections.diagonal];
 
     // Bind the checkCollisions method
     this.checkCollisions = this.checkCollisions.bind(this);
+
+    // Pre-populate the vector pool with some vectors to reduce initial allocations
+    for (let i = 0; i < 10; i++) {
+      VectorPool._pool.push(new THREE.Vector3());
+    }
+
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpCollider', `Pre-populated vector pool with ${VectorPool._pool.length} vectors`);
+    }
+  },
+
+  /**
+   * Refresh the cached wall objects
+   * This is called periodically to avoid querying the DOM on every collision check
+   */
+  refreshWallCache: function() {
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpCollider', 'Refreshing wall cache');
+    }
+
+    // Get all static objects (walls, etc.)
+    const walls = Array.from(document.querySelectorAll('.blocker, [physx-body="type: static"], .venue-collider'));
+
+    // Filter out objects that don't have object3D and extract their object3D
+    this.cachedWalls = walls
+      .filter(el => el.object3D)
+      .map(el => el.object3D);
+
+    // Update the cache timestamp
+    this.lastCacheTime = Date.now();
+
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpCollider', `Cached ${this.cachedWalls.length} wall objects`);
+    }
+  },
+
+  /**
+   * Get the wall objects, using cache if available and not expired
+   * @returns {Array} Array of THREE.Object3D wall objects
+   */
+  getWallObjects: function() {
+    const now = Date.now();
+
+    // If cache is expired or doesn't exist, refresh it
+    if (!this.cachedWalls || now - this.lastCacheTime > this.data.cacheRefreshInterval) {
+      this.refreshWallCache();
+    }
+
+    return this.cachedWalls;
+  },
+
+  /**
+   * Get optimized directions for raycasting based on movement
+   * @param {boolean} useAllDirections - Whether to use all directions regardless of movement
+   * @returns {Array} Array of direction vectors
+   */
+  getOptimizedDirections: function(useAllDirections) {
+    // If useAllDirections is true, use all directions
+    if (useAllDirections) {
+      return [...this.allDirections.horizontal, ...this.allDirections.diagonal];
+    }
+
+    // Get the movement controls component to check movement direction
+    const movementControls = this.el.components['movement-controls'];
+
+    // If no movement controls or no velocity, use all directions
+    if (!movementControls || !movementControls.velocity) {
+      return [...this.allDirections.horizontal, ...this.allDirections.diagonal];
+    }
+
+    // Get the movement velocity using a pooled vector
+    const velocity = VectorPool.get().set(
+      movementControls.velocity.x,
+      0,
+      movementControls.velocity.z
+    );
+
+    // If not moving, use all directions
+    if (velocity.lengthSq() < 0.0001) {
+      // Don't forget to release the vector
+      VectorPool.release(velocity);
+      return [...this.allDirections.horizontal, ...this.allDirections.diagonal];
+    }
+
+    // Normalize the velocity
+    velocity.normalize();
+
+    // Select the directions that are most relevant to the movement direction
+    const selectedDirections = [];
+
+    // Always include the diagonal directions for floor junction detection
+    selectedDirections.push(...this.allDirections.diagonal);
+
+    // Find the horizontal directions that are most aligned with the movement
+    for (const direction of this.allDirections.horizontal) {
+      // Calculate the dot product to measure alignment
+      const alignment = velocity.dot(direction);
+
+      // Include directions that are somewhat aligned with movement
+      // This includes the movement direction and adjacent directions
+      if (alignment > 0.5 || alignment < -0.5) {
+        selectedDirections.push(direction);
+      }
+    }
+
+    // Release the velocity vector
+    VectorPool.release(velocity);
+
+    // Always ensure we have at least 3 horizontal directions
+    if (selectedDirections.length - this.allDirections.diagonal.length < 3) {
+      return [...this.allDirections.horizontal, ...this.allDirections.diagonal];
+    }
+
+    return selectedDirections;
   },
 
   checkCollisions: function() {
     if (!this.data.enabled || !this.collider.object3D) return { collision: false };
 
-    const position = this.el.object3D.position.clone();
+    // Clear any previously pooled vectors
+    VectorPool.releaseAll();
 
-    // Get all static objects (walls, etc.)
-    const walls = Array.from(document.querySelectorAll('.blocker, [physx-body="type: static"], .venue-collider'));
+    // Get position from object3D (using pooled vector)
+    const position = VectorPool.get().copy(this.el.object3D.position);
 
-    // Filter out objects that don't have object3D
-    const validWalls = walls.filter(el => el.object3D);
+    // Get wall objects from cache
+    const wallObjects = this.getWallObjects();
 
     // Use a slightly reduced collision radius for more precise hit detection
     const collisionRadius = this.data.radius * 0.7;
+
+    // Determine if we should use all directions or optimized directions
+    // During jumps, we want to be more thorough with collision detection
+    const jumpControl = this.el.components['jump-control'];
+    const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
+
+    // Get optimized directions based on movement and jump state
+    // Use all directions during jumps for safety
+    const directions = this.getOptimizedDirections(isJumping);
+
+    // Debug the directions being used
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      this.debugDirections(directions);
+    }
 
     let closestDistance = Infinity;
 
@@ -105,12 +290,12 @@ const JumpCollider = {
     const hitThreshold = 0.1; // 10cm threshold
     const nearbyHits = [];
 
-    for (const direction of this.directions) {
+    for (const direction of directions) {
       this.raycaster.set(position, direction);
       this.raycaster.far = collisionRadius;
 
       const intersections = this.raycaster.intersectObjects(
-        validWalls.map(el => el.object3D),
+        wallObjects,
         true
       );
 
@@ -124,12 +309,16 @@ const JumpCollider = {
 
     // If we have multiple nearby hits, average their normals
     if (nearbyHits.length > 0) {
-      const avgNormal = new THREE.Vector3();
+      // Use pooled vector for average normal
+      const avgNormal = VectorPool.get();
+
       nearbyHits.forEach(hit => {
         if (hit.face) {
+          // Use face normal directly without creating new vectors
           avgNormal.add(hit.face.normal);
         }
       });
+
       avgNormal.divideScalar(nearbyHits.length).normalize();
 
       // Use the closest hit point for position
@@ -137,15 +326,39 @@ const JumpCollider = {
         prev.distance < curr.distance ? prev : curr
       );
 
+      // Create a copy of the normal to return (since we'll release the pooled one)
+      const normalCopy = new THREE.Vector3().copy(avgNormal);
+
+      // Release all pooled vectors
+      VectorPool.releaseAll();
+
       return {
         collision: true,
-        normal: avgNormal,
+        normal: normalCopy,
         collisionPoint: closest.point,
         distance: closest.distance
       };
     }
 
+    // Release all pooled vectors
+    VectorPool.releaseAll();
+
     return { collision: false };
+  },
+
+  /**
+   * Debug function to log the number of directions being used
+   * Only logs when debug mode is enabled
+   * @param {Array} directions - The array of directions being used
+   */
+  debugDirections: function(directions) {
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      const horizontalCount = directions.filter(dir => Math.abs(dir.y) < 0.01).length;
+      const diagonalCount = directions.length - horizontalCount;
+
+      window.JumpDebug.info('JumpCollider',
+        `Using ${directions.length} directions (${horizontalCount} horizontal, ${diagonalCount} diagonal)`);
+    }
   },
 
   showCollider: function() {
@@ -154,6 +367,12 @@ const JumpCollider = {
       if (window.JumpDebug && window.JumpDebug.enabled) {
         this.collider.setAttribute('visible', true);
         window.JumpDebug.info('JumpCollider', 'Showing jump collider (debug mode)');
+
+        // Debug the current directions being used
+        const jumpControl = this.el.components['jump-control'];
+        const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
+        const directions = this.getOptimizedDirections(isJumping);
+        this.debugDirections(directions);
       } else {
         // Keep the collider invisible in normal gameplay
         this.collider.setAttribute('visible', false);
@@ -324,6 +543,20 @@ const JumpCollider = {
   },
 
   /**
+   * Force refresh the wall cache
+   * This can be called when the scene changes (e.g., new walls are added)
+   */
+  forceRefreshCache: function() {
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpCollider', 'Forcing wall cache refresh');
+    } else {
+      console.log('Forcing wall cache refresh');
+    }
+
+    this.refreshWallCache();
+  },
+
+  /**
    * Clean up when component is removed
    */
   remove: function() {
@@ -331,6 +564,15 @@ const JumpCollider = {
     if (this.collider && this.collider.parentNode) {
       this.collider.parentNode.removeChild(this.collider);
     }
+
+    // Clear cached walls to free memory
+    this.cachedWalls = null;
+
+    // Release all pooled vectors
+    VectorPool.releaseAll();
+
+    // Clear the vector pool to free memory
+    VectorPool._pool = [];
   }
 };
 
