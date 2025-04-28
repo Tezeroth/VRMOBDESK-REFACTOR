@@ -511,10 +511,37 @@ const DesktopMobileControls = {
       return;
     }
 
-    // Handle right mouse button (button 2) for inspection mode
+    // Handle right mouse button (button 2) for inspection mode and throw cancellation
     if (evt.button === 2) {
       console.log('Right mouse button detected');
-      if (this.stateMachine.is('holding')) {
+
+      // Check if player is jumping - disable RMB controls during jumps
+      const jumpControl = document.querySelector('#cameraRig')?.components['jump-control'];
+      const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
+
+      // If jumping, disable RMB controls for entering/exiting inspection mode
+      if (isJumping) {
+        console.log('Jumping detected - disabling RMB inspection mode controls');
+
+        // Still allow canceling a throw during a jump
+        if (this.stateMachine.is('charging')) {
+          console.log('State: charging - Cancelling throw with right mouse button during jump');
+          this.stateMachine.transition('onCancel');
+        }
+
+        evt.preventDefault(); // Prevent context menu
+        return;
+      }
+
+      // Cancel throw if charging
+      if (this.stateMachine.is('charging')) {
+        console.log('State: charging - Cancelling throw with right mouse button');
+        this.stateMachine.transition('onCancel');
+        evt.preventDefault(); // Prevent context menu
+        return;
+      }
+      // Handle inspection mode toggle
+      else if (this.stateMachine.is('holding')) {
         console.log('State: holding - Entering inspection mode with right mouse button');
         this.stateMachine.transition('onInspect');
         evt.preventDefault(); // Prevent context menu
@@ -591,8 +618,18 @@ const DesktopMobileControls = {
   },
 
   onTouchStart: function (evt) {
-    // Handle two-finger tap for inspection
+    // Check if player is jumping
+    const jumpControl = document.querySelector('#cameraRig')?.components['jump-control'];
+    const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
+
+    // Handle two-finger tap for inspection (disable during jumps)
     if (evt.touches.length === 2 && this.stateMachine.is('holding')) {
+      // Don't allow entering inspection mode during jumps
+      if (isJumping) {
+        console.log('Jumping detected - ignoring two-finger tap for inspection');
+        return;
+      }
+
       this.stateMachine.transition('onInspect');
       return;
     }

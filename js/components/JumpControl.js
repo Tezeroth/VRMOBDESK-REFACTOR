@@ -7,6 +7,7 @@
  */
 
 import DeviceManager from '../managers/DeviceManager.js';
+import VectorPool from '../utils/VectorPool.js';
 
 // Include JumpDebug utility (without using import to avoid breaking code)
 // The utility is attached to the window object in JumpDebug.js
@@ -107,6 +108,13 @@ const JumpControl = {
     this.downVector = new THREE.Vector3(0, -1, 0);  // Direction vector pointing down
     this.navmeshObjects = [];                       // Collection of navmesh objects to raycast against
 
+    // Raycast optimization
+    this.raycastThrottle = 1;                       // Only raycast every N frames (adjusted dynamically)
+    this.frameCounter = 0;                          // Counter for throttling raycasts
+    this.lastRaycastResult = null;                  // Cache for raycast results
+    this.raycastCacheTime = 0;                      // When the cache was last updated
+    this.raycastCacheLifetime = 100;                // How long the cache is valid (ms)
+
     // Get navmesh objects for raycasting
     this.findNavmeshObjects();
     this.el.sceneEl.addEventListener('child-attached', this.findNavmeshObjects.bind(this));
@@ -153,6 +161,44 @@ const JumpControl = {
     // Remove scene listeners
     this.el.sceneEl.removeEventListener('child-attached', this.findNavmeshObjects.bind(this));
     this.el.sceneEl.removeEventListener('child-detached', this.findNavmeshObjects.bind(this));
+
+    // Clean up all animations to prevent memory leaks
+    this.cleanupAllAnimations();
+
+    // Clear cached raycast results
+    this.lastRaycastResult = null;
+
+    // Release any pooled vectors that might be in use
+    // This is just a precaution, as all vectors should be released after use
+  },
+
+  /**
+   * Clean up all animations to prevent memory leaks
+   */
+  cleanupAllAnimations: function() {
+    // Remove all jump-related animations
+    const animationAttributes = [
+      'animation__up',
+      'animation__down',
+      'animation__drop'
+    ];
+
+    // Remove each animation attribute
+    animationAttributes.forEach(attr => {
+      if (this.el.hasAttribute(attr)) {
+        this.el.removeAttribute(attr);
+      }
+    });
+
+    // Remove any animation complete listeners that might still be attached
+    this.el.removeEventListener('animationcomplete__up', this.onUpAnimationComplete);
+    this.el.removeEventListener('animationcomplete__down', this.onDownAnimationComplete);
+
+    // Remove any one-time animation complete listeners
+    const events = this.el._events || {};
+    if (events.animationcomplete__drop) {
+      this.el._events.animationcomplete__drop = [];
+    }
   },
 
   /**
@@ -434,26 +480,53 @@ const JumpControl = {
   },
 
   /**
+   * Create an animation with the given parameters
+   * @param {string} name - The name of the animation (e.g., 'up', 'down', 'drop')
+   * @param {number} from - The starting value
+   * @param {number} to - The ending value
+   * @param {number} duration - The duration in milliseconds
+   * @param {string} easing - The easing function to use
+   * @param {function} onComplete - The callback to call when the animation completes
+   */
+  createAnimation: function(name, from, to, duration, easing, onComplete) {
+    // Remove any existing animation with this name
+    const animAttr = `animation__${name}`;
+    this.el.removeAttribute(animAttr);
+
+    // Create the animation
+    this.el.setAttribute(animAttr, {
+      property: 'object3D.position.y',
+      from: from,
+      to: to,
+      dur: duration,
+      easing: easing,
+      autoplay: true
+    });
+
+    // Add completion listener if provided
+    if (onComplete) {
+      const eventName = `animationcomplete__${name}`;
+      const listener = () => {
+        this.el.removeEventListener(eventName, listener);
+        onComplete();
+      };
+      this.el.addEventListener(eventName, listener);
+    }
+  },
+
+  /**
    * Start the jump animation
    */
   startJumpAnimation: function() {
     // Start up animation with improved easing for more natural movement
-    this.el.setAttribute('animation__up', {
-      property: 'object3D.position.y',
-      from: this.startY,
-      to: this.maxY,
-      dur: this.data.upDuration,
-      easing: 'easeOutCubic', // More pronounced initial acceleration
-      autoplay: true
-    });
-
-    // Listen for the up animation to complete
-    const onUpComplete = () => {
-      this.el.removeEventListener('animationcomplete__up', onUpComplete);
-      this.onAnimationComplete('up');
-    };
-
-    this.el.addEventListener('animationcomplete__up', onUpComplete);
+    this.createAnimation(
+      'up',                   // Animation name
+      this.startY,            // From
+      this.maxY,              // To
+      this.data.upDuration,   // Duration
+      'easeOutCubic',         // Easing
+      () => this.onAnimationComplete('up') // Completion callback
+    );
   },
 
   /**
@@ -676,23 +749,15 @@ const JumpControl = {
     // Zero out vertical velocity
     this.yVelocity = 0;
 
-    // Start a drop animation
-    this.el.setAttribute('animation__drop', {
-      property: 'object3D.position.y',
-      from: this.el.object3D.position.y,
-      to: this.startY,
-      dur: 300,
-      easing: 'easeInOutQuad',
-      autoplay: true
-    });
-
-    // Listen for the drop animation to complete
-    const onDropComplete = () => {
-      this.el.removeEventListener('animationcomplete__drop', onDropComplete);
-      this.resetJump();
-    };
-
-    this.el.addEventListener('animationcomplete__drop', onDropComplete);
+    // Start a drop animation using the helper method
+    this.createAnimation(
+      'drop',                  // Animation name
+      this.el.object3D.position.y, // From
+      this.startY,             // To
+      300,                     // Duration
+      'easeInOutQuad',         // Easing
+      () => this.resetJump()   // Completion callback
+    );
   },
 
   /**
@@ -737,31 +802,23 @@ const JumpControl = {
     this.endJumpEarly();
 
     // Remove any existing animations
-    this.el.removeAttribute('animation__up');
-    this.el.removeAttribute('animation__down');
+    this.cleanupAllAnimations();
 
     // Start a drop animation with a slightly longer duration for a smoother feel
-    this.el.setAttribute('animation__drop', {
-      property: 'object3D.position.y',
-      from: this.el.object3D.position.y,
-      to: this.startY,
-      dur: 300, // Slightly longer drop for smoother feel
-      easing: 'easeInOutQuad', // Smoother easing function
-      autoplay: true
-    });
+    this.createAnimation(
+      'drop',                  // Animation name
+      this.el.object3D.position.y, // From
+      this.startY,             // To
+      300,                     // Duration
+      'easeInOutQuad',         // Easing
+      () => {
+        // Perform a ground check after landing to ensure we're on solid ground
+        this.performGroundCheck();
 
-    // Listen for the drop animation to complete
-    const onDropComplete = () => {
-      this.el.removeEventListener('animationcomplete__drop', onDropComplete);
-
-      // Perform a ground check after landing to ensure we're on solid ground
-      this.performGroundCheck();
-
-      // Complete the jump reset
-      this.resetJump();
-    };
-
-    this.el.addEventListener('animationcomplete__drop', onDropComplete);
+        // Complete the jump reset
+        this.resetJump();
+      }
+    );
   },
 
   /**
@@ -808,23 +865,24 @@ const JumpControl = {
    * Calculate and apply sliding vector when colliding with a wall
    * @param {Object} movementControls - The movement-controls component
    * @param {THREE.Vector3} normal - The normal vector of the wall
+   * Optimized with vector pooling
    */
   calculateAndApplySlidingVector: function(movementControls, normal) {
-    // Create a velocity vector
-    const velocity = new THREE.Vector3(
+    // Get vectors from the pool
+    const velocity = VectorPool.get(
       movementControls.velocity.x,
       0, // Ignore Y component for sliding
       movementControls.velocity.z
     );
 
-    // Project the velocity onto the wall plane (sliding)
-    const normalClone = normal.clone(); // Clone to avoid modifying the original
+    const normalClone = VectorPool.get().copy(normal); // Clone to avoid modifying the original
+    const slide = VectorPool.get();
+
+    // Calculate dot product
     const dot = velocity.dot(normalClone);
 
     // Calculate the sliding vector (velocity - (velocity·normal) * normal)
-    const slide = new THREE.Vector3()
-      .copy(velocity)
-      .sub(normalClone.multiplyScalar(dot));
+    slide.copy(velocity).sub(normalClone.multiplyScalar(dot));
 
     // Reduce the sliding velocity for better control
     slide.multiplyScalar(0.8);
@@ -839,6 +897,11 @@ const JumpControl = {
         z: slide.z.toFixed(3)
       });
     }
+
+    // Return vectors to the pool
+    VectorPool.release(velocity);
+    VectorPool.release(normalClone);
+    VectorPool.release(slide);
   },
 
   /**
@@ -1170,22 +1233,56 @@ const JumpControl = {
       // Update position based on velocity
       this.el.object3D.position.y += this.yVelocity * dt;
 
-      // Ground Detection Raycast
+      // Ground Detection Raycast - with throttling and caching
       if (this.navmeshObjects.length > 0) {
-        const currentPos = this.el.object3D.position;
-        // Start ray slightly higher to avoid starting inside ground
-        const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + 0.2, currentPos.z);
+        // Increment frame counter
+        this.frameCounter++;
 
-        this.fallRaycaster.set(rayOrigin, this.downVector);
-        // Adjust ray length based on current velocity - check slightly ahead
-        this.fallRaycaster.far = Math.max(0.3, -this.yVelocity * dt * 1.5); // Min check distance 0.3
+        // Dynamically adjust raycast frequency based on velocity
+        // Cast more frequently when falling faster
+        this.raycastThrottle = Math.max(1, Math.min(3, Math.floor(5 / Math.abs(this.yVelocity || 1))));
 
-        const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
+        // Check if we should perform a raycast this frame
+        const shouldRaycast = this.frameCounter % this.raycastThrottle === 0;
+        const currentTime = performance.now();
+        const isCacheValid = this.lastRaycastResult &&
+                            (currentTime - this.raycastCacheTime < this.raycastCacheLifetime);
 
-        if (intersects.length > 0) {
-          // Ground detected!
-          this.forceLand(intersects[0].point);
+        // Use cached result if valid and not performing a new raycast
+        if (!shouldRaycast && isCacheValid && this.lastRaycastResult.length > 0) {
+          // Ground detected from cache!
+          this.forceLand(this.lastRaycastResult[0].point);
           return; // Landed, exit tick early
+        }
+
+        // Perform new raycast if needed
+        if (shouldRaycast || !isCacheValid) {
+          const currentPos = this.el.object3D.position;
+          // Get a vector from the pool instead of creating a new one
+          const rayOrigin = VectorPool.get(
+            currentPos.x,
+            currentPos.y + 0.2, // Start ray slightly higher to avoid starting inside ground
+            currentPos.z
+          );
+
+          this.fallRaycaster.set(rayOrigin, this.downVector);
+          // Adjust ray length based on current velocity - check slightly ahead
+          this.fallRaycaster.far = Math.max(0.3, -this.yVelocity * dt * 1.5); // Min check distance 0.3
+
+          const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
+
+          // Cache the result
+          this.lastRaycastResult = intersects;
+          this.raycastCacheTime = currentTime;
+
+          // Return the vector to the pool
+          VectorPool.release(rayOrigin);
+
+          if (intersects.length > 0) {
+            // Ground detected!
+            this.forceLand(intersects[0].point);
+            return; // Landed, exit tick early
+          }
         }
       }
     }
@@ -1404,21 +1501,54 @@ const JumpControl = {
 
   /**
    * Perform a ground check and adjust Y position if needed
+   * Optimized with vector pooling and result caching
    */
   performGroundCheck: function() {
     if (this.navmeshObjects.length === 0) return;
 
+    // Check if we can use the cached result
+    const currentTime = performance.now();
+    const isCacheValid = this.lastRaycastResult &&
+                        (currentTime - this.raycastCacheTime < this.raycastCacheLifetime);
+
+    // Use cached result if valid and we're not in a critical state (jumping/falling)
+    if (isCacheValid && !this.isJumping && !this.isFalling && this.lastRaycastResult.length > 0) {
+      const hitPoint = this.lastRaycastResult[0].point;
+      const currentPos = this.el.object3D.position;
+
+      // Normal ground adjustment for non-jump situations
+      if (Math.abs(currentPos.y - hitPoint.y) > 0.01) {
+        this.el.object3D.position.y = hitPoint.y;
+        // Update last valid position
+        this.lastValidPosition.copy(this.el.object3D.position);
+      }
+      return;
+    }
+
+    // If we can't use the cache, perform a new raycast
     const currentPos = this.el.object3D.position;
 
     // IMPORTANT: Increase the ray start height during jumps
     const rayStartHeight = (this.isJumping || this.isFalling) ? 1.0 : 0.5;
-    const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + rayStartHeight, currentPos.z);
+    // Get a vector from the pool instead of creating a new one
+    const rayOrigin = VectorPool.get(
+      currentPos.x,
+      currentPos.y + rayStartHeight,
+      currentPos.z
+    );
 
     this.fallRaycaster.set(rayOrigin, this.downVector);
     // Increase ray length during jumps to ensure we don't miss the ground
     this.fallRaycaster.far = (this.isJumping || this.isFalling) ? 3.0 : 2.0;
 
     const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
+
+    // Cache the result
+    this.lastRaycastResult = intersects;
+    this.raycastCacheTime = currentTime;
+
+    // Return the vector to the pool
+    VectorPool.release(rayOrigin);
 
     if (intersects.length > 0) {
       const hitPoint = intersects[0].point;
@@ -1448,6 +1578,7 @@ const JumpControl = {
   /**
    * Perform a wider ground search when direct ground check fails
    * This helps recover from falling through floors
+   * Optimized with vector pooling
    */
   performWideGroundSearch: function() {
     if (this.navmeshObjects.length === 0) return;
@@ -1460,26 +1591,33 @@ const JumpControl = {
 
     const currentPos = this.el.object3D.position;
     const searchRadius = 0.5; // Search in a 0.5 unit radius
+
+    // Use a reduced set of directions for better performance
+    // We're using 6 directions instead of 8, which is still comprehensive
     const searchDirections = [
-      new THREE.Vector3(1, 0, 0),   // +X
-      new THREE.Vector3(-1, 0, 0),  // -X
-      new THREE.Vector3(0, 0, 1),   // +Z
-      new THREE.Vector3(0, 0, -1),  // -Z
-      new THREE.Vector3(1, 0, 1).normalize(),    // +X+Z
-      new THREE.Vector3(-1, 0, 1).normalize(),   // -X+Z
-      new THREE.Vector3(1, 0, -1).normalize(),   // +X-Z
-      new THREE.Vector3(-1, 0, -1).normalize()   // -X-Z
+      { x: 1, y: 0, z: 0 },    // +X
+      { x: -1, y: 0, z: 0 },   // -X
+      { x: 0, y: 0, z: 1 },    // +Z
+      { x: 0, y: 0, z: -1 },   // -Z
+      { x: 0.7, y: 0, z: 0.7 }, // +X+Z (normalized)
+      { x: -0.7, y: 0, z: -0.7 } // -X-Z (normalized)
     ];
+
+    // Get vectors from the pool for reuse
+    const searchPos = VectorPool.get();
+    const rayOrigin = VectorPool.get();
+    const dirVector = VectorPool.get();
 
     // Try each search direction
     for (const dir of searchDirections) {
+      // Set direction vector
+      dirVector.set(dir.x, dir.y, dir.z);
+
       // Offset position in search direction
-      const searchPos = new THREE.Vector3()
-        .copy(currentPos)
-        .add(dir.clone().multiplyScalar(searchRadius));
+      searchPos.copy(currentPos).addScaledVector(dirVector, searchRadius);
 
       // Start ray from above the search position
-      const rayOrigin = new THREE.Vector3(searchPos.x, currentPos.y + 0.5, searchPos.z);
+      rayOrigin.set(searchPos.x, currentPos.y + 0.5, searchPos.z);
 
       this.fallRaycaster.set(rayOrigin, this.downVector);
       this.fallRaycaster.far = 2.0;
@@ -1514,9 +1652,20 @@ const JumpControl = {
         } else {
           console.warn('WIDE GROUND SEARCH: Recovered player position');
         }
+
+        // Return vectors to the pool
+        VectorPool.release(searchPos);
+        VectorPool.release(rayOrigin);
+        VectorPool.release(dirVector);
+
         return true;
       }
     }
+
+    // Return vectors to the pool if no ground was found
+    VectorPool.release(searchPos);
+    VectorPool.release(rayOrigin);
+    VectorPool.release(dirVector);
 
     if (window.JumpDebug) {
       window.JumpDebug.error('JumpControl', 'Failed to find ground in wider area');

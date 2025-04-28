@@ -25,18 +25,18 @@
   - [x] Simplify safety checks
 
 ## 🚀 Phase 3: Optimize Performance
-- [ ] Reduce raycasting overhead
-  - [ ] Optimize number/frequency of raycasts
-  - [ ] Cache raycast results where possible
-  - [ ] Use object pooling for vectors
-- [ ] Improve collision detection
-  - [ ] Refine collision detection algorithm
-  - [ ] Reduce check frequency smartly
-  - [ ] Optimize wall/navmesh object queries
-- [ ] Optimize animation handling
-  - [ ] Streamline creation/removal of animations
-  - [ ] Use more efficient animation techniques
-  - [ ] Reduce redundant animation property settings
+- [x] Reduce raycasting overhead
+  - [x] Optimize number/frequency of raycasts
+  - [x] Cache raycast results where possible
+  - [x] Use object pooling for vectors
+- [x] Improve collision detection
+  - [x] Refine collision detection algorithm
+  - [x] Reduce check frequency smartly
+  - [x] Optimize wall/navmesh object queries
+- [x] Optimize animation handling
+  - [x] Streamline creation/removal of animations
+  - [x] Use more efficient animation techniques
+  - [x] Reduce redundant animation property settings
 
 ## 🛡️ Phase 4: Improve Safety Mechanisms
 - [ ] Consolidate all safety checks into a unified system
