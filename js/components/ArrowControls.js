@@ -278,30 +278,70 @@ const ArrowControls = {
     const camera = document.querySelector('#camera');
     if (!camera) return;
 
-    const rotation = camera.object3D.rotation;
+    // Get the look-controls component to access yaw rotation directly
+    const lookControls = camera.components['look-controls'];
+    if (!lookControls) return;
+
+    // Use only the yaw (horizontal rotation) for movement direction
+    // This prevents pitch (looking up/down) from affecting movement direction
+    const yawRotation = lookControls.yawObject.rotation.y;
+
+    // Create forward direction vector using only yaw rotation
     const direction = new THREE.Vector3(0, 0, -1);
-    direction.applyQuaternion(camera.object3D.quaternion);
+    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRotation);
     direction.y = 0;
     direction.normalize();
 
+    // Create side direction vector (perpendicular to forward direction)
     const sideDirection = new THREE.Vector3(-1, 0, 0);
-    sideDirection.applyQuaternion(camera.object3D.quaternion);
+    sideDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawRotation);
     sideDirection.y = 0;
     sideDirection.normalize();
 
-    // Apply movement with correct directions and speed
+    // Create a combined movement vector instead of applying movements separately
+    // This prevents issues with diagonal movement when looking down
+    const moveVector = new THREE.Vector3(0, 0, 0);
+
+    // Add forward/backward movement
     if (this.moveState.up) {
-      cameraRig.object3D.position.addScaledVector(direction, -moveSpeed); // Reversed
+      moveVector.add(direction.clone().multiplyScalar(-1)); // Forward
     }
     if (this.moveState.down) {
-      cameraRig.object3D.position.addScaledVector(direction, moveSpeed); // Reversed
+      moveVector.add(direction.clone()); // Backward
     }
+
+    // Add left/right movement
     if (this.moveState.left) {
-      cameraRig.object3D.position.addScaledVector(sideDirection, -moveSpeed);
+      moveVector.add(sideDirection.clone().multiplyScalar(-1)); // Left
     }
     if (this.moveState.right) {
-      cameraRig.object3D.position.addScaledVector(sideDirection, moveSpeed);
+      moveVector.add(sideDirection.clone()); // Right
     }
+
+    // If we're not moving, exit early
+    if (moveVector.lengthSq() === 0) {
+      return;
+    }
+
+    // Normalize the vector if we're moving diagonally to prevent faster diagonal movement
+    if (moveVector.lengthSq() > 1) {
+      moveVector.normalize();
+    }
+
+    // Scale by move speed
+    moveVector.multiplyScalar(moveSpeed);
+
+    // Check if we're jumping
+    const jumpControl = cameraRig.components['jump-control'];
+    const isJumping = jumpControl && jumpControl.isJumping;
+
+    // Store the current movement vector on the cameraRig for use by other components
+    // This allows the jump component to maintain diagonal movement during jumps
+    if (!cameraRig.userData) cameraRig.userData = {};
+    cameraRig.userData.currentMoveVector = moveVector.clone();
+
+    // Apply the final movement
+    cameraRig.object3D.position.add(moveVector);
   }
 };
 

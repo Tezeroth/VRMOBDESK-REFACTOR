@@ -19,8 +19,10 @@ const JumpDebug = {
     this._enabled = value;
     // Toggle stats display based on debug state
     if (value) {
+      console.info('Debug mode enabled. Stats panel is now visible.');
       this.showStats();
     } else {
+      console.info('Debug mode disabled. Stats panel is now hidden.');
       this.hideStats();
     }
   },
@@ -181,23 +183,26 @@ const JumpDebug = {
    * Show the stats panel
    */
   showStats: function() {
-    const scene = document.querySelector('a-scene');
-    if (scene && scene.hasAttribute('stats')) {
+    // Try to find the stats panel with a small delay to ensure it's initialized
+    setTimeout(() => {
       const statsEl = document.querySelector('.rs-base');
       if (statsEl) {
         statsEl.style.display = 'block';
       }
-    }
+    }, 100);
   },
 
   /**
    * Hide the stats panel
    */
   hideStats: function() {
-    const statsEl = document.querySelector('.rs-base');
-    if (statsEl) {
-      statsEl.style.display = 'none';
-    }
+    // Try to find the stats panel with a small delay to ensure it's initialized
+    setTimeout(() => {
+      const statsEl = document.querySelector('.rs-base');
+      if (statsEl) {
+        statsEl.style.display = 'none';
+      }
+    }, 100);
   },
 
   /**
@@ -229,16 +234,10 @@ const JumpDebug = {
 // This avoids breaking the existing code structure
 window.JumpDebug = JumpDebug;
 
-// Initialize: hide stats panel by default
-document.addEventListener('DOMContentLoaded', function() {
-  // Wait for the scene to load
-  const scene = document.querySelector('a-scene');
-  if (scene) {
-    scene.addEventListener('loaded', function() {
-      // Hide stats panel initially
-      JumpDebug.hideStats();
-    });
-  }
+// Hide stats panel by default when the page loads
+window.addEventListener('load', function() {
+  // Hide stats panel initially (it will be shown if debug is enabled later)
+  JumpDebug.hideStats();
 });
 
 // Add a helpful console message when the utility is loaded

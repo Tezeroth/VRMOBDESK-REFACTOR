@@ -227,9 +227,47 @@ const JumpControl = {
    * Execute the jump
    */
   jump: function () {
+    // Validate if jump can be performed
+    if (!this.canPerformJump()) {
+      return;
+    }
+
+    if (window.JumpDebug) {
+      window.JumpDebug.state('JumpControl', 'Jump initiated');
+    } else {
+      console.log('Jump initiated');
+    }
+
+    // Initialize jump state
+    this.initializeJumpState();
+
+    // Store positions for safety and recovery
+    this.storePositionsForJump();
+
+    // Check for nearby walls and determine jump type
+    const nearWall = this.checkForNearbyWalls();
+
+    // Calculate and store momentum for the jump
+    this.calculateJumpMomentum(nearWall);
+
+    // Prepare environment for jump
+    this.prepareForJump();
+
+    // Start jump animation
+    this.startJumpAnimation();
+
+    // Set safety timeout
+    this.setupSafetyTimeout();
+  },
+
+  /**
+   * Validate if a jump can be performed
+   * @returns {boolean} Whether the jump can be performed
+   */
+  canPerformJump: function() {
     // Don't jump if disabled
     if (!this.data.enabled) {
-      return;
+      return false;
     }
 
     // Force reset if we're stuck in a jumping state for too long
@@ -242,9 +280,8 @@ const JumpControl = {
           console.warn('Jump appears to be stuck, forcing reset');
         }
         this.forceResetJump();
-      } else {
-        return; // Still in a valid jump
       }
+      return false; // Still in a valid jump
     }
 
     // Check cooldown
@@ -254,7 +291,7 @@ const JumpControl = {
       } else {
         console.log('Cannot jump - in cooldown');
       }
-      return;
+      return false;
     }
 
     // Check if we're in inspection mode - don't jump if examining an object
@@ -269,15 +306,16 @@ const JumpControl = {
       } else {
         console.log('Cannot jump while in inspection mode');
       }
-      return;
+      return false;
     }
 
-    if (window.JumpDebug) {
-      window.JumpDebug.state('JumpControl', 'Jump initiated');
-    } else {
-      console.log('Jump initiated');
-    }
+    return true;
+  },
 
+  /**
+   * Initialize jump state variables
+   */
+  initializeJumpState: function() {
     // Set state
     this.isJumping = true;
     this.canJump = false;
@@ -287,6 +325,13 @@ const JumpControl = {
     const currentPos = this.el.object3D.position;
     this.startY = currentPos.y;
     this.maxY = this.startY + this.data.height;
+  },
+
+  /**
+   * Store positions for safety and recovery during jump
+   */
+  storePositionsForJump: function() {
+    const currentPos = this.el.object3D.position;
 
     // Store the current position as the last valid position
     this.lastValidPosition.copy(currentPos);
@@ -310,9 +355,20 @@ const JumpControl = {
       }
     }
 
-    // Check if we're near a wall before jumping
-    const jumpCollider = this.el.components['jump-collider'];
+    // Store the initial XZ position for collision handling
+    this.initialXZ = {
+      x: currentPos.x,
+      z: currentPos.z
+    };
+  },
+
+  /**
+   * Check for nearby walls before jumping
+   * @returns {boolean} Whether a wall is nearby
+   */
+  checkForNearbyWalls: function() {
     let nearWall = false;
+    const jumpCollider = this.el.components['jump-collider'];
 
     if (jumpCollider) {
       // Temporarily show the collider to check for walls
@@ -334,6 +390,14 @@ const JumpControl = {
       }
     }
 
+    return nearWall;
+  },
+
+  /**
+   * Calculate and store momentum for the jump
+   * @param {boolean} nearWall - Whether a wall is nearby
+   */
+  calculateJumpMomentum: function(nearWall) {
     // Store momentum if movement-controls is present
     const movementControls = this.el.components['movement-controls'];
     if (movementControls && movementControls.velocity) {
@@ -352,23 +416,27 @@ const JumpControl = {
         };
       }
     }
+  },
 
+  /**
+   * Prepare environment for jump
+   */
+  prepareForJump: function() {
     // Temporarily disable navmesh constraint during jump
     // This allows for proper vertical movement
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', false);
     }
 
-    // Store the initial XZ position for collision handling
-    this.initialXZ = {
-      x: this.el.object3D.position.x,
-      z: this.el.object3D.position.z
-    };
-
     // Remove any existing animations first
     this.el.removeAttribute('animation__up');
     this.el.removeAttribute('animation__down');
+  },
 
+  /**
+   * Start the jump animation
+   */
+  startJumpAnimation: function() {
     // Start up animation with improved easing for more natural movement
     this.el.setAttribute('animation__up', {
       property: 'object3D.position.y',
@@ -379,6 +447,19 @@ const JumpControl = {
       autoplay: true
     });
 
+    // Listen for the up animation to complete
+    const onUpComplete = () => {
+      this.el.removeEventListener('animationcomplete__up', onUpComplete);
+      this.onAnimationComplete('up');
+    };
+
+    this.el.addEventListener('animationcomplete__up', onUpComplete);
+  },
+
+  /**
+   * Set up safety timeout to ensure jump always completes
+   */
+  setupSafetyTimeout: function() {
     // Set safety timeout to ensure jump always completes
     this.safetyTimeout = setTimeout(() => {
       if (this.isJumping) {
@@ -626,10 +707,32 @@ const JumpControl = {
       console.log('Wall collision detected by PlayerCollider');
     }
 
+    // Apply safety measures to prevent falling through floor
+    this.applyWallCollisionSafetyMeasures();
+
+    // End the jump and start landing animation
+    this.startWallCollisionLandingAnimation();
+
+    // Reset state and velocities
+    this.resetStateAfterWallCollision();
+
+    // Re-enable navmesh constraint
+    this.enableNavmeshAfterWallCollision();
+  },
+
+  /**
+   * Apply safety measures to prevent falling through floor during wall collision
+   */
+  applyWallCollisionSafetyMeasures: function() {
     // CRITICAL: Lift the player slightly to prevent falling through floor
     // This small Y boost helps ensure the player stays above the floor
     this.el.object3D.position.y += 0.1;
+  },
 
+  /**
+   * Start landing animation after wall collision
+   */
+  startWallCollisionLandingAnimation: function() {
     // End the jump immediately
     this.endJumpEarly();
 
@@ -659,7 +762,12 @@ const JumpControl = {
     };
 
     this.el.addEventListener('animationcomplete__drop', onDropComplete);
+  },
 
+  /**
+   * Reset state and velocities after wall collision
+   */
+  resetStateAfterWallCollision: function() {
     // Hide the jump collider
     const jumpCollider = this.el.components['jump-collider'];
     if (jumpCollider) {
@@ -679,7 +787,12 @@ const JumpControl = {
       movementControls.velocity.x = 0;
       movementControls.velocity.z = 0;
     }
+  },
 
+  /**
+   * Re-enable navmesh constraint after wall collision
+   */
+  enableNavmeshAfterWallCollision: function() {
     // IMMEDIATELY re-enable the navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
       if (window.JumpDebug) {
@@ -688,6 +801,43 @@ const JumpControl = {
         console.log('Re-enabling navmesh constraint immediately');
       }
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+    }
+  },
+
+  /**
+   * Calculate and apply sliding vector when colliding with a wall
+   * @param {Object} movementControls - The movement-controls component
+   * @param {THREE.Vector3} normal - The normal vector of the wall
+   */
+  calculateAndApplySlidingVector: function(movementControls, normal) {
+    // Create a velocity vector
+    const velocity = new THREE.Vector3(
+      movementControls.velocity.x,
+      0, // Ignore Y component for sliding
+      movementControls.velocity.z
+    );
+
+    // Project the velocity onto the wall plane (sliding)
+    const normalClone = normal.clone(); // Clone to avoid modifying the original
+    const dot = velocity.dot(normalClone);
+
+    // Calculate the sliding vector (velocity - (velocity·normal) * normal)
+    const slide = new THREE.Vector3()
+      .copy(velocity)
+      .sub(normalClone.multiplyScalar(dot));
+
+    // Reduce the sliding velocity for better control
+    slide.multiplyScalar(0.8);
+
+    // Apply the sliding velocity
+    movementControls.velocity.x = slide.x;
+    movementControls.velocity.z = slide.z;
+
+    if (window.JumpDebug) {
+      window.JumpDebug.collision('JumpControl', 'Applied sliding vector', {
+        x: slide.x.toFixed(3),
+        z: slide.z.toFixed(3)
+      });
     }
   },
 
@@ -829,7 +979,26 @@ const JumpControl = {
     // During jump, apply forward momentum for more convincing jumps
     if (this.isJumping) {
       const movementControls = this.el.components['movement-controls'];
-      if (movementControls && movementControls.velocity) {
+
+      // Check if we have a current movement vector from ArrowControls
+      // This allows us to maintain diagonal movement during jumps
+      if (this.el.userData && this.el.userData.currentMoveVector) {
+        const currentMoveVector = this.el.userData.currentMoveVector;
+
+        // Apply the current movement vector directly to the position
+        // This ensures diagonal movement continues during jumps
+        this.el.object3D.position.x += currentMoveVector.x;
+        this.el.object3D.position.z += currentMoveVector.z;
+
+        if (window.JumpDebug && window.JumpDebug.enabled) {
+          window.JumpDebug.info('JumpControl', 'Applied current movement vector during jump', {
+            x: currentMoveVector.x.toFixed(5),
+            z: currentMoveVector.z.toFixed(5)
+          });
+        }
+      }
+      // Fall back to the old momentum-based system if no current movement vector
+      else if (movementControls && movementControls.velocity) {
         // Check if this is a vertical-only jump (near wall)
         const isVerticalJump = this.jumpMomentum.x === 0 && this.jumpMomentum.z === 0;
 
@@ -878,28 +1047,8 @@ const JumpControl = {
             // Get the current movement velocity
             const movementControls = this.el.components['movement-controls'];
             if (movementControls && movementControls.velocity) {
-              // Create a velocity vector
-              const velocity = new THREE.Vector3(
-                movementControls.velocity.x,
-                0, // Ignore Y component for sliding
-                movementControls.velocity.z
-              );
-
-              // Project the velocity onto the wall plane (sliding)
-              const normal = collisionResult.normal.clone(); // Clone to avoid modifying the original
-              const dot = velocity.dot(normal);
-
-              // Calculate the sliding vector (velocity - (velocity·normal) * normal)
-              const slide = new THREE.Vector3()
-                .copy(velocity)
-                .sub(normal.multiplyScalar(dot));
-
-              // Reduce the sliding velocity for better control
-              slide.multiplyScalar(0.8);
-
-              // Apply the sliding velocity
-              movementControls.velocity.x = slide.x;
-              movementControls.velocity.z = slide.z;
+              // Calculate and apply sliding vector
+              this.calculateAndApplySlidingVector(movementControls, collisionResult.normal);
 
               // ROBUST APPROACH: Push away from the wall based on collision point
               console.log('Wall collision - using robust push');
@@ -1108,7 +1257,10 @@ const JumpControl = {
     }
   },
 
-  // Function to handle actual landing
+  /**
+   * Handle landing when ground is detected
+   * @param {THREE.Vector3} hitPoint - The point where the ground was detected
+   */
   forceLand: function(hitPoint) {
     if (window.JumpDebug) {
       window.JumpDebug.state('JumpControl', 'Force landing at', hitPoint);
@@ -1116,13 +1268,39 @@ const JumpControl = {
       console.log('Force landing at', hitPoint);
     }
 
+    // Reset falling state
+    this.resetFallingState();
+
+    // Position player on the ground
+    this.positionPlayerOnGround(hitPoint);
+
+    // Re-enable navmesh constraint
+    this.enableNavmeshOnLanding();
+
+    // Perform safety checks
+    this.checkLandingSafety();
+
+    // Reset the jump state
+    this.resetJump();
+  },
+
+  /**
+   * Reset falling state variables
+   */
+  resetFallingState: function() {
     this.isFalling = false;
     this.yVelocity = 0;
     this.justLanded = true;
 
     // Stop the down animation if it's running
     this.el.removeAttribute('animation__down');
+  },
 
+  /**
+   * Position player correctly on the ground
+   * @param {THREE.Vector3} hitPoint - The point where the ground was detected
+   */
+  positionPlayerOnGround: function(hitPoint) {
     // Position player correctly on the ground
     // Set the RIG's Y position directly to the hit point Y.
     // The camera's internal offset handles eye height.
@@ -1146,7 +1324,12 @@ const JumpControl = {
     } else {
       console.warn('LANDING Y CHECK - After adjustment Y:', this.el.object3D.position.y.toFixed(3));
     }
+  },
 
+  /**
+   * Re-enable navmesh constraint on landing
+   */
+  enableNavmeshOnLanding: function() {
     // CRITICAL FIX: Immediately re-enable navmesh constraint before anything else
     // This ensures the player stays on valid ground
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
@@ -1157,13 +1340,6 @@ const JumpControl = {
       }
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
     }
-
-    // Re-enabled with modifications: Safety check for wall collisions at landing point
-    // This is important for preventing falling through the floor
-    this.checkLandingSafety();
-
-    // Reset the jump state (enables navmesh etc.)
-    this.resetJump();
   },
 
   /**

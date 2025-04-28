@@ -13,16 +13,16 @@
 - [x] Ensure consistent naming conventions for all variables
 
 ## 🧹 Phase 2: Refactor Core Functions
-- [ ] Refactor Jump Initiation
-  - [ ] Extract helper methods (validation, momentum calc, etc.)
-  - [ ] Improve error handling + cover edge cases
-- [ ] Refactor Wall Collision Handling
-  - [ ] Extract wall collision logic into handleWallCollision
-  - [ ] Simplify sliding vector calculation
-- [ ] Refactor Landing Logic
-  - [ ] Consolidate landing code into clear functions
-  - [ ] Improve ground detection logic
-  - [ ] Simplify safety checks
+- [x] Refactor Jump Initiation
+  - [x] Extract helper methods (validation, momentum calc, etc.)
+  - [x] Improve error handling + cover edge cases
+- [x] Refactor Wall Collision Handling
+  - [x] Extract wall collision logic into handleWallCollision
+  - [x] Simplify sliding vector calculation
+- [x] Refactor Landing Logic
+  - [x] Consolidate landing code into clear functions
+  - [x] Improve ground detection logic
+  - [x] Simplify safety checks
 
 ## 🚀 Phase 3: Optimize Performance
 - [ ] Reduce raycasting overhead
