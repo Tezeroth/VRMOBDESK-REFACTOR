@@ -48,7 +48,8 @@ const JumpCollider = {
     height: { type: 'number', default: 1.6 },
     radius: { type: 'number', default: 0.3 }, // Optimized radius for accurate collision detection
     opacity: { type: 'number', default: 0 },  // Default to invisible (0 opacity)
-    cacheRefreshInterval: { type: 'number', default: 2000 } // How often to refresh wall cache (ms)
+    cacheRefreshInterval: { type: 'number', default: 2000 }, // How often to refresh wall cache (ms)
+    raycastCacheDuration: { type: 'number', default: 100 }  // How long to cache raycast results (ms)
   },
 
   init: function() {
@@ -83,6 +84,14 @@ const JumpCollider = {
     // Initialize wall cache
     this.cachedWalls = null;
     this.lastCacheTime = 0;
+
+    // Initialize raycast cache
+    this.raycastCache = {
+      results: {},       // Cache of raycast results by direction key
+      timestamp: 0,      // When the cache was last updated
+      playerPosition: null, // Player position when cache was created
+      positionThreshold: 0.05 // How far player can move before cache is invalidated
+    };
 
     // Set up collision detection
     this.setupCollisionDetection();
@@ -290,19 +299,73 @@ const JumpCollider = {
     const hitThreshold = 0.1; // 10cm threshold
     const nearbyHits = [];
 
+    // Check if we can use the raycast cache
+    const canUseCache = !isJumping && this.isRaycastCacheValid(position);
+
+    // If cache is valid, update timestamp to extend its life
+    if (canUseCache) {
+      this.raycastCache.timestamp = Date.now();
+
+      if (window.JumpDebug && window.JumpDebug.enabled) {
+        window.JumpDebug.info('JumpCollider', 'Using raycast cache');
+      }
+    } else {
+      // Cache is invalid, update it with new position
+      this.clearRaycastCache();
+      this.raycastCache.timestamp = Date.now();
+      this.raycastCache.playerPosition = position.clone();
+
+      if (window.JumpDebug && window.JumpDebug.enabled && !isJumping) {
+        window.JumpDebug.info('JumpCollider', 'Refreshing raycast cache');
+      }
+    }
+
     for (const direction of directions) {
-      this.raycaster.set(position, direction);
-      this.raycaster.far = collisionRadius;
+      // Get a unique key for this direction
+      const dirKey = this.getDirectionKey(direction);
 
-      const intersections = this.raycaster.intersectObjects(
-        wallObjects,
-        true
-      );
+      // Check if we have a cached result for this direction
+      if (canUseCache && this.raycastCache.results[dirKey]) {
+        // Use cached intersections
+        const cachedIntersections = this.raycastCache.results[dirKey];
 
-      // Process all hits within threshold
-      for (const hit of intersections) {
-        if (hit.distance < closestDistance + hitThreshold) {
-          nearbyHits.push(hit);
+        // Process cached hits
+        for (const hit of cachedIntersections) {
+          if (hit.distance < closestDistance + hitThreshold) {
+            nearbyHits.push(hit);
+          }
+        }
+      } else {
+        // Perform new raycast
+        this.raycaster.set(position, direction);
+        this.raycaster.far = collisionRadius;
+
+        const intersections = this.raycaster.intersectObjects(
+          wallObjects,
+          true
+        );
+
+        // Cache the results if not jumping
+        if (!isJumping) {
+          // We need to clone the intersections to avoid reference issues
+          const clonedIntersections = intersections.map(hit => {
+            return {
+              distance: hit.distance,
+              point: hit.point.clone(),
+              face: hit.face ? {
+                normal: hit.face.normal.clone()
+              } : null
+            };
+          });
+
+          this.raycastCache.results[dirKey] = clonedIntersections;
+        }
+
+        // Process all hits within threshold
+        for (const hit of intersections) {
+          if (hit.distance < closestDistance + hitThreshold) {
+            nearbyHits.push(hit);
+          }
         }
       }
     }
@@ -543,7 +606,54 @@ const JumpCollider = {
   },
 
   /**
-   * Force refresh the wall cache
+   * Check if the raycast cache is valid
+   * @param {THREE.Vector3} position - Current player position
+   * @returns {boolean} Whether the cache is valid
+   */
+  isRaycastCacheValid: function(position) {
+    const now = Date.now();
+
+    // Cache is invalid if it's expired
+    if (now - this.raycastCache.timestamp > this.data.raycastCacheDuration) {
+      return false;
+    }
+
+    // Cache is invalid if player has moved too far
+    if (!this.raycastCache.playerPosition) {
+      return false;
+    }
+
+    // Calculate distance moved
+    const distMoved = position.distanceTo(this.raycastCache.playerPosition);
+
+    // Cache is invalid if player has moved beyond threshold
+    if (distMoved > this.raycastCache.positionThreshold) {
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
+   * Clear the raycast cache
+   */
+  clearRaycastCache: function() {
+    this.raycastCache.results = {};
+    this.raycastCache.timestamp = 0;
+    this.raycastCache.playerPosition = null;
+  },
+
+  /**
+   * Get a unique key for a direction vector
+   * @param {THREE.Vector3} direction - Direction vector
+   * @returns {string} Unique key for the direction
+   */
+  getDirectionKey: function(direction) {
+    return `${direction.x.toFixed(4)},${direction.y.toFixed(4)},${direction.z.toFixed(4)}`;
+  },
+
+  /**
+   * Force refresh all caches
    * This can be called when the scene changes (e.g., new walls are added)
    */
   forceRefreshCache: function() {
@@ -554,6 +664,7 @@ const JumpCollider = {
     }
 
     this.refreshWallCache();
+    this.clearRaycastCache();
   },
 
   /**
@@ -567,6 +678,9 @@ const JumpCollider = {
 
     // Clear cached walls to free memory
     this.cachedWalls = null;
+
+    // Clear raycast cache
+    this.clearRaycastCache();
 
     // Release all pooled vectors
     VectorPool.releaseAll();

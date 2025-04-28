@@ -27,7 +27,7 @@
 ## 🚀 Phase 3: Optimize Performance
 - [x] Reduce raycasting overhead
   - [x] Optimize number/frequency of raycasts
-  - [ ] Cache raycast results where possible
+  - [x] Cache raycast results where possible
   - [x] Use object pooling for vectors
 - [x] Improve collision detection
   - [ ] Refine collision detection algorithm
