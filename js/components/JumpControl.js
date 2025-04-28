@@ -1019,40 +1019,38 @@ const JumpControl = {
    * Perform a ground check and adjust Y position if needed
    */
   performGroundCheck: function() {
-    if (this.navmeshObjects.length === 0) {
-      console.warn('GROUND CHECK: No navmesh objects found!');
-      return;
-    }
+    if (this.navmeshObjects.length === 0) return;
 
     const currentPos = this.el.object3D.position;
-
-    // Start ray from slightly above current position to avoid starting inside ground
-    const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + 0.5, currentPos.z);
+    
+    // IMPORTANT: Increase the ray start height during jumps
+    const rayStartHeight = (this.isJumping || this.isFalling) ? 1.0 : 0.5;
+    const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + rayStartHeight, currentPos.z);
 
     this.fallRaycaster.set(rayOrigin, this.downVector);
-    this.fallRaycaster.far = 2.0; // Check up to 2 units below for more reliable detection
+    // Increase ray length during jumps to ensure we don't miss the ground
+    this.fallRaycaster.far = (this.isJumping || this.isFalling) ? 3.0 : 2.0;
 
     const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
 
     if (intersects.length > 0) {
-      // Ground found, adjust position
       const hitPoint = intersects[0].point;
-      console.warn('GROUND CHECK: Found ground at', hitPoint.y.toFixed(3),
-                  'current Y is', currentPos.y.toFixed(3));
-
-      // Only adjust if we're not already at the right height (with small tolerance)
-      if (Math.abs(currentPos.y - hitPoint.y) > 0.01) {
-        console.warn('GROUND CHECK: Adjusting Y position to', hitPoint.y.toFixed(3));
-        this.el.object3D.position.y = hitPoint.y;
-
-        // Store this as a valid position for recovery
-        this.lastValidPosition.copy(this.el.object3D.position);
+      
+      // During jumps, only adjust Y if we're actually falling through floor
+      if (this.isJumping || this.isFalling) {
+        if (currentPos.y < hitPoint.y) {
+          console.warn('Jump Safety: Preventing fall-through, adjusting Y position');
+          this.el.object3D.position.y = hitPoint.y;
+        }
+      } else {
+        // Normal ground adjustment for non-jump situations
+        if (Math.abs(currentPos.y - hitPoint.y) > 0.01) {
+          this.el.object3D.position.y = hitPoint.y;
+        }
       }
-    } else {
-      console.warn('GROUND CHECK: No ground found below player!');
 
-      // Try a wider search pattern if no ground found directly below
-      this.performWideGroundSearch();
+      // Update last valid position
+      this.lastValidPosition.copy(this.el.object3D.position);
     }
   },
 
@@ -1129,6 +1127,9 @@ const JumpControl = {
 };
 
 export default JumpControl;
+
+
+
 
 
 
