@@ -8,43 +8,69 @@
 
 import DeviceManager from '../managers/DeviceManager.js';
 
+// Include JumpDebug utility (without using import to avoid breaking code)
+// The utility is attached to the window object in JumpDebug.js
+// Make sure to include the script in your HTML before this component
+
 const JumpControl = {
   schema: {
     enabled: { type: 'boolean', default: true },
-    height: { type: 'number', default: 2.5 },  // Increased jump height for more dramatic effect
-    duration: { type: 'number', default: 1000 }, // Longer overall duration
+    height: { type: 'number', default: 2.2 },  // Reduced jump height by approximately 1 foot (0.3 units)
     cooldown: { type: 'number', default: 500 },
-    upDuration: { type: 'number', default: 500 }, // Longer up phase
-    downDuration: { type: 'number', default: 500 }, // Longer down phase
+    upDuration: { type: 'number', default: 500 }, // Duration of rising phase
+    downDuration: { type: 'number', default: 500 }, // Duration of falling phase
     respectNavmesh: { type: 'boolean', default: true }
   },
 
   init: function () {
-    // Initialize state
-    this.isJumping = false;
-    this.isFalling = false;
-    this.yVelocity = 0;
-    this.justLanded = false;
-    this.canJump = true;
-    this.jumpTimeout = null;
-    this.safetyTimeout = null;
-    this.startY = 0;
-    this.maxY = 0;
-    this.jumpMomentum = { x: 0, z: 0 };
-    this.lastCameraRotation = new THREE.Euler();
-    this.cameraAngularVelocity = new THREE.Vector3();
+    // Initialize JumpDebug if it exists
+    if (window.JumpDebug) {
+      // Disable debug output by default
+      window.JumpDebug.enabled = false;
 
-    // Store last valid position on navmesh
-    this.lastValidPosition = new THREE.Vector3();
-    this.navmeshLastValidPosition = new THREE.Vector3();
+      // Add a message to the console about how to enable debugging
+      console.info('Jump system loaded. To enable debug mode, run: window.JumpDebug.enabled = true');
 
-    // Store initial XZ position for collision handling
-    this.initialXZ = { x: 0, z: 0 };
+      // You can customize which debug levels are enabled
+      // window.JumpDebug.disableLevels(['position']); // Example: disable position logs
+    }
+
+    // Initialize state variables
+
+    // Jump state tracking
+    this.isJumping = false;      // Whether the player is currently in a jump
+    this.isFalling = false;      // Whether the player is in the falling phase of a jump
+    this.justLanded = false;     // Flag set briefly after landing to trigger post-landing checks
+    this.canJump = true;         // Whether the player is allowed to jump (cooldown control)
+    this.jumpStartTime = null;   // Timestamp when the current jump started
+
+    // Jump physics
+    this.yVelocity = 0;          // Current vertical velocity during fall
+    this.startY = 0;             // Starting Y position of the jump (ground level)
+    this.maxY = 0;               // Maximum Y position the jump will reach
+    this.jumpMomentum = { x: 0, z: 0 }; // Horizontal momentum carried through the jump
+
+    // Timers and safety mechanisms
+    this.jumpTimeout = null;     // Timer for jump cooldown
+    this.safetyTimeout = null;   // Safety timer to ensure jump always completes
+
+    // Position tracking for safety and recovery
+    this.lastValidPosition = new THREE.Vector3();       // Last known safe position
+    this.navmeshLastValidPosition = new THREE.Vector3(); // Last valid position from navmesh
+    this.initialXZ = { x: 0, z: 0 };                    // Starting XZ position for collision handling
+
+    // Camera tracking (for momentum calculations)
+    this.lastCameraRotation = new THREE.Euler();        // Previous camera rotation
+    this.cameraAngularVelocity = new THREE.Vector3();   // Camera rotation speed
 
     // Set up a safety check that runs every 2 seconds to ensure we can always jump
     this.safetyInterval = setInterval(() => {
       if (!this.canJump && !this.isJumping) {
-        console.warn('Jump safety check: Found canJump=false but not jumping, resetting state');
+        if (window.JumpDebug) {
+          window.JumpDebug.safety('JumpControl', 'Found canJump=false but not jumping, resetting state');
+        } else {
+          console.warn('Jump safety check: Found canJump=false but not jumping, resetting state');
+        }
         this.canJump = true;
       }
     }, 2000);
@@ -76,10 +102,10 @@ const JumpControl = {
       this.createJumpButton();
     }
 
-    // Raycaster for ground detection during fall
-    this.fallRaycaster = new THREE.Raycaster();
-    this.downVector = new THREE.Vector3(0, -1, 0);
-    this.navmeshObjects = [];
+    // Ground detection system
+    this.fallRaycaster = new THREE.Raycaster();     // Raycaster for detecting ground below player
+    this.downVector = new THREE.Vector3(0, -1, 0);  // Direction vector pointing down
+    this.navmeshObjects = [];                       // Collection of navmesh objects to raycast against
 
     // Get navmesh objects for raycasting
     this.findNavmeshObjects();
@@ -175,20 +201,24 @@ const JumpControl = {
 
   /**
    * Handle keydown events for jumping
-   * @param {Event} evt - The keydown event
+   * @param {Event} event - The keydown event
    */
-  onKeyDown: function (evt) {
+  onKeyDown: function (event) {
     // Space key always triggers jump
-    if (evt.code === 'Space' && !evt.repeat) {
+    if (event.code === 'Space' && !event.repeat) {
       // Prevent event propagation to stop other components from handling it
-      evt.stopPropagation();
+      event.stopPropagation();
       this.jump();
     }
 
     // Add a secret key combo to force reset jump state if needed
     // Ctrl+Alt+J will force reset the jump state
-    if (evt.code === 'KeyJ' && evt.ctrlKey && evt.altKey) {
-      console.log('Force reset key combo detected');
+    if (event.code === 'KeyJ' && event.ctrlKey && event.altKey) {
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Force reset key combo detected');
+      } else {
+        console.log('Force reset key combo detected');
+      }
       this.forceResetJump();
     }
   },
@@ -206,7 +236,11 @@ const JumpControl = {
     if (this.isJumping) {
       const currentTime = Date.now();
       if (!this.jumpStartTime || (currentTime - this.jumpStartTime > 3000)) {
-        console.warn('Jump appears to be stuck, forcing reset');
+        if (window.JumpDebug) {
+          window.JumpDebug.warn('JumpControl', 'Jump appears to be stuck, forcing reset');
+        } else {
+          console.warn('Jump appears to be stuck, forcing reset');
+        }
         this.forceResetJump();
       } else {
         return; // Still in a valid jump
@@ -215,7 +249,11 @@ const JumpControl = {
 
     // Check cooldown
     if (!this.canJump) {
-      console.log('Cannot jump - in cooldown');
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Cannot jump - in cooldown');
+      } else {
+        console.log('Cannot jump - in cooldown');
+      }
       return;
     }
 
@@ -226,11 +264,19 @@ const JumpControl = {
                          desktopMobileControls.stateMachine.is('inspecting');
 
     if (isInspecting) {
-      console.log('Cannot jump while in inspection mode');
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Cannot jump while in inspection mode');
+      } else {
+        console.log('Cannot jump while in inspection mode');
+      }
       return;
     }
 
-    console.log('Jump initiated');
+    if (window.JumpDebug) {
+      window.JumpDebug.state('JumpControl', 'Jump initiated');
+    } else {
+      console.log('Jump initiated');
+    }
 
     // Set state
     this.isJumping = true;
@@ -250,7 +296,11 @@ const JumpControl = {
     const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
     if (navmeshConstraint) {
       if (navmeshConstraint.lastPosition) {
-        console.log('Storing last valid navmesh position before jump');
+        if (window.JumpDebug) {
+          window.JumpDebug.position('JumpControl', 'Storing last valid navmesh position before jump');
+        } else {
+          console.log('Storing last valid navmesh position before jump');
+        }
         // Make a deep copy of the last valid position
         this.navmeshLastValidPosition = new THREE.Vector3().copy(navmeshConstraint.lastPosition);
       } else {
@@ -270,7 +320,11 @@ const JumpControl = {
       const collisionResult = jumpCollider.checkCollisions();
 
       if (collisionResult.collision) {
-        console.log('Wall detected nearby - performing vertical-only jump');
+        if (window.JumpDebug) {
+          window.JumpDebug.collision('JumpControl', 'Wall detected nearby - performing vertical-only jump');
+        } else {
+          console.log('Wall detected nearby - performing vertical-only jump');
+        }
         nearWall = true;
       }
 
@@ -328,7 +382,11 @@ const JumpControl = {
     // Set safety timeout to ensure jump always completes
     this.safetyTimeout = setTimeout(() => {
       if (this.isJumping) {
-        console.log('Safety timeout triggered - forcing jump end');
+        if (window.JumpDebug) {
+          window.JumpDebug.safety('JumpControl', 'Safety timeout triggered - forcing jump end');
+        } else {
+          console.log('Safety timeout triggered - forcing jump end');
+        }
         this.resetJump();
       }
     }, 3000);
@@ -340,7 +398,11 @@ const JumpControl = {
    */
   onAnimationComplete: function (phase) {
     if (phase === 'up') {
-      console.log('Jump up animation complete, starting down animation');
+      if (window.JumpDebug) {
+        window.JumpDebug.state('JumpControl', 'Jump up animation complete, starting down animation');
+      } else {
+        console.log('Jump up animation complete, starting down animation');
+      }
       // Remove the up animation attribute
       this.el.removeAttribute('animation__up');
 
@@ -348,12 +410,20 @@ const JumpControl = {
       this.isFalling = true;
       this.yVelocity = 0;
     } else if (phase === 'down') {
-      console.log('Jump down animation completed (Fallback/Timeout)');
+      if (window.JumpDebug) {
+        window.JumpDebug.state('JumpControl', 'Jump down animation completed (Fallback/Timeout)');
+      } else {
+        console.log('Jump down animation completed (Fallback/Timeout)');
+      }
 
       // Only reset if we are still marked as jumping/falling
       // This acts as a fallback if raycast landing fails
       if (this.isJumping || this.isFalling) {
-        console.warn('Down animation finished before ground detected, forcing reset.');
+        if (window.JumpDebug) {
+          window.JumpDebug.warn('JumpControl', 'Down animation finished before ground detected, forcing reset.');
+        } else {
+          console.warn('Down animation finished before ground detected, forcing reset.');
+        }
         this.resetJump();
       }
     }
@@ -364,7 +434,11 @@ const JumpControl = {
    * This is called right after landing from a jump
    */
   checkPostLandingCollision: function() {
-    console.warn('POST-LANDING: Checking for wall collisions after landing');
+    if (window.JumpDebug) {
+      window.JumpDebug.collision('JumpControl', 'Checking for wall collisions after landing');
+    } else {
+      console.warn('POST-LANDING: Checking for wall collisions after landing');
+    }
 
     // Log current position
     const currentPos = {
@@ -372,7 +446,12 @@ const JumpControl = {
       y: this.el.object3D.position.y.toFixed(3),
       z: this.el.object3D.position.z.toFixed(3)
     };
-    console.warn('POST-LANDING: Current position:', currentPos);
+
+    if (window.JumpDebug) {
+      window.JumpDebug.position('JumpControl', 'Current position', currentPos);
+    } else {
+      console.warn('POST-LANDING: Current position:', currentPos);
+    }
 
     // Check if we're inside a wall using the jump collider
     const jumpCollider = this.el.components['jump-collider'];
@@ -383,7 +462,11 @@ const JumpControl = {
       // Check for collisions
       const collisionResult = jumpCollider.checkCollisions();
       if (collisionResult.collision) {
-        console.error('POST-LANDING: Wall collision detected after landing!');
+        if (window.JumpDebug) {
+          window.JumpDebug.error('JumpControl', 'Wall collision detected after landing!');
+        } else {
+          console.error('POST-LANDING: Wall collision detected after landing!');
+        }
 
         // COMPLETELY DIFFERENT APPROACH: Push AWAY from the wall by a fixed amount
         if (collisionResult.normal) {
@@ -408,19 +491,32 @@ const JumpControl = {
             z: this.el.object3D.position.z.toFixed(3)
           };
 
-          console.error('POST-LANDING: Pushing player AWAY from wall by 0.2 units');
-          console.error('POST-LANDING: Normal vector:', {
+          const normalVector = {
             x: collisionResult.normal.x.toFixed(3),
             y: collisionResult.normal.y.toFixed(3),
             z: collisionResult.normal.z.toFixed(3)
-          });
-          console.error('POST-LANDING: Position before push:', beforePush);
-          console.error('POST-LANDING: Position after push:', afterPush);
+          };
+
+          if (window.JumpDebug) {
+            window.JumpDebug.collision('JumpControl', `Pushing player AWAY from wall by ${pushDistance} units`);
+            window.JumpDebug.collision('JumpControl', 'Normal vector', normalVector);
+            window.JumpDebug.position('JumpControl', 'Position before push', beforePush);
+            window.JumpDebug.position('JumpControl', 'Position after push', afterPush);
+          } else {
+            console.error('POST-LANDING: Pushing player AWAY from wall by 0.2 units');
+            console.error('POST-LANDING: Normal vector:', normalVector);
+            console.error('POST-LANDING: Position before push:', beforePush);
+            console.error('POST-LANDING: Position after push:', afterPush);
+          }
 
           // Double-check that we're now clear of the wall
           const secondCheck = jumpCollider.checkCollisions();
           if (secondCheck.collision) {
-            console.error('POST-LANDING: Still colliding after push, trying again with larger distance');
+            if (window.JumpDebug) {
+              window.JumpDebug.error('JumpControl', 'Still colliding after push, trying again with larger distance');
+            } else {
+              console.error('POST-LANDING: Still colliding after push, trying again with larger distance');
+            }
 
             // Push even further away
             this.el.object3D.position.x += collisionResult.normal.x * pushDistance;
@@ -429,19 +525,31 @@ const JumpControl = {
         }
         // If we don't have a normal but have a safe position, use it
         else if (collisionResult.safePosition) {
-          console.error('POST-LANDING: Using safe position from collision result');
+          if (window.JumpDebug) {
+            window.JumpDebug.collision('JumpControl', 'Using safe position from collision result');
+          } else {
+            console.error('POST-LANDING: Using safe position from collision result');
+          }
           this.el.object3D.position.x = collisionResult.safePosition.x;
           this.el.object3D.position.z = collisionResult.safePosition.z;
         }
       } else {
-        console.warn('POST-LANDING: No wall collision detected after landing');
+        if (window.JumpDebug) {
+          window.JumpDebug.collision('JumpControl', 'No wall collision detected after landing');
+        } else {
+          console.warn('POST-LANDING: No wall collision detected after landing');
+        }
       }
     }
 
     // Force the navmesh constraint to update its last position
     const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
     if (navmeshConstraint) {
-      console.warn('POST-LANDING: Forcing navmesh constraint to update');
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Forcing navmesh constraint to update');
+      } else {
+        console.warn('POST-LANDING: Forcing navmesh constraint to update');
+      }
       navmeshConstraint.lastPosition = null;
     }
   },
@@ -450,7 +558,11 @@ const JumpControl = {
    * End the jump early (e.g., when hitting a wall)
    */
   endJumpEarly: function() {
-    console.log('Ending jump early due to wall collision');
+    if (window.JumpDebug) {
+      window.JumpDebug.collision('JumpControl', 'Ending jump early due to wall collision');
+    } else {
+      console.log('Ending jump early due to wall collision');
+    }
 
     // Store current Y position before resetting
     const currentY = this.el.object3D.position.y;
@@ -458,13 +570,21 @@ const JumpControl = {
     // Only add a safety boost if we're very close to the floor
     // This helps prevent falling through while still allowing normal jumps
     if (currentY - this.startY < 0.1) {
-      console.warn('Too close to floor during wall collision, adding safety boost');
+      if (window.JumpDebug) {
+        window.JumpDebug.safety('JumpControl', 'Too close to floor during wall collision, adding safety boost');
+      } else {
+        console.warn('Too close to floor during wall collision, adding safety boost');
+      }
       this.el.object3D.position.y = this.startY + 0.1;
     }
 
     // Re-enable the navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
-      console.log('Re-enabling navmesh constraint');
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Re-enabling navmesh constraint');
+      } else {
+        console.log('Re-enabling navmesh constraint');
+      }
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
     }
 
@@ -500,7 +620,11 @@ const JumpControl = {
   handleWallCollision: function() {
     if (!this.isJumping) return;
 
-    console.log('Wall collision detected by PlayerCollider');
+    if (window.JumpDebug) {
+      window.JumpDebug.collision('JumpControl', 'Wall collision detected by PlayerCollider');
+    } else {
+      console.log('Wall collision detected by PlayerCollider');
+    }
 
     // CRITICAL: Lift the player slightly to prevent falling through floor
     // This small Y boost helps ensure the player stays above the floor
@@ -558,7 +682,11 @@ const JumpControl = {
 
     // IMMEDIATELY re-enable the navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
-      console.log('Re-enabling navmesh constraint immediately');
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Re-enabling navmesh constraint immediately');
+      } else {
+        console.log('Re-enabling navmesh constraint immediately');
+      }
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
     }
   },
@@ -567,7 +695,11 @@ const JumpControl = {
    * Force reset the jump state - used when jump gets stuck
    */
   forceResetJump: function() {
-    console.warn('Force resetting jump state');
+    if (window.JumpDebug) {
+      window.JumpDebug.warn('JumpControl', 'Force resetting jump state');
+    } else {
+      console.warn('Force resetting jump state');
+    }
 
     // Clear all timeouts
     if (this.safetyTimeout) {
@@ -603,14 +735,22 @@ const JumpControl = {
     this.el.removeAttribute('animation__down');
     this.el.removeAttribute('animation__drop');
 
-    console.log('Jump state has been forcibly reset');
+    if (window.JumpDebug) {
+      window.JumpDebug.state('JumpControl', 'Jump state has been forcibly reset');
+    } else {
+      console.log('Jump state has been forcibly reset');
+    }
   },
 
   /**
    * Reset jump state and re-enable navmesh constraint
    */
   resetJump: function () {
-    console.log('Resetting jump state');
+    if (window.JumpDebug) {
+      window.JumpDebug.state('JumpControl', 'Resetting jump state');
+    } else {
+      console.log('Resetting jump state');
+    }
 
     // Clear safety timeout
     if (this.safetyTimeout) {
@@ -624,7 +764,11 @@ const JumpControl = {
     this.yVelocity = 0;
 
     // Log before enabling constraint
-    console.log('JumpControl: Attempting to re-enable simple-navmesh-constraint...');
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpControl', 'Attempting to re-enable simple-navmesh-constraint...');
+    } else {
+      console.log('JumpControl: Attempting to re-enable simple-navmesh-constraint...');
+    }
 
     // Re-enable navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
@@ -637,7 +781,11 @@ const JumpControl = {
       if (jumpCollider.collider) {
         jumpCollider.hideCollider();
       } else {
-        console.warn('Cannot hide jump collider - it does not exist');
+        if (window.JumpDebug) {
+          window.JumpDebug.warn('JumpControl', 'Cannot hide jump collider - it does not exist');
+        } else {
+          console.warn('Cannot hide jump collider - it does not exist');
+        }
         jumpCollider.recreateCollider();
       }
     }
@@ -649,11 +797,21 @@ const JumpControl = {
     }
 
     // Set cooldown
-    console.log('Setting jump cooldown for ' + this.data.cooldown + 'ms');
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpControl', `Setting jump cooldown for ${this.data.cooldown}ms`);
+    } else {
+      console.log('Setting jump cooldown for ' + this.data.cooldown + 'ms');
+    }
+
     this.jumpTimeout = setTimeout(() => {
       this.canJump = true;
       this.jumpTimeout = null;
-      console.log('Jump cooldown complete, can jump again');
+
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'Jump cooldown complete, can jump again');
+      } else {
+        console.log('Jump cooldown complete, can jump again');
+      }
     }, this.data.cooldown);
   },
 
@@ -692,7 +850,11 @@ const JumpControl = {
       if (jumpCollider) {
         // Ensure the collider is properly attached
         if (!jumpCollider.collider || !jumpCollider.collider.parentNode) {
-          console.warn('Jump collider not properly attached, recreating');
+          if (window.JumpDebug) {
+            window.JumpDebug.warn('JumpControl', 'Jump collider not properly attached, recreating');
+          } else {
+            console.warn('Jump collider not properly attached, recreating');
+          }
           // Use the recreateCollider method instead of removing/re-adding the component
           jumpCollider.recreateCollider();
         }
@@ -904,8 +1066,13 @@ const JumpControl = {
 
     // If player is below the expected floor level, move them back up
     if (currentPos.y < this.startY) {
-      console.warn('SAFETY: Player below floor level - repositioning');
-      console.warn('Current Y:', currentPos.y.toFixed(3), 'Expected floor Y:', this.startY.toFixed(3));
+      if (window.JumpDebug) {
+        window.JumpDebug.safety('JumpControl', 'Player below floor level - repositioning');
+        window.JumpDebug.position('JumpControl', `Current Y: ${currentPos.y.toFixed(3)}, Expected floor Y: ${this.startY.toFixed(3)}`);
+      } else {
+        console.warn('SAFETY: Player below floor level - repositioning');
+        console.warn('Current Y:', currentPos.y.toFixed(3), 'Expected floor Y:', this.startY.toFixed(3));
+      }
 
       // Move player back to floor level
       this.el.object3D.position.y = this.startY;
@@ -915,7 +1082,11 @@ const JumpControl = {
         this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
       }
 
-      console.warn('SAFETY: Repositioned player to floor level');
+      if (window.JumpDebug) {
+        window.JumpDebug.safety('JumpControl', 'Repositioned player to floor level');
+      } else {
+        console.warn('SAFETY: Repositioned player to floor level');
+      }
     }
 
     // Store current position as valid if we're on the floor
@@ -929,13 +1100,22 @@ const JumpControl = {
     const navmeshEls = document.querySelectorAll('.navmesh'); // Assuming navmesh has class 'navmesh'
     this.navmeshObjects = Array.from(navmeshEls).map(el => el.object3D).filter(obj => obj);
     if (this.navmeshObjects.length === 0) {
-      console.warn('JumpControl: No navmesh objects found for ground detection.');
+      if (window.JumpDebug) {
+        window.JumpDebug.warn('JumpControl', 'No navmesh objects found for ground detection.');
+      } else {
+        console.warn('JumpControl: No navmesh objects found for ground detection.');
+      }
     }
   },
 
   // Function to handle actual landing
   forceLand: function(hitPoint) {
-    console.log('Force landing at', hitPoint);
+    if (window.JumpDebug) {
+      window.JumpDebug.state('JumpControl', 'Force landing at', hitPoint);
+    } else {
+      console.log('Force landing at', hitPoint);
+    }
+
     this.isFalling = false;
     this.yVelocity = 0;
     this.justLanded = true;
@@ -946,8 +1126,14 @@ const JumpControl = {
     // Position player correctly on the ground
     // Set the RIG's Y position directly to the hit point Y.
     // The camera's internal offset handles eye height.
-    console.warn('LANDING Y CHECK - Current Y:', this.el.object3D.position.y.toFixed(3),
-               'hitPoint Y:', hitPoint.y.toFixed(3), 'startY:', this.startY.toFixed(3));
+    if (window.JumpDebug) {
+      window.JumpDebug.position('JumpControl',
+        `LANDING Y CHECK - Current Y: ${this.el.object3D.position.y.toFixed(3)}, ` +
+        `hitPoint Y: ${hitPoint.y.toFixed(3)}, startY: ${this.startY.toFixed(3)}`);
+    } else {
+      console.warn('LANDING Y CHECK - Current Y:', this.el.object3D.position.y.toFixed(3),
+                 'hitPoint Y:', hitPoint.y.toFixed(3), 'startY:', this.startY.toFixed(3));
+    }
 
     // CRITICAL: Update startY to match the new ground level
     // This ensures all future checks use the correct floor height
@@ -955,12 +1141,20 @@ const JumpControl = {
 
     this.el.object3D.position.y = hitPoint.y;
 
-    console.warn('LANDING Y CHECK - After adjustment Y:', this.el.object3D.position.y.toFixed(3));
+    if (window.JumpDebug) {
+      window.JumpDebug.position('JumpControl', `LANDING Y CHECK - After adjustment Y: ${this.el.object3D.position.y.toFixed(3)}`);
+    } else {
+      console.warn('LANDING Y CHECK - After adjustment Y:', this.el.object3D.position.y.toFixed(3));
+    }
 
     // CRITICAL FIX: Immediately re-enable navmesh constraint before anything else
     // This ensures the player stays on valid ground
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
-      console.log('LANDING: Immediately re-enabling navmesh constraint');
+      if (window.JumpDebug) {
+        window.JumpDebug.info('JumpControl', 'LANDING: Immediately re-enabling navmesh constraint');
+      } else {
+        console.log('LANDING: Immediately re-enabling navmesh constraint');
+      }
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
     }
 
@@ -976,7 +1170,11 @@ const JumpControl = {
    * Safety check to ensure we don't fall through the floor when landing near a wall
    */
   checkLandingSafety: function() {
-    console.log('Performing landing safety check');
+    if (window.JumpDebug) {
+      window.JumpDebug.safety('JumpControl', 'Performing landing safety check');
+    } else {
+      console.log('Performing landing safety check');
+    }
 
     // Use the jump collider to check for wall collisions
     const jumpCollider = this.el.components['jump-collider'];
@@ -988,7 +1186,11 @@ const JumpControl = {
     // Check for collisions
     const collisionResult = jumpCollider.checkCollisions();
     if (collisionResult.collision) {
-      console.warn('LANDING SAFETY: Wall collision detected at landing point!');
+      if (window.JumpDebug) {
+        window.JumpDebug.safety('JumpControl', 'Wall collision detected at landing point!');
+      } else {
+        console.warn('LANDING SAFETY: Wall collision detected at landing point!');
+      }
 
       // If we have a normal vector, move slightly away from the wall
       if (collisionResult.normal) {
@@ -998,13 +1200,22 @@ const JumpControl = {
         this.el.object3D.position.x += collisionResult.normal.x * safetyPushDistance;
         this.el.object3D.position.z += collisionResult.normal.z * safetyPushDistance;
 
-        console.warn('LANDING SAFETY: Pushed player away from wall by', safetyPushDistance);
+        if (window.JumpDebug) {
+          window.JumpDebug.safety('JumpControl', `Pushed player away from wall by ${safetyPushDistance}`);
+        } else {
+          console.warn('LANDING SAFETY: Pushed player away from wall by', safetyPushDistance);
+        }
       }
       // If we have a safe position, use it
       else if (collisionResult.safePosition) {
         this.el.object3D.position.x = collisionResult.safePosition.x;
         this.el.object3D.position.z = collisionResult.safePosition.z;
-        console.warn('LANDING SAFETY: Using safe position from collision result');
+
+        if (window.JumpDebug) {
+          window.JumpDebug.safety('JumpControl', 'Using safe position from collision result');
+        } else {
+          console.warn('LANDING SAFETY: Using safe position from collision result');
+        }
       }
 
       // Double-check ground position after adjustment
@@ -1022,7 +1233,7 @@ const JumpControl = {
     if (this.navmeshObjects.length === 0) return;
 
     const currentPos = this.el.object3D.position;
-    
+
     // IMPORTANT: Increase the ray start height during jumps
     const rayStartHeight = (this.isJumping || this.isFalling) ? 1.0 : 0.5;
     const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + rayStartHeight, currentPos.z);
@@ -1035,11 +1246,15 @@ const JumpControl = {
 
     if (intersects.length > 0) {
       const hitPoint = intersects[0].point;
-      
+
       // During jumps, only adjust Y if we're actually falling through floor
       if (this.isJumping || this.isFalling) {
         if (currentPos.y < hitPoint.y) {
-          console.warn('Jump Safety: Preventing fall-through, adjusting Y position');
+          if (window.JumpDebug) {
+            window.JumpDebug.safety('JumpControl', 'Preventing fall-through, adjusting Y position');
+          } else {
+            console.warn('Jump Safety: Preventing fall-through, adjusting Y position');
+          }
           this.el.object3D.position.y = hitPoint.y;
         }
       } else {
@@ -1061,7 +1276,11 @@ const JumpControl = {
   performWideGroundSearch: function() {
     if (this.navmeshObjects.length === 0) return;
 
-    console.warn('WIDE GROUND SEARCH: Looking for ground in wider area');
+    if (window.JumpDebug) {
+      window.JumpDebug.safety('JumpControl', 'Looking for ground in wider area');
+    } else {
+      console.warn('WIDE GROUND SEARCH: Looking for ground in wider area');
+    }
 
     const currentPos = this.el.object3D.position;
     const searchRadius = 0.5; // Search in a 0.5 unit radius
@@ -1094,8 +1313,14 @@ const JumpControl = {
       if (intersects.length > 0) {
         // Ground found in this direction
         const hitPoint = intersects[0].point;
-        console.warn('WIDE GROUND SEARCH: Found ground at',
-                    hitPoint.x.toFixed(2), hitPoint.y.toFixed(2), hitPoint.z.toFixed(2));
+
+        if (window.JumpDebug) {
+          window.JumpDebug.safety('JumpControl',
+            `Found ground at ${hitPoint.x.toFixed(2)}, ${hitPoint.y.toFixed(2)}, ${hitPoint.z.toFixed(2)}`);
+        } else {
+          console.warn('WIDE GROUND SEARCH: Found ground at',
+                      hitPoint.x.toFixed(2), hitPoint.y.toFixed(2), hitPoint.z.toFixed(2));
+        }
 
         // Move player to this position
         this.el.object3D.position.copy(hitPoint);
@@ -1108,16 +1333,28 @@ const JumpControl = {
           this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
         }
 
-        console.warn('WIDE GROUND SEARCH: Recovered player position');
+        if (window.JumpDebug) {
+          window.JumpDebug.safety('JumpControl', 'Recovered player position');
+        } else {
+          console.warn('WIDE GROUND SEARCH: Recovered player position');
+        }
         return true;
       }
     }
 
-    console.warn('WIDE GROUND SEARCH: Failed to find ground in wider area');
+    if (window.JumpDebug) {
+      window.JumpDebug.error('JumpControl', 'Failed to find ground in wider area');
+    } else {
+      console.warn('WIDE GROUND SEARCH: Failed to find ground in wider area');
+    }
 
     // Last resort - use last valid position if available
     if (this.lastValidPosition && this.lastValidPosition.y > 0) {
-      console.warn('RECOVERY: Using last valid position as fallback');
+      if (window.JumpDebug) {
+        window.JumpDebug.safety('JumpControl', 'Using last valid position as fallback');
+      } else {
+        console.warn('RECOVERY: Using last valid position as fallback');
+      }
       this.el.object3D.position.copy(this.lastValidPosition);
       return true;
     }

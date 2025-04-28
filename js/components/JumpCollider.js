@@ -5,12 +5,15 @@
  * collisions with walls during jumps and triggers an immediate landing.
  */
 
+// JumpDebug utility is attached to the window object in JumpDebug.js
+// Make sure to include the script in your HTML before this component
+
 const JumpCollider = {
   schema: {
     enabled: { type: 'boolean', default: true },
     height: { type: 'number', default: 1.6 },
-    radius: { type: 'number', default: 0.3 }, // REDUCED radius to prevent false collisions
-    opacity: { type: 'number', default: 0.2 }
+    radius: { type: 'number', default: 0.3 }, // Optimized radius for accurate collision detection
+    opacity: { type: 'number', default: 0 }   // Default to invisible (0 opacity)
   },
 
   init: function() {
@@ -86,19 +89,18 @@ const JumpCollider = {
     if (!this.data.enabled || !this.collider.object3D) return { collision: false };
 
     const position = this.el.object3D.position.clone();
-    
+
     // Get all static objects (walls, etc.)
     const walls = Array.from(document.querySelectorAll('.blocker, [physx-body="type: static"], .venue-collider'));
-    
+
     // Filter out objects that don't have object3D
     const validWalls = walls.filter(el => el.object3D);
-    
-    // IMPORTANT: Reduce the collision radius and implement hit filtering
+
+    // Use a slightly reduced collision radius for more precise hit detection
     const collisionRadius = this.data.radius * 0.7;
-    
-    let closestCollision = null;
+
     let closestDistance = Infinity;
-    
+
     // Track all hits within a small threshold to handle multiple colliders
     const hitThreshold = 0.1; // 10cm threshold
     const nearbyHits = [];
@@ -106,12 +108,12 @@ const JumpCollider = {
     for (const direction of this.directions) {
       this.raycaster.set(position, direction);
       this.raycaster.far = collisionRadius;
-      
+
       const intersections = this.raycaster.intersectObjects(
         validWalls.map(el => el.object3D),
         true
       );
-      
+
       // Process all hits within threshold
       for (const hit of intersections) {
         if (hit.distance < closestDistance + hitThreshold) {
@@ -119,7 +121,7 @@ const JumpCollider = {
         }
       }
     }
-    
+
     // If we have multiple nearby hits, average their normals
     if (nearbyHits.length > 0) {
       const avgNormal = new THREE.Vector3();
@@ -129,12 +131,12 @@ const JumpCollider = {
         }
       });
       avgNormal.divideScalar(nearbyHits.length).normalize();
-      
+
       // Use the closest hit point for position
-      const closest = nearbyHits.reduce((prev, curr) => 
+      const closest = nearbyHits.reduce((prev, curr) =>
         prev.distance < curr.distance ? prev : curr
       );
-      
+
       return {
         collision: true,
         normal: avgNormal,
@@ -148,10 +150,20 @@ const JumpCollider = {
 
   showCollider: function() {
     if (this.collider) {
-      this.collider.setAttribute('visible', true);
-      console.log('Showing jump collider');
+      // Only show the collider if debug mode is enabled
+      if (window.JumpDebug && window.JumpDebug.enabled) {
+        this.collider.setAttribute('visible', true);
+        window.JumpDebug.info('JumpCollider', 'Showing jump collider (debug mode)');
+      } else {
+        // Keep the collider invisible in normal gameplay
+        this.collider.setAttribute('visible', false);
+      }
     } else {
-      console.warn('Cannot show collider - it does not exist');
+      if (window.JumpDebug) {
+        window.JumpDebug.warn('JumpCollider', 'Cannot show collider - it does not exist');
+      } else {
+        console.warn('Cannot show collider - it does not exist');
+      }
       // Recreate the collider if it doesn't exist
       this.recreateCollider();
     }
@@ -161,12 +173,20 @@ const JumpCollider = {
     if (this.collider) {
       this.collider.setAttribute('visible', false);
     } else {
-      console.warn('Cannot hide collider - it does not exist');
+      if (window.JumpDebug) {
+        window.JumpDebug.warn('JumpCollider', 'Cannot hide collider - it does not exist');
+      } else {
+        console.warn('Cannot hide collider - it does not exist');
+      }
     }
   },
 
   recreateCollider: function() {
-    console.log('Recreating jump collider');
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpCollider', 'Recreating jump collider');
+    } else {
+      console.log('Recreating jump collider');
+    }
 
     // Remove old collider if it exists
     if (this.collider && this.collider.parentNode) {
@@ -184,10 +204,10 @@ const JumpCollider = {
       radius: this.data.radius
     });
 
-    // Make the collider semi-transparent
+    // Make the collider invisible by default, only visible in debug mode
     this.collider.setAttribute('material', {
       color: 'red',
-      opacity: this.data.opacity,
+      opacity: 0, // Start with zero opacity
       transparent: true
     });
 
@@ -238,8 +258,11 @@ const JumpCollider = {
         radius: this.data.radius
       });
 
+      // Only show the collider if debug mode is enabled
+      const opacity = (window.JumpDebug && window.JumpDebug.enabled) ? 0.2 : 0;
+
       this.collider.setAttribute('material', {
-        opacity: this.data.opacity
+        opacity: opacity
       });
 
       this.collider.setAttribute('position', {
@@ -263,7 +286,11 @@ const JumpCollider = {
 
     // Check if collider is still attached to the parent
     if (!this.collider.parentNode || this.collider.parentNode !== this.el) {
-      console.warn('Jump collider detached, re-attaching');
+      if (window.JumpDebug) {
+        window.JumpDebug.warn('JumpCollider', 'Jump collider detached, re-attaching');
+      } else {
+        console.warn('Jump collider detached, re-attaching');
+      }
 
       // Re-attach the collider if it's detached
       if (this.collider.parentNode) {
@@ -282,7 +309,12 @@ const JumpCollider = {
         Math.abs(currentPos.y - expectedY) > tolerance ||
         Math.abs(currentPos.z) > tolerance) {
 
-      console.log('Correcting jump collider position');
+      if (window.JumpDebug) {
+        window.JumpDebug.position('JumpCollider', 'Correcting jump collider position');
+      } else {
+        console.log('Correcting jump collider position');
+      }
+
       this.collider.setAttribute('position', {
         x: 0,
         y: expectedY,

@@ -80,7 +80,11 @@ const PlayerCollider = {
     // Get the jump controller component
     const jumpControl = this.el.components['jump-control'];
     if (jumpControl && jumpControl.isJumping) {
-      console.log('PlayerCollider: Collision detected during jump');
+      if (window.JumpDebug) {
+        window.JumpDebug.collision('PlayerCollider', 'Collision detected during jump');
+      } else {
+        console.log('PlayerCollider: Collision detected during jump');
+      }
 
       // Notify the jump controller about the collision
       jumpControl.handleWallCollision();
@@ -91,9 +95,6 @@ const PlayerCollider = {
     // This method can be called to update the collider position
     // if the camera rig moves in ways other than through the physics system
     if (this.collider && this.data.enabled) {
-      // Get the current position of the camera rig
-      const rigPosition = this.el.object3D.position;
-
       // Update the collider's position to match the camera rig's position
       // but maintain its vertical offset
       this.collider.setAttribute('position', {
