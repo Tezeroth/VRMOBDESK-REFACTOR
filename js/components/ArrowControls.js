@@ -185,10 +185,6 @@ const ArrowControls = {
    * @param {Object} controls - The desktop-mobile-controls component
    */
   handlePickupButtonDown: function(controls) {
-    // Check if player is jumping - disable starting a throw during jumps
-    const jumpControl = document.querySelector('#cameraRig')?.components['jump-control'];
-    const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
-
     if (controls.stateMachine.is('idle')) {
       // Attempt pickup
       const cursor = document.querySelector('#cursor');
@@ -200,12 +196,10 @@ const ArrowControls = {
       } else {
         console.log("Action Button: Pickup attempted, but no pickupable object found at cursor.");
       }
-    } else if (controls.stateMachine.is('holding') && !isJumping) {
-      // Start charging throw - only if not jumping
+    } else if (controls.stateMachine.is('holding')) {
+      // Start charging throw
       console.log("Mobile: Start charging throw...");
       controls.stateMachine.transition('onCharge');
-    } else if (controls.stateMachine.is('holding') && isJumping) {
-      console.log("Mobile: Cannot start throw while jumping");
     }
   },
 
@@ -226,27 +220,12 @@ const ArrowControls = {
    * @param {Object} controls - The desktop-mobile-controls component
    */
   handleExamineButtonDown: function(controls) {
-    // Check if player is jumping
-    const jumpControl = document.querySelector('#cameraRig')?.components['jump-control'];
-    const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
-
-    // Always allow canceling a throw charge, even during jumps
-    if (controls.stateMachine.is('charging')) {
-      console.log("Action Button: Cancelling throw charge");
-      controls.stateMachine.transition('onCancel');
-      return;
-    }
-
-    // Disable entering/exiting examine mode during jumps
-    if (isJumping) {
-      console.log("Action Button: Ignoring examine button during jump");
-      return;
-    }
-
-    // Normal behavior when not jumping
     if (controls.stateMachine.is('holding')) {
       console.log("Action Button: Toggling inspection mode (entering)");
       controls.stateMachine.transition('onInspect');
+    } else if (controls.stateMachine.is('charging')) {
+      console.log("Action Button: Cancelling throw charge");
+      controls.stateMachine.transition('onCancel');
     } else if (controls.stateMachine.is('inspecting')) {
       console.log("Action Button: Toggling inspection mode (exiting)");
       controls.stateMachine.transition('onExitInspect');
