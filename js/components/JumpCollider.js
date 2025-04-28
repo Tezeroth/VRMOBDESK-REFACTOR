@@ -9,7 +9,7 @@ const JumpCollider = {
   schema: {
     enabled: { type: 'boolean', default: true },
     height: { type: 'number', default: 1.6 },
-    radius: { type: 'number', default: 0.5 },
+    radius: { type: 'number', default: 0.3 }, // REDUCED radius to prevent false collisions
     opacity: { type: 'number', default: 0.2 }
   },
 
@@ -56,13 +56,25 @@ const JumpCollider = {
     // We'll use raycasting for collision detection
     this.raycaster = new THREE.Raycaster();
 
-    // Directions for raycasting (8 directions around the cylinder)
+    // Directions for raycasting (8 horizontal directions + 4 diagonal down directions)
     this.directions = [];
+
+    // Horizontal directions (8 directions around the cylinder)
     for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
       this.directions.push(new THREE.Vector3(
         Math.cos(angle),
         0,
         Math.sin(angle)
+      ).normalize());
+    }
+
+    // Add diagonal downward directions to detect wall-floor junctions
+    // These are crucial for preventing falling through the floor
+    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 2) {
+      this.directions.push(new THREE.Vector3(
+        Math.cos(angle) * 0.7,  // Reduce horizontal component
+        -0.7,                   // Add downward component
+        Math.sin(angle) * 0.7   // Reduce horizontal component
       ).normalize());
     }
 
@@ -81,10 +93,18 @@ const JumpCollider = {
     // Filter out objects that don't have object3D
     const validWalls = walls.filter(el => el.object3D);
 
+    // IMPORTANT: Reduce the collision radius to make it less sensitive
+    // This will prevent false positives that were stopping jumps
+    const collisionRadius = this.data.radius * 0.7; // Use 70% of the original radius
+
+    // Track the closest collision
+    let closestCollision = null;
+    let closestDistance = Infinity;
+
     // Check for collisions in all directions
     for (const direction of this.directions) {
       this.raycaster.set(position, direction);
-      this.raycaster.far = this.data.radius;
+      this.raycaster.far = collisionRadius; // Use the reduced radius
 
       // Check for intersections
       const intersections = this.raycaster.intersectObjects(
@@ -92,91 +112,179 @@ const JumpCollider = {
         true // Check descendants
       );
 
-      // If we hit a wall, log it and return collision info
+      // If we hit a wall, process the collision
       if (intersections.length > 0) {
-        console.log('Wall collision detected!', intersections[0].object);
+        const intersection = intersections[0];
+        const distance = intersection.distance;
 
-        // Calculate the safe position (slightly back from the collision point)
-        const collisionPoint = intersections[0].point;
-        const safeOffset = 0.2; // Move back 0.2 units from the collision
-
-        // Calculate direction from collision point back to player
-        const backDirection = new THREE.Vector3()
-          .subVectors(position, collisionPoint)
-          .normalize();
-
-        // Calculate safe position
-        const safePosition = new THREE.Vector3()
-          .addVectors(
-            collisionPoint,
-            backDirection.multiplyScalar(safeOffset)
-          );
-
-        // Ensure the safe position is valid (not NaN)
-        if (isNaN(safePosition.x) || isNaN(safePosition.y) || isNaN(safePosition.z)) {
-          console.warn('Invalid safe position calculated, using player position');
-          safePosition.copy(position);
-        }
-
-        // Log the safe position for debugging
-        console.log('Calculated safe position:', safePosition);
-
-        // Store the direction vector for debugging
-        this.lastCollisionDirection = direction.clone();
-        this.lastCollisionPoint = collisionPoint.clone();
-
-        // Calculate the normal vector (perpendicular to the wall)
-        // In this case, it's the opposite of the direction we're checking
-        const normal = direction.clone().negate();
-
-        return {
-          collision: true,
-          collisionPoint: collisionPoint,
-          safePosition: safePosition,
-          direction: direction.clone(),
-          normal: normal
-        };
-      }
-    }
-
-    // Also check for collisions with the navmesh
-    const navmesh = document.querySelector('.navmesh');
-    if (navmesh && navmesh.object3D) {
-      for (const direction of this.directions) {
-        this.raycaster.set(position, direction);
-        this.raycaster.far = this.data.radius;
-
-        const intersections = this.raycaster.intersectObject(navmesh.object3D, true);
-
-        if (intersections.length > 0) {
-          console.log('Navmesh collision detected!');
-
-          // Calculate the safe position (slightly back from the collision point)
-          const collisionPoint = intersections[0].point;
-          const safeOffset = 0.2; // Move back 0.2 units from the collision
+        // Check if this is the closest collision so far
+        if (distance < closestDistance) {
+          const collisionPoint = intersection.point;
 
           // Calculate direction from collision point back to player
           const backDirection = new THREE.Vector3()
             .subVectors(position, collisionPoint)
             .normalize();
 
-          // Calculate safe position
+          // Calculate safe position (slightly back from the collision point)
+          const safeOffset = 0.2; // Move back 0.2 units from the collision
           const safePosition = new THREE.Vector3()
             .addVectors(
               collisionPoint,
               backDirection.multiplyScalar(safeOffset)
             );
 
-          return {
+          // Ensure the safe position is valid (not NaN)
+          if (isNaN(safePosition.x) || isNaN(safePosition.y) || isNaN(safePosition.z)) {
+            console.warn('Invalid safe position calculated, skipping this collision');
+            continue;
+          }
+
+          // FIXED: Calculate the normal vector (perpendicular to the wall)
+          // Always ensure the normal is horizontal (in the XZ plane)
+          let normal;
+
+          // For all rays, we want a horizontal normal to ensure proper wall sliding
+          // This is critical for preventing falling through floors
+          normal = new THREE.Vector3(direction.x, 0, direction.z).normalize().negate();
+
+          // Log the normal for debugging
+          console.log('Normal vector (horizontal only):', {
+            x: normal.x.toFixed(2),
+            y: normal.y.toFixed(2), // Should always be 0
+            z: normal.z.toFixed(2)
+          });
+
+          // Store this as the closest collision
+          closestCollision = {
             collision: true,
             collisionPoint: collisionPoint,
-            safePosition: safePosition
+            safePosition: safePosition,
+            direction: direction.clone(),
+            normal: normal,
+            distance: distance, // Include the distance in the result
+            isFloorJunction: Math.abs(direction.y) > 0.1 // Flag if this is a wall-floor junction
           };
+
+          closestDistance = distance;
+
+          // Debug logging
+          console.log('Collision detected!', intersection.object);
+          console.log('Distance:', distance.toFixed(3));
+          console.log('Direction:', {
+            x: direction.x.toFixed(2),
+            y: direction.y.toFixed(2),
+            z: direction.z.toFixed(2)
+          });
+
+          // Store for debugging
+          this.lastCollisionDirection = direction.clone();
+          this.lastCollisionPoint = collisionPoint.clone();
         }
       }
     }
 
-    return { collision: false };
+    // If we found a collision, return it
+    if (closestCollision) {
+      // Special handling for wall-floor junctions
+      if (closestCollision.isFloorJunction) {
+        console.warn('Wall-floor junction detected! Using special handling');
+
+        // For wall-floor junctions, we want to push the player up slightly
+        // to prevent falling through the floor
+        closestCollision.safePosition.y += 0.05;
+      }
+
+      return closestCollision;
+    }
+
+    // Also check for collisions with the navmesh
+    const navmesh = document.querySelector('.navmesh');
+    if (navmesh && navmesh.object3D) {
+      // Track the closest navmesh collision
+      let closestNavmeshCollision = null;
+      let closestNavmeshDistance = Infinity;
+
+      for (const direction of this.directions) {
+        this.raycaster.set(position, direction);
+        this.raycaster.far = collisionRadius; // Use the reduced radius
+
+        const intersections = this.raycaster.intersectObject(navmesh.object3D, true);
+
+        if (intersections.length > 0) {
+          const intersection = intersections[0];
+          const distance = intersection.distance;
+
+          // Check if this is the closest collision so far
+          if (distance < closestNavmeshDistance) {
+            const collisionPoint = intersection.point;
+
+            // Calculate direction from collision point back to player
+            const backDirection = new THREE.Vector3()
+              .subVectors(position, collisionPoint)
+              .normalize();
+
+            // Calculate safe position (slightly back from the collision point)
+            const safeOffset = 0.2; // Move back 0.2 units from the collision
+            const safePosition = new THREE.Vector3()
+              .addVectors(
+                collisionPoint,
+                backDirection.multiplyScalar(safeOffset)
+              );
+
+            // FIXED: Calculate normal (for navmesh, ensure it's horizontal)
+            let normal;
+            if (intersection.face) {
+              // Use face normal but project it to the XZ plane
+              normal = new THREE.Vector3(
+                intersection.face.normal.x,
+                0, // Force Y to 0 to keep it horizontal
+                intersection.face.normal.z
+              ).normalize();
+            } else {
+              // Fallback to using direction, but ensure it's horizontal
+              normal = new THREE.Vector3(
+                direction.x,
+                0, // Force Y to 0
+                direction.z
+              ).normalize().negate();
+            }
+
+            // Log the normal for debugging
+            console.log('Navmesh normal (horizontal only):', {
+              x: normal.x.toFixed(2),
+              y: normal.y.toFixed(2), // Should always be 0
+              z: normal.z.toFixed(2)
+            });
+
+            // Store this as the closest navmesh collision
+            closestNavmeshCollision = {
+              collision: true,
+              collisionPoint: collisionPoint,
+              safePosition: safePosition,
+              direction: direction.clone(),
+              normal: normal,
+              distance: distance, // Include the distance in the result
+              isNavmesh: true
+            };
+
+            closestNavmeshDistance = distance;
+
+            console.log('Navmesh collision detected!');
+            console.log('Distance:', distance.toFixed(3));
+          }
+        }
+      }
+
+      // If we found a navmesh collision and it's closer than any wall collision
+      if (closestNavmeshCollision &&
+          (!closestCollision || closestNavmeshDistance < closestDistance)) {
+        return closestNavmeshCollision;
+      }
+    }
+
+    // Return the closest collision we found, or no collision
+    return closestCollision || { collision: false };
   },
 
   showCollider: function() {

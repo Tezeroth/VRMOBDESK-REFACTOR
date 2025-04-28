@@ -455,14 +455,43 @@ const JumpControl = {
     // Store current Y position before resetting
     const currentY = this.el.object3D.position.y;
 
-    // IMMEDIATELY re-enable the navmesh constraint
+    // Only add a safety boost if we're very close to the floor
+    // This helps prevent falling through while still allowing normal jumps
+    if (currentY - this.startY < 0.1) {
+      console.warn('Too close to floor during wall collision, adding safety boost');
+      this.el.object3D.position.y = this.startY + 0.1;
+    }
+
+    // Re-enable the navmesh constraint
     if (this.el.hasAttribute('simple-navmesh-constraint')) {
-      console.log('Re-enabling navmesh constraint immediately');
+      console.log('Re-enabling navmesh constraint');
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
     }
 
-    // Keep the current Y position for the drop animation
-    this.el.object3D.position.y = currentY;
+    // Reset jumping state
+    this.isJumping = false;
+    this.isFalling = false;
+
+    // Zero out vertical velocity
+    this.yVelocity = 0;
+
+    // Start a drop animation
+    this.el.setAttribute('animation__drop', {
+      property: 'object3D.position.y',
+      from: this.el.object3D.position.y,
+      to: this.startY,
+      dur: 300,
+      easing: 'easeInOutQuad',
+      autoplay: true
+    });
+
+    // Listen for the drop animation to complete
+    const onDropComplete = () => {
+      this.el.removeEventListener('animationcomplete__drop', onDropComplete);
+      this.resetJump();
+    };
+
+    this.el.addEventListener('animationcomplete__drop', onDropComplete);
   },
 
   /**
@@ -472,6 +501,10 @@ const JumpControl = {
     if (!this.isJumping) return;
 
     console.log('Wall collision detected by PlayerCollider');
+
+    // CRITICAL: Lift the player slightly to prevent falling through floor
+    // This small Y boost helps ensure the player stays above the floor
+    this.el.object3D.position.y += 0.1;
 
     // End the jump immediately
     this.endJumpEarly();
@@ -493,6 +526,11 @@ const JumpControl = {
     // Listen for the drop animation to complete
     const onDropComplete = () => {
       this.el.removeEventListener('animationcomplete__drop', onDropComplete);
+
+      // Perform a ground check after landing to ensure we're on solid ground
+      this.performGroundCheck();
+
+      // Complete the jump reset
       this.resetJump();
     };
 
@@ -506,6 +544,23 @@ const JumpControl = {
 
     // Reset jumping state immediately
     this.isJumping = false;
+    this.isFalling = false;
+
+    // Zero out any velocity
+    this.yVelocity = 0;
+
+    // If we have movement controls, zero out horizontal velocity
+    const movementControls = this.el.components['movement-controls'];
+    if (movementControls && movementControls.velocity) {
+      movementControls.velocity.x = 0;
+      movementControls.velocity.z = 0;
+    }
+
+    // IMMEDIATELY re-enable the navmesh constraint
+    if (this.el.hasAttribute('simple-navmesh-constraint')) {
+      console.log('Re-enabling navmesh constraint immediately');
+      this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+    }
   },
 
   /**
@@ -684,36 +739,75 @@ const JumpControl = {
               movementControls.velocity.x = slide.x;
               movementControls.velocity.z = slide.z;
 
-              // CRITICAL: Push the player TOWARDS the wall slightly to ensure they stay inside the navmesh
-              // This is the key to preventing phasing through walls after landing
-              const pushDistance = -0.05; // Negative value to push towards the wall, not away from it
+              // ROBUST APPROACH: Push away from the wall based on collision point
+              console.log('Wall collision - using robust push');
 
-              // Log position before push
-              const posBeforePush = {
-                x: this.el.object3D.position.x.toFixed(3),
-                y: this.el.object3D.position.y.toFixed(3),
-                z: this.el.object3D.position.z.toFixed(3)
-              };
+              // Get the collision point and player position
+              const playerPos = this.el.object3D.position.clone();
+              const collisionPoint = collisionResult.collisionPoint;
 
-              // Apply the push
-              this.el.object3D.position.x += normal.x * pushDistance;
-              this.el.object3D.position.z += normal.z * pushDistance;
+              if (collisionPoint) {
+                // Calculate direction from collision point to player (this is the direction to push)
+                const pushDir = new THREE.Vector3()
+                  .subVectors(playerPos, collisionPoint)
+                  .normalize();
 
-              // Log position after push
-              const posAfterPush = {
-                x: this.el.object3D.position.x.toFixed(3),
-                y: this.el.object3D.position.y.toFixed(3),
-                z: this.el.object3D.position.z.toFixed(3)
-              };
+                // Only use the horizontal components (X and Z)
+                pushDir.y = 0;
 
-              console.warn('WALL SLIDE: Pushing player towards wall by 0.05 units');
-              console.warn('Normal vector:', {
-                x: normal.x.toFixed(3),
-                y: normal.y.toFixed(3),
-                z: normal.z.toFixed(3)
-              });
-              console.warn('Position before push:', posBeforePush);
-              console.warn('Position after push:', posAfterPush);
+                // If the direction is too small, use a default direction
+                if (pushDir.length() < 0.1) {
+                  console.warn('Push direction too small, using default');
+                  pushDir.set(1, 0, 0); // Default to +X direction
+                }
+
+                pushDir.normalize();
+
+                // SMOOTH APPROACH: Use a gentler push for wall sliding
+                // This returns to the smoother sliding behavior
+                const pushDistance = 0.1; // Small push for smooth sliding
+                this.el.object3D.position.x += pushDir.x * pushDistance;
+                this.el.object3D.position.z += pushDir.z * pushDistance;
+
+                // CRITICAL FIX: Ensure Y position is at least startY
+                // This prevents falling through the floor
+                console.warn('WALL COLLISION Y CHECK - Current Y:', this.el.object3D.position.y.toFixed(3),
+                           'startY:', this.startY.toFixed(3));
+
+                // Always set Y to at least startY + a small buffer
+                this.el.object3D.position.y = Math.max(this.el.object3D.position.y, this.startY + 0.1);
+
+                console.warn('WALL COLLISION Y CHECK - After adjustment Y:', this.el.object3D.position.y.toFixed(3));
+
+                console.log('Pushed away from wall in direction:', {
+                  x: pushDir.x.toFixed(2),
+                  z: pushDir.z.toFixed(2)
+                });
+
+                // Immediately re-enable navmesh constraint to prevent falling
+                if (this.el.hasAttribute('simple-navmesh-constraint')) {
+                  this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+                }
+              } else {
+                // Fallback if no collision point: push in multiple directions
+                console.log('No collision point - using multi-directional push');
+
+                // Use a gentler push in the fallback case too
+                const pushAmount = 0.1;
+                this.el.object3D.position.x += pushAmount; // +X
+                // CRITICAL FIX: Ensure Y position is at least startY in fallback case
+                console.warn('FALLBACK Y CHECK - Current Y:', this.el.object3D.position.y.toFixed(3),
+                           'startY:', this.startY.toFixed(3));
+
+                this.el.object3D.position.y = Math.max(this.el.object3D.position.y, this.startY + 0.1);
+
+                console.warn('FALLBACK Y CHECK - After adjustment Y:', this.el.object3D.position.y.toFixed(3));
+
+                // Immediately re-enable navmesh constraint
+                if (this.el.hasAttribute('simple-navmesh-constraint')) {
+                  this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+                }
+              }
 
               // Check if navmesh constraint is enabled
               const navmeshConstraint = this.el.components['simple-navmesh-constraint'];
@@ -729,8 +823,8 @@ const JumpControl = {
               this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
             }
 
-            // End the jump and drop to the ground
-            this.endJumpEarly();
+            // Just log the collision but don't end the jump
+            console.log('Wall collision without normal vector');
           }
         }
       }
@@ -787,6 +881,47 @@ const JumpControl = {
 
     // Reset justLanded flag at the end of tick
     this.justLanded = false;
+
+    // ADDED: Safety check to detect falling through the floor
+    // This runs periodically to catch any cases where the player falls through
+    if (!this.isJumping && !this.isFalling) {
+      // Only run this check every 10 frames to avoid performance impact
+      if (time % 10 === 0) {
+        this.checkForFallingThroughFloor();
+      }
+    }
+  },
+
+  /**
+   * Check if the player has fallen through the floor and recover if needed
+   */
+  checkForFallingThroughFloor: function() {
+    // Skip if we're intentionally jumping or falling
+    if (this.isJumping || this.isFalling) return;
+
+    // SIMPLE APPROACH: Just make sure the player is at or above the floor level
+    const currentPos = this.el.object3D.position;
+
+    // If player is below the expected floor level, move them back up
+    if (currentPos.y < this.startY) {
+      console.warn('SAFETY: Player below floor level - repositioning');
+      console.warn('Current Y:', currentPos.y.toFixed(3), 'Expected floor Y:', this.startY.toFixed(3));
+
+      // Move player back to floor level
+      this.el.object3D.position.y = this.startY;
+
+      // Re-enable the navmesh constraint
+      if (this.el.hasAttribute('simple-navmesh-constraint')) {
+        this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+      }
+
+      console.warn('SAFETY: Repositioned player to floor level');
+    }
+
+    // Store current position as valid if we're on the floor
+    if (currentPos.y >= this.startY) {
+      this.lastValidPosition.copy(this.el.object3D.position);
+    }
   },
 
   // Function to find navmesh objects
@@ -811,11 +946,193 @@ const JumpControl = {
     // Position player correctly on the ground
     // Set the RIG's Y position directly to the hit point Y.
     // The camera's internal offset handles eye height.
+    console.warn('LANDING Y CHECK - Current Y:', this.el.object3D.position.y.toFixed(3),
+               'hitPoint Y:', hitPoint.y.toFixed(3), 'startY:', this.startY.toFixed(3));
+
+    // CRITICAL: Update startY to match the new ground level
+    // This ensures all future checks use the correct floor height
+    this.startY = hitPoint.y;
+
     this.el.object3D.position.y = hitPoint.y;
+
+    console.warn('LANDING Y CHECK - After adjustment Y:', this.el.object3D.position.y.toFixed(3));
+
+    // CRITICAL FIX: Immediately re-enable navmesh constraint before anything else
+    // This ensures the player stays on valid ground
+    if (this.el.hasAttribute('simple-navmesh-constraint')) {
+      console.log('LANDING: Immediately re-enabling navmesh constraint');
+      this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+    }
+
+    // Re-enabled with modifications: Safety check for wall collisions at landing point
+    // This is important for preventing falling through the floor
+    this.checkLandingSafety();
 
     // Reset the jump state (enables navmesh etc.)
     this.resetJump();
   },
+
+  /**
+   * Safety check to ensure we don't fall through the floor when landing near a wall
+   */
+  checkLandingSafety: function() {
+    console.log('Performing landing safety check');
+
+    // Use the jump collider to check for wall collisions
+    const jumpCollider = this.el.components['jump-collider'];
+    if (!jumpCollider) return;
+
+    // Show the collider temporarily
+    jumpCollider.showCollider();
+
+    // Check for collisions
+    const collisionResult = jumpCollider.checkCollisions();
+    if (collisionResult.collision) {
+      console.warn('LANDING SAFETY: Wall collision detected at landing point!');
+
+      // If we have a normal vector, move slightly away from the wall
+      if (collisionResult.normal) {
+        const safetyPushDistance = 0.05; // Reduced push distance to minimize jolt
+
+        // Apply the push
+        this.el.object3D.position.x += collisionResult.normal.x * safetyPushDistance;
+        this.el.object3D.position.z += collisionResult.normal.z * safetyPushDistance;
+
+        console.warn('LANDING SAFETY: Pushed player away from wall by', safetyPushDistance);
+      }
+      // If we have a safe position, use it
+      else if (collisionResult.safePosition) {
+        this.el.object3D.position.x = collisionResult.safePosition.x;
+        this.el.object3D.position.z = collisionResult.safePosition.z;
+        console.warn('LANDING SAFETY: Using safe position from collision result');
+      }
+
+      // Double-check ground position after adjustment
+      this.performGroundCheck();
+    }
+
+    // Hide the collider
+    jumpCollider.hideCollider();
+  },
+
+  /**
+   * Perform a ground check and adjust Y position if needed
+   */
+  performGroundCheck: function() {
+    if (this.navmeshObjects.length === 0) {
+      console.warn('GROUND CHECK: No navmesh objects found!');
+      return;
+    }
+
+    const currentPos = this.el.object3D.position;
+
+    // Start ray from slightly above current position to avoid starting inside ground
+    const rayOrigin = new THREE.Vector3(currentPos.x, currentPos.y + 0.5, currentPos.z);
+
+    this.fallRaycaster.set(rayOrigin, this.downVector);
+    this.fallRaycaster.far = 2.0; // Check up to 2 units below for more reliable detection
+
+    const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
+
+    if (intersects.length > 0) {
+      // Ground found, adjust position
+      const hitPoint = intersects[0].point;
+      console.warn('GROUND CHECK: Found ground at', hitPoint.y.toFixed(3),
+                  'current Y is', currentPos.y.toFixed(3));
+
+      // Only adjust if we're not already at the right height (with small tolerance)
+      if (Math.abs(currentPos.y - hitPoint.y) > 0.01) {
+        console.warn('GROUND CHECK: Adjusting Y position to', hitPoint.y.toFixed(3));
+        this.el.object3D.position.y = hitPoint.y;
+
+        // Store this as a valid position for recovery
+        this.lastValidPosition.copy(this.el.object3D.position);
+      }
+    } else {
+      console.warn('GROUND CHECK: No ground found below player!');
+
+      // Try a wider search pattern if no ground found directly below
+      this.performWideGroundSearch();
+    }
+  },
+
+  /**
+   * Perform a wider ground search when direct ground check fails
+   * This helps recover from falling through floors
+   */
+  performWideGroundSearch: function() {
+    if (this.navmeshObjects.length === 0) return;
+
+    console.warn('WIDE GROUND SEARCH: Looking for ground in wider area');
+
+    const currentPos = this.el.object3D.position;
+    const searchRadius = 0.5; // Search in a 0.5 unit radius
+    const searchDirections = [
+      new THREE.Vector3(1, 0, 0),   // +X
+      new THREE.Vector3(-1, 0, 0),  // -X
+      new THREE.Vector3(0, 0, 1),   // +Z
+      new THREE.Vector3(0, 0, -1),  // -Z
+      new THREE.Vector3(1, 0, 1).normalize(),    // +X+Z
+      new THREE.Vector3(-1, 0, 1).normalize(),   // -X+Z
+      new THREE.Vector3(1, 0, -1).normalize(),   // +X-Z
+      new THREE.Vector3(-1, 0, -1).normalize()   // -X-Z
+    ];
+
+    // Try each search direction
+    for (const dir of searchDirections) {
+      // Offset position in search direction
+      const searchPos = new THREE.Vector3()
+        .copy(currentPos)
+        .add(dir.clone().multiplyScalar(searchRadius));
+
+      // Start ray from above the search position
+      const rayOrigin = new THREE.Vector3(searchPos.x, currentPos.y + 0.5, searchPos.z);
+
+      this.fallRaycaster.set(rayOrigin, this.downVector);
+      this.fallRaycaster.far = 2.0;
+
+      const intersects = this.fallRaycaster.intersectObjects(this.navmeshObjects, true);
+
+      if (intersects.length > 0) {
+        // Ground found in this direction
+        const hitPoint = intersects[0].point;
+        console.warn('WIDE GROUND SEARCH: Found ground at',
+                    hitPoint.x.toFixed(2), hitPoint.y.toFixed(2), hitPoint.z.toFixed(2));
+
+        // Move player to this position
+        this.el.object3D.position.copy(hitPoint);
+
+        // Store this as a valid position
+        this.lastValidPosition.copy(hitPoint);
+
+        // Re-enable navmesh constraint
+        if (this.el.hasAttribute('simple-navmesh-constraint')) {
+          this.el.setAttribute('simple-navmesh-constraint', 'enabled', true);
+        }
+
+        console.warn('WIDE GROUND SEARCH: Recovered player position');
+        return true;
+      }
+    }
+
+    console.warn('WIDE GROUND SEARCH: Failed to find ground in wider area');
+
+    // Last resort - use last valid position if available
+    if (this.lastValidPosition && this.lastValidPosition.y > 0) {
+      console.warn('RECOVERY: Using last valid position as fallback');
+      this.el.object3D.position.copy(this.lastValidPosition);
+      return true;
+    }
+
+    return false;
+  },
 };
 
 export default JumpControl;
+
+
+
+
+
+
+
