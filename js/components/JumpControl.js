@@ -35,6 +35,25 @@ const JumpControl = {
       // window.JumpDebug.disableLevels(['position']); // Example: disable position logs
     }
 
+    // Initialize animation templates for reuse
+    this.animationTemplates = {
+      up: {
+        property: 'object3D.position.y',
+        easing: 'easeOutCubic',
+        autoplay: true
+      },
+      down: {
+        property: 'object3D.position.y',
+        easing: 'easeInOutQuad',
+        autoplay: true
+      },
+      drop: {
+        property: 'object3D.position.y',
+        easing: 'easeInOutQuad',
+        autoplay: true
+      }
+    };
+
     // Initialize state variables
 
     // Jump state tracking
@@ -419,6 +438,24 @@ const JumpControl = {
   },
 
   /**
+   * Clean up animations
+   * @param {Array} types - Array of animation types to clean up (or all if not specified)
+   */
+  cleanupAnimations: function(types) {
+    // If no types specified, clean up all known animation types
+    const animTypes = types || Object.keys(this.animationTemplates);
+
+    // Remove each animation
+    animTypes.forEach(type => {
+      this.el.removeAttribute(`animation__${type}`);
+    });
+
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpControl', `Cleaned up animations: ${animTypes.join(', ')}`);
+    }
+  },
+
+  /**
    * Prepare environment for jump
    */
   prepareForJump: function() {
@@ -428,32 +465,77 @@ const JumpControl = {
       this.el.setAttribute('simple-navmesh-constraint', 'enabled', false);
     }
 
-    // Remove any existing animations first
-    this.el.removeAttribute('animation__up');
-    this.el.removeAttribute('animation__down');
+    // Clean up any existing animations
+    this.cleanupAnimations();
+  },
+
+  /**
+   * Apply an animation using the template system
+   * @param {string} type - The animation type (up, down, drop)
+   * @param {Object} params - The animation parameters to override
+   */
+  applyAnimation: function(type, params) {
+    // Get the template
+    const template = this.animationTemplates[type];
+    if (!template) {
+      console.error(`Animation template '${type}' not found`);
+      return;
+    }
+
+    // Create animation config by combining template with params
+    const animConfig = Object.assign({}, template, params);
+
+    // Apply the animation
+    this.el.setAttribute(`animation__${type}`, animConfig);
+
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpControl', `Applied ${type} animation`);
+    }
+  },
+
+  /**
+   * Set up an animation completion listener
+   * @param {string} type - The animation type (up, down, drop)
+   * @param {Function} callback - The callback to execute when animation completes
+   */
+  onAnimationFinish: function(type, callback) {
+    // Create a one-time event listener
+    const eventName = `animationcomplete__${type}`;
+    const onComplete = () => {
+      // Remove the listener to avoid memory leaks
+      this.el.removeEventListener(eventName, onComplete);
+
+      // Execute the callback
+      callback();
+
+      if (window.JumpDebug && window.JumpDebug.enabled) {
+        window.JumpDebug.info('JumpControl', `Animation ${type} completed`);
+      }
+    };
+
+    // Add the listener
+    this.el.addEventListener(eventName, onComplete);
+
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpControl', `Set up listener for ${type} animation completion`);
+    }
   },
 
   /**
    * Start the jump animation
    */
   startJumpAnimation: function() {
-    // Start up animation with improved easing for more natural movement
-    this.el.setAttribute('animation__up', {
-      property: 'object3D.position.y',
+    // Apply the up animation using the template
+    this.applyAnimation('up', {
       from: this.startY,
       to: this.maxY,
-      dur: this.data.upDuration,
-      easing: 'easeOutCubic', // More pronounced initial acceleration
-      autoplay: true
+      dur: this.data.upDuration
     });
 
-    // Listen for the up animation to complete
-    const onUpComplete = () => {
-      this.el.removeEventListener('animationcomplete__up', onUpComplete);
+    // Set up completion listener using the helper
+    this.onAnimationFinish('up', () => {
       this.onAnimationComplete('up');
-    };
-
-    this.el.addEventListener('animationcomplete__up', onUpComplete);
+    });
   },
 
   /**
@@ -676,23 +758,17 @@ const JumpControl = {
     // Zero out vertical velocity
     this.yVelocity = 0;
 
-    // Start a drop animation
-    this.el.setAttribute('animation__drop', {
-      property: 'object3D.position.y',
+    // Start a drop animation using the template
+    this.applyAnimation('drop', {
       from: this.el.object3D.position.y,
       to: this.startY,
-      dur: 300,
-      easing: 'easeInOutQuad',
-      autoplay: true
+      dur: 300
     });
 
-    // Listen for the drop animation to complete
-    const onDropComplete = () => {
-      this.el.removeEventListener('animationcomplete__drop', onDropComplete);
+    // Set up completion listener using the helper
+    this.onAnimationFinish('drop', () => {
       this.resetJump();
-    };
-
-    this.el.addEventListener('animationcomplete__drop', onDropComplete);
+    });
   },
 
   /**
@@ -736,32 +812,24 @@ const JumpControl = {
     // End the jump immediately
     this.endJumpEarly();
 
-    // Remove any existing animations
-    this.el.removeAttribute('animation__up');
-    this.el.removeAttribute('animation__down');
+    // Clean up any existing animations
+    this.cleanupAnimations(['up', 'down']);
 
     // Start a drop animation with a slightly longer duration for a smoother feel
-    this.el.setAttribute('animation__drop', {
-      property: 'object3D.position.y',
+    this.applyAnimation('drop', {
       from: this.el.object3D.position.y,
       to: this.startY,
-      dur: 300, // Slightly longer drop for smoother feel
-      easing: 'easeInOutQuad', // Smoother easing function
-      autoplay: true
+      dur: 300 // Slightly longer drop for smoother feel
     });
 
-    // Listen for the drop animation to complete
-    const onDropComplete = () => {
-      this.el.removeEventListener('animationcomplete__drop', onDropComplete);
-
+    // Set up completion listener using the helper
+    this.onAnimationFinish('drop', () => {
       // Perform a ground check after landing to ensure we're on solid ground
       this.performGroundCheck();
 
       // Complete the jump reset
       this.resetJump();
-    };
-
-    this.el.addEventListener('animationcomplete__drop', onDropComplete);
+    });
   },
 
   /**
@@ -880,10 +948,8 @@ const JumpControl = {
       jumpCollider.recreateCollider();
     }
 
-    // Remove any animations
-    this.el.removeAttribute('animation__up');
-    this.el.removeAttribute('animation__down');
-    this.el.removeAttribute('animation__drop');
+    // Clean up all animations
+    this.cleanupAnimations();
 
     if (window.JumpDebug) {
       window.JumpDebug.state('JumpControl', 'Jump state has been forcibly reset');
