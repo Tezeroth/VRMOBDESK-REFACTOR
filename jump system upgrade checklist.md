@@ -30,7 +30,7 @@
   - [x] Cache raycast results where possible
   - [x] Use object pooling for vectors
 - [x] Improve collision detection
-  - [ ] Refine collision detection algorithm
+  - [x] Refine collision detection algorithm
   - [x] Reduce check frequency smartly
   - [x] Optimize wall/navmesh object queries
 - [ ] Optimize animation handling

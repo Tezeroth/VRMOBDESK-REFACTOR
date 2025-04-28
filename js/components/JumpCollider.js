@@ -49,7 +49,10 @@ const JumpCollider = {
     radius: { type: 'number', default: 0.3 }, // Optimized radius for accurate collision detection
     opacity: { type: 'number', default: 0 },  // Default to invisible (0 opacity)
     cacheRefreshInterval: { type: 'number', default: 2000 }, // How often to refresh wall cache (ms)
-    raycastCacheDuration: { type: 'number', default: 100 }  // How long to cache raycast results (ms)
+    raycastCacheDuration: { type: 'number', default: 100 },  // How long to cache raycast results (ms)
+    adaptiveRaycastEnabled: { type: 'boolean', default: true }, // Whether to use adaptive raycast frequency
+    proximityThreshold: { type: 'number', default: 1.0 }, // Distance to walls that triggers high-precision mode (meters)
+    farRaycastInterval: { type: 'number', default: 5 } // Only raycast every N frames when far from walls
   },
 
   init: function() {
@@ -91,6 +94,15 @@ const JumpCollider = {
       timestamp: 0,      // When the cache was last updated
       playerPosition: null, // Player position when cache was created
       positionThreshold: 0.05 // How far player can move before cache is invalidated
+    };
+
+    // Initialize adaptive raycast system
+    this.adaptiveRaycast = {
+      nearWall: false,           // Whether player is near a wall
+      lastFullCheckTime: 0,      // When we last did a full proximity check
+      frameCounter: 0,           // Counter for frames since last check
+      proximityCheckInterval: 500, // How often to do a full proximity check (ms)
+      lastProximityDistance: Infinity // Last measured distance to nearest wall
     };
 
     // Set up collision detection
@@ -283,6 +295,39 @@ const JumpCollider = {
     // During jumps, we want to be more thorough with collision detection
     const jumpControl = this.el.components['jump-control'];
     const isJumping = jumpControl && (jumpControl.isJumping || jumpControl.isFalling);
+
+    // Adaptive raycast system - check if we should do a full collision check
+    let shouldDoFullCheck = true;
+
+    if (this.data.adaptiveRaycastEnabled && !isJumping) {
+      // Increment frame counter
+      this.adaptiveRaycast.frameCounter++;
+
+      // Check if we need to update wall proximity
+      const now = Date.now();
+      if (now - this.adaptiveRaycast.lastFullCheckTime > this.adaptiveRaycast.proximityCheckInterval) {
+        // Do a full proximity check
+        this.checkWallProximity(position);
+        this.adaptiveRaycast.frameCounter = 0;
+      }
+
+      // If we're far from walls, we can skip some frames
+      if (!this.adaptiveRaycast.nearWall &&
+          this.adaptiveRaycast.frameCounter % this.data.farRaycastInterval !== 0) {
+        shouldDoFullCheck = false;
+
+        if (window.JumpDebug && window.JumpDebug.enabled) {
+          window.JumpDebug.info('JumpCollider', 'Skipping collision check (far from walls)');
+        }
+      }
+    }
+
+    // If we're skipping the check, return no collision
+    if (!shouldDoFullCheck) {
+      // Release all pooled vectors
+      VectorPool.releaseAll();
+      return { collision: false };
+    }
 
     // Get optimized directions based on movement and jump state
     // Use all directions during jumps for safety
@@ -653,18 +698,94 @@ const JumpCollider = {
   },
 
   /**
+   * Check proximity to walls
+   * @param {THREE.Vector3} position - Current player position
+   * @returns {Object} Proximity information including distance to nearest wall
+   */
+  checkWallProximity: function(position) {
+    // Get wall objects from cache
+    const wallObjects = this.getWallObjects();
+
+    // Use a longer ray for proximity detection
+    const proximityRadius = this.data.proximityThreshold * 1.2;
+
+    // Use pooled vector for calculations
+    const direction = VectorPool.get();
+    let nearestDistance = Infinity;
+    let nearestNormal = null;
+
+    // Check in all horizontal directions
+    for (const dir of this.allDirections.horizontal) {
+      // Set up the raycaster
+      direction.copy(dir);
+      this.raycaster.set(position, direction);
+      this.raycaster.far = proximityRadius;
+
+      // Cast the ray
+      const intersections = this.raycaster.intersectObjects(
+        wallObjects,
+        true
+      );
+
+      // Check if we hit anything
+      if (intersections.length > 0) {
+        const hit = intersections[0];
+        if (hit.distance < nearestDistance) {
+          nearestDistance = hit.distance;
+          nearestNormal = hit.face ? hit.face.normal : null;
+        }
+      }
+    }
+
+    // Release the pooled vector
+    VectorPool.release(direction);
+
+    // Update the adaptive raycast state
+    this.adaptiveRaycast.lastProximityDistance = nearestDistance;
+    this.adaptiveRaycast.nearWall = nearestDistance < this.data.proximityThreshold;
+    this.adaptiveRaycast.lastFullCheckTime = Date.now();
+
+    // Debug output
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpCollider',
+        `Wall proximity: ${nearestDistance.toFixed(2)}m, Near wall: ${this.adaptiveRaycast.nearWall}`);
+    }
+
+    return {
+      distance: nearestDistance,
+      nearWall: this.adaptiveRaycast.nearWall,
+      normal: nearestNormal
+    };
+  },
+
+  /**
+   * Reset the adaptive raycast system
+   */
+  resetAdaptiveRaycast: function() {
+    this.adaptiveRaycast.nearWall = false;
+    this.adaptiveRaycast.lastFullCheckTime = 0;
+    this.adaptiveRaycast.frameCounter = 0;
+    this.adaptiveRaycast.lastProximityDistance = Infinity;
+
+    if (window.JumpDebug && window.JumpDebug.enabled) {
+      window.JumpDebug.info('JumpCollider', 'Reset adaptive raycast system');
+    }
+  },
+
+  /**
    * Force refresh all caches
    * This can be called when the scene changes (e.g., new walls are added)
    */
   forceRefreshCache: function() {
     if (window.JumpDebug) {
-      window.JumpDebug.info('JumpCollider', 'Forcing wall cache refresh');
+      window.JumpDebug.info('JumpCollider', 'Forcing cache refresh');
     } else {
-      console.log('Forcing wall cache refresh');
+      console.log('Forcing cache refresh');
     }
 
     this.refreshWallCache();
     this.clearRaycastCache();
+    this.resetAdaptiveRaycast();
   },
 
   /**
@@ -681,6 +802,9 @@ const JumpCollider = {
 
     // Clear raycast cache
     this.clearRaycastCache();
+
+    // Reset adaptive raycast system
+    this.resetAdaptiveRaycast();
 
     // Release all pooled vectors
     VectorPool.releaseAll();
