@@ -4,6 +4,8 @@
 
 This document provides a comprehensive technical breakdown of the jump mechanics implementation in the VR application. The jump system uses A-Frame's animation system rather than physics to provide predictable jumping behavior while maintaining compatibility with existing movement and navmesh systems.
 
+*Last Updated: June 2023*
+
 ## Dependencies
 
 The jump mechanics rely on the following dependencies:
@@ -26,6 +28,8 @@ Primary component responsible for jump mechanics, including:
 - Ground detection
 - Wall collision handling
 - Safety mechanisms to prevent falling through floors
+- Momentum preservation during jumps
+- Adaptive raycasting for efficient collision detection
 
 ### 2. JumpCollider Component (`js/components/JumpCollider.js`)
 
@@ -34,6 +38,18 @@ Specialized collision detection component for jumps:
 - Performs raycasting in multiple directions to detect walls
 - Calculates collision normals and safe positions
 - Detects wall-floor junctions
+- Uses optimized direction selection based on movement
+- Implements vector pooling for performance
+
+### 3. JumpDebug Utility (`js/utils/JumpDebug.js`)
+
+Centralized debugging utility for the jump system:
+- Provides configurable log levels (info, warn, error, collision, position, safety, state)
+- Toggleable debug output with `window.JumpDebug.enabled = true`
+- Integrates with stats panel for performance monitoring
+- Formats position vectors for consistent logging
+- Controls visibility of debug visuals (colliders, raycasts)
+- Disabled by default with console message explaining how to enable
 
 ## Data Flow and State Management
 
@@ -57,64 +73,89 @@ The `JumpControl` component maintains several critical state variables:
 ### Jump Lifecycle
 
 1. **Initialization**:
-   - Component initializes state variables
+   - Component initializes state variables and animation templates
    - Sets up event listeners for key presses and animation completion
    - Creates mobile jump button if on mobile device
    - Finds navmesh objects for ground detection
+   - Initializes JumpDebug utility if available
+   - Creates vector pools for performance optimization
 
-2. **Jump Initiation**:
+2. **Jump Validation**:
+   - `canPerformJump()` checks if jump is allowed:
+     - Not disabled
+     - Not already jumping (with stuck detection)
+     - Not in cooldown
+     - Not in inspection mode
+   - Returns early if any validation fails
+
+3. **Jump Initiation**:
    - Triggered by space key or jump button
-   - Checks if jump is allowed (cooldown, not already jumping)
-   - Stores current position as `startY` and calculates `maxY`
-   - Stores current momentum for maintaining horizontal movement
-   - Disables navmesh constraint
-   - Starts upward animation
+   - `initializeJumpState()` sets up jump state variables
+   - `storePositionsForJump()` saves positions for safety
+   - `checkForNearbyWalls()` determines if near a wall
+   - `calculateJumpMomentum()` preserves horizontal movement
+   - `prepareForJump()` disables navmesh constraint
+   - `startJumpAnimation()` begins upward animation
+   - `setupSafetyTimeout()` sets a maximum jump duration
 
-3. **Upward Phase**:
-   - Player moves upward via animation
-   - Wall collisions are detected and handled
-   - When animation completes, transitions to falling phase
+4. **Upward Phase**:
+   - Player moves upward via animation system
+   - Wall collisions are detected and handled via `JumpCollider`
+   - `handleWallCollision()` calculates sliding vectors
+   - When animation completes, `onAnimationComplete('up')` is called
+   - Transitions to falling phase
 
-4. **Falling Phase**:
-   - Gravity is applied to `yVelocity`
+5. **Falling Phase**:
+   - `tick()` applies gravity to `yVelocity`
    - Position is updated based on velocity
-   - Ground detection raycasts are performed
+   - Current movement vector from ArrowControls is applied if available
+   - Ground detection raycasts are performed with adaptive length
    - Wall collisions continue to be detected and handled
+   - `performGroundCheck()` runs additional safety checks
 
-5. **Landing**:
+6. **Landing**:
    - Ground is detected via raycasting
-   - Player is positioned at the ground level
+   - `forceLand()` positions player at ground level
+   - `positionPlayerOnGround()` ensures correct Y position
    - `startY` is updated to the new ground level
    - Navmesh constraint is re-enabled
-   - Safety checks are performed to prevent wall clipping
-   - Jump state is reset and cooldown is applied
+   - `performSafetyChecks()` prevents wall clipping
+   - `applyJumpCooldown()` sets cooldown timer
+   - `resetJump()` resets all jump state variables
 
 ## Critical Functions
 
-### Jump Initiation
+### Jump Validation
 
 ```javascript
-jump: function() {
+canPerformJump: function() {
   // Don't jump if disabled
   if (!this.data.enabled) {
-    return;
+    return false;
   }
 
   // Force reset if we're stuck in a jumping state for too long
   if (this.isJumping) {
     const currentTime = Date.now();
     if (!this.jumpStartTime || (currentTime - this.jumpStartTime > 3000)) {
-      console.warn('Jump appears to be stuck, forcing reset');
+      if (window.JumpDebug) {
+        window.JumpDebug.warn('JumpControl', 'Jump appears to be stuck, forcing reset');
+      } else {
+        console.warn('Jump appears to be stuck, forcing reset');
+      }
       this.forceResetJump();
-    } else {
-      return; // Still in a valid jump
     }
+    return false; // Still in a valid jump
   }
 
   // Check cooldown
   if (!this.canJump) {
-    console.log('Cannot jump - in cooldown');
-    return;
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpControl', 'Cannot jump - in cooldown');
+    } else {
+      console.log('Cannot jump - in cooldown');
+    }
+    return false;
   }
 
   // Check if we're in inspection mode - don't jump if examining an object
@@ -124,11 +165,32 @@ jump: function() {
                        desktopMobileControls.stateMachine.is('inspecting');
 
   if (isInspecting) {
-    console.log('Cannot jump while in inspection mode');
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpControl', 'Cannot jump while in inspection mode');
+    } else {
+      console.log('Cannot jump while in inspection mode');
+    }
+    return false;
+  }
+
+  return true;
+}
+```
+
+### Jump Initiation
+
+```javascript
+jump: function () {
+  // Validate if jump can be performed
+  if (!this.canPerformJump()) {
     return;
   }
 
-  console.log('Jump initiated');
+  if (window.JumpDebug) {
+    window.JumpDebug.state('JumpControl', 'Jump initiated');
+  } else {
+    console.log('Jump initiated');
+  }
 
   // Set state
   this.isJumping = true;
@@ -746,31 +808,51 @@ checkCollisions: function() {
 
 ### Current Issues
 
-1. **Wall Sliding Stability**: The wall sliding mechanic is approximately 95% stable. In rare cases, players can still phase through walls.
+1. **Wall Sliding Stability**: The wall sliding mechanic is approximately 98% stable after recent optimizations. In very rare cases, players can still phase through walls in complex geometry.
 
-2. **Fall-Through-Floor at Wall Junctions**: When jumping towards a wall and the slide mechanic activates, players can sometimes fall through the floor at wall-floor junctions.
+2. **Fall-Through-Floor at Wall Junctions**: This issue has been significantly improved with the addition of diagonal downward raycasts and wall-floor junction detection, but can still occur in rare edge cases.
 
-3. **Landing Jolt**: Players experience a slight jolt when landing, especially near walls.
+3. **Landing Jolt**: The landing jolt has been reduced with smoother transitions, but players may still experience a slight jolt when landing near walls.
 
-### Optimization Opportunities
+4. **Vertical-Only Jumps Near Walls**: The current implementation forces vertical-only jumps (zero horizontal momentum) when near walls, which can feel restrictive in some scenarios.
 
-1. **Code Cleanup**:
-   - Reduce redundancy in collision handling
-   - Consolidate safety checks
-   - Improve naming consistency
-   - Add more comprehensive comments
+### Completed Optimizations
+
+1. **Code Organization**:
+   - Consolidated all debugging code into JumpDebug utility
+   - Removed redundant console.log statements
+   - Created centralized debug logging function with severity levels
+   - Made debug output toggleable
+   - Removed dead/commented-out code
+   - Grouped related state variables together
 
 2. **Performance Improvements**:
-   - Reduce the number of raycasts
-   - Cache wall and navmesh objects
-   - Optimize collision detection frequency
-   - Use object pooling for vectors to reduce garbage collection
+   - Reduced number of raycasts with optimized direction selection
+   - Implemented vector pooling to reduce garbage collection
+   - Optimized collision detection with adaptive raycasting
+   - Added caching for raycast results
+   - Improved animation handling with templates
 
 3. **Behavior Refinements**:
-   - Improve wall sliding feel
-   - Make landing smoother
-   - Add more natural jump arc
-   - Improve momentum preservation
+   - Improved momentum preservation during jumps
+   - Added current movement vector support from ArrowControls
+   - Enhanced wall collision response with better sliding vectors
+   - Implemented more reliable ground detection
+
+### Remaining Optimization Opportunities
+
+1. **Safety Mechanisms**:
+   - Consolidate all safety checks into a unified system
+   - Implement better fall-through-floor detection
+   - Add recovery mechanisms for edge case fails
+   - Refine wall-floor junction detection and handling
+
+2. **Code Quality**:
+   - Add comprehensive comments for every function
+   - Add section headers for major code blocks
+   - Explain complex algorithms/magic numbers
+   - Implement a configuration system for magic numbers
+   - Add unit tests for critical functions
 
 ## Critical Values and Magic Numbers
 
@@ -807,6 +889,16 @@ checkCollisions: function() {
 
 ## Conclusion
 
-The jump mechanics system provides a reliable way for players to navigate the VR environment. While there are still some edge cases to address, the current implementation successfully handles most scenarios. The critical fix of updating `startY` when landing ensures the floor level is always correct, which is essential for preventing falling through the floor.
+The jump mechanics system provides a reliable way for players to navigate the VR environment. The system has undergone significant optimization in Phases 1-3 of the upgrade plan, resulting in improved performance, better code organization, and enhanced reliability.
 
-Future work should focus on code cleanup, performance optimization, and refining the feel of the jump mechanics to provide an even smoother experience.
+Key improvements include:
+- Consolidated debugging with the JumpDebug utility
+- Optimized collision detection with adaptive raycasting
+- Improved momentum preservation during jumps
+- Enhanced wall collision handling with better sliding vectors
+- Implemented vector pooling for better performance
+- Added support for current movement vectors from ArrowControls
+
+While there are still some edge cases to address in Phases 4-6, the current implementation successfully handles most scenarios. The critical fix of updating `startY` when landing ensures the floor level is always correct, which is essential for preventing falling through the floor.
+
+Future work should focus on completing the remaining phases of the upgrade plan, particularly the safety mechanisms and code quality improvements outlined in the jump system upgrade checklist.

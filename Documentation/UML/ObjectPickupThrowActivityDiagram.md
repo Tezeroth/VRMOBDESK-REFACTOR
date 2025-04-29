@@ -43,6 +43,9 @@ flowchart TD
     ContinueCharging -->|Yes| UpdateVisualFeedback
     ContinueCharging -->|No, Cancelled| CancelCharge[Cancel Charge]
 
+    %% Examine button/right-click during charging
+    UserAction -->|Examine Button/\nRight-click during\nCharging| CancelCharge
+
     CancelCharge --> SetHoldingState
 
     UserReleased -->|Yes| CalculateThrowForce[Calculate Throw\nForce]

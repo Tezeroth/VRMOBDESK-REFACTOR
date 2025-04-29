@@ -14,7 +14,7 @@ stateDiagram-v2
     state Holding {
         [*] --> FollowingCamera
         FollowingCamera --> ChargingThrow : Second click (hold)
-        ChargingThrow --> FollowingCamera : Cancel (Space/Button)
+        ChargingThrow --> FollowingCamera : Cancel (Space/Button/Right-click/Examine)
     }
 
     state Inspecting {
@@ -80,7 +80,8 @@ stateDiagram-v2
     note right of Holding
         Object follows camera position
         Physics body is kinematic
-        Original physics state is stored
+        Original physics state is stored in StateMachine data
+        heldObject reference stored in StateMachine data
         Activity time updated
         Emit grab-start event
     end note
@@ -89,6 +90,8 @@ stateDiagram-v2
         Camera controls disabled
         Object can be rotated
         Movement controls disabled
+        inspectedObject reference stored in StateMachine data
+        Camera orientation stored for restoration
     end note
 
     note right of Throwing

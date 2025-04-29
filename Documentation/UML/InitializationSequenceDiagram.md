@@ -32,7 +32,13 @@ sequenceDiagram
     DM->>DM: Check for VR support
     DM->>DM: Check if mobile device
     DM->>DM: Check for gyroscope
-    DM-->>CM: Return device capabilities
+
+    alt successful initialization
+        DM-->>CM: Return device capabilities
+    else initialization error
+        DM-->>CM: Return error
+        CM->>CM: Fallback to desktop/mobile mode
+    end
     deactivate DM
 
     %% Asset Loading
@@ -71,7 +77,9 @@ sequenceDiagram
 
     %% Mobile-Specific Setup
     alt is Mobile
+        CM->>CM: applyMobileOptimizations()
         CM->>Scene: Disable shadows for performance
+        CM->>Scene: Apply mobile-specific UI adjustments
         PO->>PhysX: Apply mobile physics settings
         PO->>PhysX: Reduce physics update rate
         PO->>PhysX: Limit physics substeps

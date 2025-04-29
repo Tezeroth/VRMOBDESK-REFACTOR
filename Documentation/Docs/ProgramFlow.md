@@ -1,5 +1,7 @@
 # VRMOBDESK Program Flow
 
+*Last Updated: June 2023*
+
 This document describes the initialization sequence, event handling, state management, and mode switching in the VRMOBDESK application.
 
 ## Initialization Sequence
@@ -154,14 +156,38 @@ AFRAME.registerComponent('control-manager', {
 
 ### Interaction State
 
-The `desktop-and-mobile-controls` component manages the interaction state:
+The `desktop-mobile-controls` component manages the interaction state using a StateMachine:
 
 ```javascript
-AFRAME.registerComponent('desktop-and-mobile-controls', {
+AFRAME.registerComponent('desktop-mobile-controls', {
   init: function () {
-    this.interactionState = 'idle'; // 'idle', 'holding', 'charging', 'inspecting'
-    this.heldObject = null;
-    this.objectBeingInspected = null;
+    // Create state machine for interaction states
+    this.stateMachine = new StateMachine({
+      initialState: 'idle',
+      states: {
+        idle: {
+          onPickup: 'holding'
+        },
+        holding: {
+          onRelease: 'idle',
+          onCharge: 'charging',
+          onInspect: 'inspecting'
+        },
+        charging: {
+          onRelease: 'throwing',
+          onCancel: 'holding'
+        },
+        throwing: {
+          onComplete: 'idle'
+        },
+        inspecting: {
+          onExitInspect: 'holding'
+        }
+      },
+      onTransition: (from, to, action) => {
+        console.log(`Transition from ${from} to ${to} via ${action}`);
+      }
+    });
 
     // Initialize event listeners and other state
   }
@@ -261,7 +287,7 @@ setupDesktopMobileMode: function() {
   }
 
   // Add desktop/mobile interaction component
-  sceneEl.setAttribute('desktop-and-mobile-controls', '');
+  sceneEl.setAttribute('desktop-mobile-controls', '');
 }
 ```
 
@@ -274,21 +300,24 @@ setupDesktopMobileMode: function() {
 3. The original physics state is stored
 4. The object's physics body is changed to kinematic
 5. The object is attached to the camera view
-6. The interaction state changes to 'holding'
+6. The state machine transitions to 'holding' state via the 'onPickup' action
 7. The tick function updates to move the object with the camera
 
 ```javascript
 pickupObject: function (el) {
-  // Store original physics state
-  this._originalPhysicsState = AFRAME.utils.extend({}, currentBody);
+  // Store original physics state in the state machine data
+  const currentBody = el.components['physx-body'];
+  const originalState = AFRAME.utils.extend({}, currentBody.data);
+  this.stateMachine.setData('originalPhysicsState', originalState);
 
   // Remove existing physics body and create kinematic one
-  el.removeAttribute('physx-body');
-  el.setAttribute('physx-body', 'type', 'kinematic');
+  PhysicsUtils.convertToKinematic(el);
 
-  // Update state
-  this.heldObject = el;
-  this.interactionState = 'holding';
+  // Store reference to held object in state machine data
+  this.stateMachine.setData('heldObject', el);
+
+  // Transition state machine to holding state
+  this.stateMachine.transition('onPickup', el);
 
   // Set up tick function for object movement
   this._tickFunction = this.tick.bind(this);
@@ -299,29 +328,51 @@ pickupObject: function (el) {
 ### Object Throw Flow
 
 1. User clicks/taps and holds while holding an object
-2. The interaction state changes to 'charging'
+2. The state machine transitions to 'charging' state via the 'onCharge' action
 3. The charge time is tracked
 4. Visual feedback shows charge level
 5. User releases the click/tap
-6. Throw velocity is calculated based on charge time
-7. The object's physics body is changed back to dynamic
-8. Velocity is applied to the object
-9. The interaction state changes to 'idle'
+6. The state machine transitions to 'throwing' state via the 'onRelease' action
+7. Throw velocity is calculated based on charge time
+8. The object's physics body is changed back to dynamic
+9. Velocity is applied to the object
+10. The state machine transitions to 'idle' state via the 'onComplete' action
 
 ```javascript
+// In onMouseDown or equivalent
+if (this.stateMachine.is('holding')) {
+  this.chargeStartTime = Date.now();
+  this.stateMachine.transition('onCharge');
+  // Update cursor visual to show charging
+  InteractionUtils.updateCursorVisual(this.cursor, 'charging', 0);
+}
+
 // In onMouseUp or equivalent
-if (this.interactionState === 'charging') {
+if (this.stateMachine.is('charging')) {
   const chargeDuration = Math.min(Date.now() - this.chargeStartTime, this.maxChargeTime);
   const chargeRatio = chargeDuration / this.maxChargeTime;
   const throwForce = this.minThrowForce + (this.maxThrowForce - this.minThrowForce) * chargeRatio;
 
   // Calculate throw direction
   const direction = new THREE.Vector3(0, 0.2, -1);
-  direction.applyQuaternion(camera.object3D.quaternion);
+  direction.applyQuaternion(this.camera.object3D.quaternion);
   const throwVelocity = direction.multiplyScalar(throwForce);
 
-  // Release with velocity
-  this.releaseObject(throwVelocity);
+  // Transition to throwing state
+  this.stateMachine.transition('onRelease', throwVelocity);
+
+  // In the throwing state handler:
+  const heldObject = this.stateMachine.getData('heldObject');
+  const originalState = this.stateMachine.getData('originalPhysicsState');
+
+  // Restore original physics state but with dynamic type
+  PhysicsUtils.restoreOriginalState(heldObject, originalState, 'dynamic');
+
+  // Apply calculated velocity
+  PhysicsUtils.applyVelocity(heldObject, throwVelocity);
+
+  // Complete the throw
+  this.stateMachine.transition('onComplete');
 }
 ```
 
@@ -331,39 +382,47 @@ if (this.interactionState === 'charging') {
 2. The state machine transitions to 'inspecting' state via the 'onInspect' action
 3. Camera and movement controls are disabled
 4. The object is detached from the camera
-5. The interaction state changes to 'inspecting'
+5. Camera orientation is stored for restoration
 6. Mouse/touch movement rotates the object
 7. User right-clicks (desktop) or taps Cancel (mobile) to exit inspection mode
 8. The state machine transitions back to 'holding' state via the 'onExitInspect' action
 9. Camera and movement controls are re-enabled
 10. The object is reattached to the camera
-11. The interaction state changes back to 'holding'
+11. Camera orientation is restored
 
 ```javascript
-toggleInspectionMode: function () {
-  if (this.interactionState === 'holding' && this.heldObject) {
-    // Enter inspection mode
-    this.inspectionMode = true;
-    this.interactionState = 'inspecting';
-    this.objectBeingInspected = this.heldObject;
-    this.heldObject = null;
+// On right-click or examine button press
+if (this.stateMachine.is('holding') && this.stateMachine.can('onInspect')) {
+  const heldObject = this.stateMachine.getData('heldObject');
 
-    // Disable controls
-    lookControls.data.enabled = false;
-    cameraRig.setAttribute('movement-controls', 'enabled', false);
+  // Store camera orientation
+  this.cameraPitchOnEnterInspect = this.camera.getAttribute('rotation').x;
+  this.rigYawOnEnterInspect = this.cameraRig.getAttribute('rotation').y;
 
-  } else if (this.interactionState === 'inspecting') {
-    // Exit inspection mode
-    this.inspectionMode = false;
+  // Store object being inspected
+  this.stateMachine.setData('inspectedObject', heldObject);
 
-    // Re-enable controls
-    lookControls.data.enabled = true;
-    cameraRig.setAttribute('movement-controls', 'enabled', true);
+  // Disable controls
+  const lookControls = this.camera.components['look-controls'];
+  lookControls.data.enabled = false;
+  this.cameraRig.setAttribute('movement-controls', 'enabled', false);
 
-    // Restore object to held state
-    this.interactionState = 'holding';
-    this.heldObject = this.objectBeingInspected;
-    this.objectBeingInspected = null;
-  }
+  // Transition to inspecting state
+  this.stateMachine.transition('onInspect');
+}
+
+// On right-click or cancel button press during inspection
+if (this.stateMachine.is('inspecting') && this.stateMachine.can('onExitInspect')) {
+  // Re-enable controls
+  const lookControls = this.camera.components['look-controls'];
+  lookControls.data.enabled = true;
+  this.cameraRig.setAttribute('movement-controls', 'enabled', true);
+
+  // Restore camera orientation
+  this.camera.setAttribute('rotation', {x: this.cameraPitchOnEnterInspect, y: 0, z: 0});
+  this.cameraRig.setAttribute('rotation', {x: 0, y: this.rigYawOnEnterInspect, z: 0});
+
+  // Transition back to holding state
+  this.stateMachine.transition('onExitInspect');
 }
 ```

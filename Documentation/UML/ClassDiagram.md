@@ -39,27 +39,25 @@ classDiagram
         +removeVRMode()
         +setupDesktopMobileMode()
         +removeDesktopMobileMode()
+        +applyMobileOptimizations()
         +remove()
     }
 
     class DesktopMobileControls {
         -Element camera
-        -Element heldObject
-        -Element objectBeingInspected
-        -boolean inspectionMode
-        -string interactionState
+        -StateMachine stateMachine
         -number prevMouseX
         -number prevMouseY
         -number lastTapTime
         -Element cursor
         -Function _tickFunction
-        -Object _originalPhysicsState
         -number chargeStartTime
         -number maxChargeTime
         -number minThrowForce
         -number maxThrowForce
         -number secondClickStartTime
         -number chargeThreshold
+        -number holdDistance
         -Vector3 tempCameraWorldPos
         -Vector3 tempDirection
         -Vector3 targetPosition
@@ -177,13 +175,23 @@ classDiagram
     class StateMachine {
         -string currentState
         -Object states
+        -Function onTransition
+        -Object data
+        +constructor(config)
+        +getState()
+        +is(state)
+        +can(action)
         +transition(action, ...args)
-        +onStateChange(newState)
+        +setData(key, value)
+        +getData(key)
+        +reset(initialState)
     }
 
     class InteractionUtils {
-        +findIntersectedElement(raycaster, selector)
-        +getIntersection(evt, selector)
+        +getIntersectedElement(raycaster, selector)
+        +updateCursorVisual(cursor, state, chargeRatio)
+        +calculateRelativeRotation(prevQuat, currentQuat, resultQuat)
+        +calculatePositionInFrontOfCamera(cameraObject, distance, resultVector)
     }
 
     %% Utility Components

@@ -50,11 +50,13 @@ if (DeviceManager.isVR) {
    - Camera controls are disabled
    - Mouse movement rotates the object
    - Right-click again to exit examine mode
+   - Right-click while charging a throw will cancel the throw charge
 
 3. **Throw**:
    - While holding an object, click and hold
    - Charging animation shows throw power
    - Release to throw with velocity based on charge time
+   - Throw charge can be canceled by right-clicking or pressing Space
 
 4. **Drop**:
    - Quick second click while holding an object
@@ -81,12 +83,14 @@ if (DeviceManager.isVR) {
 2. **Examine**:
    - Tap the "EXAMINE" button while holding an object
    - Swipe to rotate the object
-   - Tap "CANCEL" to exit examine mode
+   - Tap "EXAMINE/CANCEL" to exit examine mode
+   - Tap "EXAMINE/CANCEL" while charging a throw will cancel the throw charge
 
 3. **Throw**:
    - While holding an object, press and hold the "GRAB/THROW" button
    - Charging animation shows throw power
    - Release to throw with velocity based on charge time
+   - Throw charge can be canceled by tapping the "EXAMINE/CANCEL" button
 
 4. **Drop**:
    - Double-tap while holding an object

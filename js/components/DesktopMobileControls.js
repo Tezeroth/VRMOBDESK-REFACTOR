@@ -519,6 +519,11 @@ const DesktopMobileControls = {
         this.stateMachine.transition('onInspect');
         evt.preventDefault(); // Prevent context menu
         return;
+      } else if (this.stateMachine.is('charging')) {
+        console.log('State: charging - Cancelling throw charge with right mouse button');
+        this.stateMachine.transition('onCancel');
+        evt.preventDefault(); // Prevent context menu
+        return;
       } else if (this.stateMachine.is('inspecting')) {
         console.log('State: inspecting - Exiting inspection mode with right mouse button');
         this.stateMachine.transition('onExitInspect');
@@ -736,7 +741,7 @@ const DesktopMobileControls = {
   onContextMenu: function (evt) {
     // Prevent context menu from appearing when right-clicking
     // This is important for using right mouse button as a control
-    if (this.stateMachine.is('holding') || this.stateMachine.is('inspecting')) {
+    if (this.stateMachine.is('holding') || this.stateMachine.is('inspecting') || this.stateMachine.is('charging')) {
       evt.preventDefault();
       return false;
     }

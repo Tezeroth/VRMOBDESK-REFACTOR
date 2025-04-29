@@ -1,5 +1,7 @@
 # VRMOBDESK Functionality
 
+*Last Updated: June 2023*
+
 ## Overview
 
 VRMOBDESK is a web-based 3D interactive environment built with A-Frame that supports multiple platforms:

@@ -74,7 +74,7 @@ graph TD
     %% Component Dependencies
     DesktopMobileControls --> PhysX
     NavMeshConstraint --> NavMesh
-    ArrowControls --> DesktopMobileControls
+    ArrowControls <--> DesktopMobileControls
     LookModeManager --> DeviceManager
     PhysicsOptimizer --> DeviceManager
 
