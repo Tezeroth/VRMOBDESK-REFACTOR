@@ -51,19 +51,18 @@ VRMOBDESK is a web-based VR/Mobile/Desktop interactive 3D environment built with
 
 ## Documentation
 
-Comprehensive documentation is available in the `Documentation` folder:
+Comprehensive documentation is available in the `docs` folder:
 
-- **[Documentation/Docs](./Documentation/Docs)**: Detailed documentation of the application's functionality, dependencies, and architecture
-- **[Documentation/UML](./Documentation/UML)**: UML diagrams showing the application's structure and behavior
+- **[Documentation Overview](./docs/README.md)**: Complete documentation index and structure
 
 ### Key Documentation Files:
 
-- [Functionality](./Documentation/Docs/Functionality.md) - Overview of application features and capabilities
-- [Dependencies](./Documentation/Docs/Dependencies.md) - External libraries and dependencies
-- [Program Flow](./Documentation/Docs/ProgramFlow.md) - Application initialization and execution flow
-- [Modular Structure](./Documentation/Docs/ModularStructure.md) - Details of the modular code architecture
-- [Performance Notes](./Documentation/Docs/PerformanceNotes.md) - Performance optimization documentation
-- [Multiplayer Preparation](./Documentation/Docs/MultiplayerPreparation.md) - Plans for multiplayer implementation
+- [Functionality](./docs/features/functionality.md) - Overview of application features and capabilities
+- [Dependencies](./docs/technical/Dependencies.md) - External libraries and dependencies
+- [Program Flow](./docs/architecture/program-flow.md) - Application initialization and execution flow
+- [Modular Structure](./docs/architecture/modular-structure.md) - Details of the modular code architecture
+- [Performance Notes](./docs/performance/performance-notes.md) - Performance optimization documentation
+- [Multiplayer Preparation](./docs/multiplayer/multiplayer-preparation.md) - Plans for multiplayer implementation
 
 ## Project Structure
 
@@ -99,9 +98,13 @@ Some legacy code has been moved to the `temp/` directory, while essential compon
 ```
 VRMOBDESK/
 ├── Assets/             # 3D models, textures, and other assets
-├── Documentation/      # Project documentation
-│   ├── Docs/           # Detailed documentation
-│   └── UML/            # UML diagrams
+├── docs/               # Project documentation
+│   ├── architecture/   # System architecture documentation
+│   ├── features/       # Feature-specific documentation
+│   ├── multiplayer/    # Multiplayer-related documentation
+│   ├── performance/    # Performance-related documentation
+│   ├── technical/      # Technical documentation
+│   └── diagrams/       # UML and other diagrams
 ├── js/                 # Modular JavaScript structure
 │   ├── components/     # A-Frame components
 │   ├── managers/       # Manager modules
@@ -138,9 +141,9 @@ The project is now ready for the next phase of development:
    - Create specialized VR UI elements
 
 The modular architecture provides a solid foundation for these features. For detailed implementation plans, see:
-- [Multiplayer Preparation](./Documentation/Docs/MultiplayerPreparation.md)
-- [Performance Optimization](./Documentation/Docs/PerformanceNotes.md)
-- [Modular Structure](./Documentation/Docs/ModularStructure.md)
+- [Multiplayer Preparation](./docs/multiplayer/multiplayer-preparation.md)
+- [Performance Optimization](./docs/performance/performance-notes.md)
+- [Modular Structure](./docs/architecture/modular-structure.md)
 
 ## Contributing
 

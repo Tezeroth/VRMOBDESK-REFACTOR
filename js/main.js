@@ -41,7 +41,8 @@ import {
   PhysicsOptimizer,
   LoadingScreenManager,
   MakeTransparent,
-  SimpleNavmeshConstraint
+  SimpleNavmeshConstraint,
+  MagnetRangeDebug
 } from './components/index.js';
 import PerformanceOptimizer from './utils/PerformanceOptimizer.js';
 
@@ -63,6 +64,7 @@ function registerComponents() {
   safeRegisterComponent('loading-screen-manager', LoadingScreenManager);
   safeRegisterComponent('make-transparent', MakeTransparent);
   safeRegisterComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
+  safeRegisterComponent('magnet-range-debug', MagnetRangeDebug);
 
   console.log('Component registration complete');
 }
@@ -259,5 +261,6 @@ export {
   MultiplayerManager,
   // New modular components
   MakeTransparent,
-  SimpleNavmeshConstraint
+  SimpleNavmeshConstraint,
+  MagnetRangeDebug
 };

@@ -15,6 +15,7 @@ import SimpleNavmeshConstraint from './SimpleNavmeshConstraint.js';
 import JumpControl from './JumpControl.js';
 import JumpCollider from './JumpCollider.js';
 import PlayerCollider from './PlayerCollider.js';
+import MagnetRangeDebug from './MagnetRangeDebug.js';
 
 // Register components with A-Frame
 AFRAME.registerComponent('toggle-physics', TogglePhysics);
@@ -30,6 +31,7 @@ AFRAME.registerComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
 AFRAME.registerComponent('jump-control', JumpControl);
 AFRAME.registerComponent('jump-collider', JumpCollider);
 AFRAME.registerComponent('player-collider', PlayerCollider);
+AFRAME.registerComponent('magnet-range-debug', MagnetRangeDebug);
 
 // Export components for potential direct usage
 export {
@@ -45,5 +47,6 @@ export {
   SimpleNavmeshConstraint,
   JumpControl,
   JumpCollider,
-  PlayerCollider
+  PlayerCollider,
+  MagnetRangeDebug
 };
