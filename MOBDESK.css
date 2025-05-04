@@ -65,17 +65,15 @@
 .arrow-controls {
   position: fixed;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 240px;
-  height: 150px;
+  left: 20px; /* Default position, will be overridden by JS */
+  width: 180px;
+  height: 120px;
   z-index: 9999;
   display: grid;
   grid-template-areas:
-    ". . ."
     "pickup up examine"
     "left down right";
-  grid-template-rows: 1fr 45px 45px;
+  grid-template-rows: 45px 45px;
   grid-template-columns: 45px 45px 45px;
   gap: 15px 15px;
 }
@@ -117,6 +115,29 @@
   background: linear-gradient(145deg, rgba(100,255,100,0.4), rgba(100,255,100,0.2));
   border-radius: 50%;
   font-size: 20px;
+}
+
+.toggle-controls-btn {
+  background: linear-gradient(145deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+  border-radius: 50%;
+  font-size: 24px;
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.toggle-controls-btn:active {
+  transform: translateY(2px) translateX(-50%) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: linear-gradient(145deg, rgba(255,255,255,0.5), rgba(255,255,255,0.3));
 }
 
 #pickupBtn { grid-area: pickup; }
@@ -236,25 +257,4 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-/* Arrow Controls Styles */
-.arrow-controls {
-  /* ... existing styles ... */
-}
-
-.arrow-btn, .action-btn {
- /* ... existing styles ... */
-}
-
-/* Look Mode Button Styles */
-.look-mode-btn {
- /* ... existing styles ... */
-}
-
-/* Permission Overlay Styles */
-.permission-overlay {
- /* ... existing styles ... */
-}
-
-.permission-content {
- /* ... existing styles ... */
-}
+/* End of styles */

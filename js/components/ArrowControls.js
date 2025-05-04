@@ -28,6 +28,9 @@ const ArrowControls = {
     this.actionButtonDown = { pickup: false, examine: false };
     this.pickupButtonStartTime = 0;
 
+    // Layout state
+    this.controlsPosition = 'left'; // 'left' or 'right'
+
     // Create UI
     this.createControlsUI();
 
@@ -47,14 +50,31 @@ const ArrowControls = {
     if (controlsEl) {
       controlsEl.remove();
     }
+
+    // Remove jump button
+    const jumpBtn = document.getElementById('jumpBtn');
+    if (jumpBtn) {
+      jumpBtn.remove();
+    }
+
+    // Remove toggle button
+    const toggleBtn = document.getElementById('toggleControlsBtn');
+    if (toggleBtn) {
+      toggleBtn.remove();
+    }
   },
 
   /**
    * Create the on-screen controls UI
    */
   createControlsUI: function() {
+    // Create arrow controls container (bottom left by default)
     const arrowControls = document.createElement('div');
     arrowControls.className = 'arrow-controls';
+    arrowControls.id = 'arrowControls';
+
+    // Position the controls based on current state
+    this.updateControlsPosition(arrowControls);
 
     // Create movement buttons
     const buttons = { up: '↑', left: '←', right: '→', down: '↓' };
@@ -70,7 +90,176 @@ const ArrowControls = {
       arrowControls.appendChild(btn);
     });
 
+    // Add to document
     document.body.appendChild(arrowControls);
+
+    // Create jump button (bottom right)
+    this.createJumpButton();
+
+    // Create toggle button (center bottom)
+    this.createToggleButton();
+  },
+
+  /**
+   * Update the position of controls based on current state
+   * @param {HTMLElement} controlsEl - The controls element to position
+   */
+  updateControlsPosition: function(controlsEl) {
+    if (!controlsEl) {
+      controlsEl = document.getElementById('arrowControls');
+      if (!controlsEl) return;
+    }
+
+    // Update arrow controls position
+    if (this.controlsPosition === 'left') {
+      controlsEl.style.left = '20px';
+      controlsEl.style.right = 'auto';
+      controlsEl.style.transform = 'none';
+    } else {
+      controlsEl.style.right = '20px';
+      controlsEl.style.left = 'auto';
+      controlsEl.style.transform = 'none';
+    }
+
+    // Update jump button position
+    const jumpBtn = document.getElementById('jumpBtn');
+    if (jumpBtn) {
+      if (this.controlsPosition === 'left') {
+        jumpBtn.style.right = '20px';
+        jumpBtn.style.left = 'auto';
+      } else {
+        jumpBtn.style.left = '20px';
+        jumpBtn.style.right = 'auto';
+      }
+    }
+
+    console.log(`Controls position updated to: ${this.controlsPosition}`);
+  },
+
+  /**
+   * Create the jump button
+   */
+  createJumpButton: function() {
+    // Create jump button
+    const jumpBtn = document.createElement('button');
+    jumpBtn.id = 'jumpBtn';
+    jumpBtn.className = 'jump-btn';
+    jumpBtn.innerHTML = '↑ JUMP ↑';
+
+    // Position based on current state
+    if (this.controlsPosition === 'left') {
+      jumpBtn.style.right = '20px';
+      jumpBtn.style.left = 'auto';
+    } else {
+      jumpBtn.style.left = '20px';
+      jumpBtn.style.right = 'auto';
+    }
+
+    // Style the button
+    jumpBtn.style.position = 'fixed';
+    jumpBtn.style.bottom = '20px'; // Align with the bottom of the arrow controls
+    jumpBtn.style.width = '80px';
+    jumpBtn.style.height = '80px';
+    jumpBtn.style.borderRadius = '50%';
+    jumpBtn.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
+    jumpBtn.style.color = 'white';
+    jumpBtn.style.fontSize = '16px';
+    jumpBtn.style.fontWeight = 'bold';
+    jumpBtn.style.border = '3px solid white';
+    jumpBtn.style.zIndex = '999';
+    jumpBtn.style.display = 'flex';
+    jumpBtn.style.alignItems = 'center';
+    jumpBtn.style.justifyContent = 'center';
+    jumpBtn.style.textAlign = 'center';
+    jumpBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    jumpBtn.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.5)';
+
+    // Add active/hover states
+    jumpBtn.style.transition = 'transform 0.1s, background-color 0.1s';
+
+    // Add event listeners for jumping
+    ['mousedown', 'touchstart'].forEach(eventType => {
+      jumpBtn.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Visual feedback
+        jumpBtn.style.backgroundColor = 'rgba(0, 240, 140, 1)';
+        jumpBtn.style.transform = 'scale(0.95)';
+
+        // Find jump-control component and trigger jump
+        const cameraRig = document.querySelector('#cameraRig');
+        if (cameraRig && cameraRig.components['jump-control']) {
+          cameraRig.components['jump-control'].jump();
+        }
+
+        // Reset visual state after a short delay
+        setTimeout(() => {
+          jumpBtn.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
+          jumpBtn.style.transform = 'scale(1)';
+        }, 200);
+      }, { passive: false, capture: true });
+    });
+
+    // Add to document
+    document.body.appendChild(jumpBtn);
+  },
+
+  /**
+   * Create the toggle button to switch control positions
+   */
+  createToggleButton: function() {
+    // Create toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.id = 'toggleControlsBtn';
+    toggleBtn.className = 'toggle-controls-btn';
+    toggleBtn.innerHTML = '⇄';
+
+    // Style the button
+    toggleBtn.style.position = 'fixed';
+    toggleBtn.style.bottom = '20px';
+    toggleBtn.style.left = '50%';
+    toggleBtn.style.transform = 'translateX(-50%)';
+    toggleBtn.style.width = '50px';
+    toggleBtn.style.height = '50px';
+    toggleBtn.style.borderRadius = '50%';
+    toggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+    toggleBtn.style.color = 'white';
+    toggleBtn.style.fontSize = '24px';
+    toggleBtn.style.fontWeight = 'bold';
+    toggleBtn.style.border = '2px solid white';
+    toggleBtn.style.zIndex = '999';
+    toggleBtn.style.display = 'flex';
+    toggleBtn.style.alignItems = 'center';
+    toggleBtn.style.justifyContent = 'center';
+    toggleBtn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    toggleBtn.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.5)';
+    toggleBtn.style.transition = 'transform 0.2s, background-color 0.2s';
+
+    // Add event listeners
+    ['mousedown', 'touchstart'].forEach(eventType => {
+      toggleBtn.addEventListener(eventType, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Visual feedback
+        toggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+        toggleBtn.style.transform = 'translateX(-50%) scale(0.95)';
+
+        // Toggle position
+        this.controlsPosition = this.controlsPosition === 'left' ? 'right' : 'left';
+        this.updateControlsPosition();
+
+        // Reset visual state after a short delay
+        setTimeout(() => {
+          toggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+          toggleBtn.style.transform = 'translateX(-50%) scale(1)';
+        }, 200);
+      }, { passive: false, capture: true });
+    });
+
+    // Add to document
+    document.body.appendChild(toggleBtn);
   },
 
   /**

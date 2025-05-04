@@ -125,10 +125,7 @@ const JumpControl = {
     this._tickFunction = this.tick.bind(this);
     this.el.sceneEl.addEventListener('tick', this._tickFunction);
 
-    // Create jump button for mobile
-    if (DeviceManager.isMobile) {
-      this.createJumpButton();
-    }
+    // Jump button for mobile is now handled by ArrowControls component
 
     // Ground detection system
     this.fallRaycaster = new THREE.Raycaster();     // Raycaster for detecting ground below player
@@ -180,11 +177,7 @@ const JumpControl = {
       this.safetyInterval = null;
     }
 
-    // Remove jump button if it exists
-    const jumpButton = document.getElementById('jumpBtn');
-    if (jumpButton) {
-      jumpButton.remove();
-    }
+    // Jump button removal is now handled by ArrowControls component
 
     // Remove scene listeners
     this.el.sceneEl.removeEventListener('child-attached', this.findNavmeshObjects.bind(this));
@@ -209,82 +202,7 @@ const JumpControl = {
     this.jump();
   },
 
-  /**
-   * Create a jump button for mobile devices
-   */
-  createJumpButton: function () {
-    // Check if button already exists
-    if (document.getElementById('jumpBtn')) {
-      return;
-    }
-
-    // Create jump button
-    const jumpButton = document.createElement('button');
-    jumpButton.id = 'jumpBtn';
-    jumpButton.className = 'jump-btn';
-    jumpButton.innerHTML = '↑ JUMP ↑';
-
-    // Style the button
-    jumpButton.style.position = 'fixed';
-    jumpButton.style.bottom = '120px';
-    jumpButton.style.right = '20px';
-    jumpButton.style.width = '80px';
-    jumpButton.style.height = '80px';
-    jumpButton.style.borderRadius = '50%';
-    jumpButton.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
-    jumpButton.style.color = 'white';
-    jumpButton.style.fontSize = '16px';
-    jumpButton.style.fontWeight = 'bold';
-    jumpButton.style.border = '3px solid white';
-    jumpButton.style.zIndex = '999';
-    jumpButton.style.display = 'flex';
-    jumpButton.style.alignItems = 'center';
-    jumpButton.style.justifyContent = 'center';
-    jumpButton.style.textAlign = 'center';
-    jumpButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
-    jumpButton.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.5)';
-
-    // Add active/hover states
-    jumpButton.style.transition = 'transform 0.1s, background-color 0.1s';
-
-    // Add hover effect for non-touch devices
-    jumpButton.addEventListener('mouseenter', () => {
-      jumpButton.style.backgroundColor = 'rgba(0, 220, 120, 0.9)';
-      jumpButton.style.transform = 'scale(1.05)';
-    });
-
-    jumpButton.addEventListener('mouseleave', () => {
-      jumpButton.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
-      jumpButton.style.transform = 'scale(1)';
-    });
-
-    // Add event listeners for jumping
-    ['mousedown', 'touchstart'].forEach(eventType => {
-      jumpButton.addEventListener(eventType, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Visual feedback
-        jumpButton.style.backgroundColor = 'rgba(0, 240, 140, 1)';
-        jumpButton.style.transform = 'scale(0.95)';
-
-        // Trigger jump
-        this.jump();
-
-        // Reset visual state after a short delay
-        setTimeout(() => {
-          jumpButton.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
-          jumpButton.style.transform = 'scale(1)';
-        }, 200);
-      }, { passive: false, capture: true });
-    });
-
-    // Add to document
-    document.body.appendChild(jumpButton);
-
-    // Log creation
-    console.log('Mobile jump button created');
-  },
+  // Note: Mobile jump button creation is now handled by ArrowControls component
 
   /**
    * Handle keydown events for jumping
