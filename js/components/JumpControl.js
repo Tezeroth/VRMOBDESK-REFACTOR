@@ -100,9 +100,18 @@ const JumpControl = {
     this.onAnimationComplete = this.onAnimationComplete.bind(this);
     this.resetJump = this.resetJump.bind(this);
     this.tick = this.tick.bind(this);
+    this.onControllerButtonDown = this.onControllerButtonDown.bind(this);
 
     // Add event listeners
     window.addEventListener('keydown', this.onKeyDown);
+
+    // Add VR controller button event listeners
+    this.el.sceneEl.addEventListener('abuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.addEventListener('bbuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.addEventListener('xbuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.addEventListener('ybuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.addEventListener('gripdown', this.onControllerButtonDown);
+    this.el.sceneEl.addEventListener('thumbstickdown', this.onControllerButtonDown);
 
     // Bind animation complete handlers
     this.onUpAnimationComplete = this.onAnimationComplete.bind(this, 'up');
@@ -135,6 +144,14 @@ const JumpControl = {
   remove: function () {
     // Remove event listeners
     window.removeEventListener('keydown', this.onKeyDown);
+
+    // Remove VR controller button event listeners
+    this.el.sceneEl.removeEventListener('abuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.removeEventListener('bbuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.removeEventListener('xbuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.removeEventListener('ybuttondown', this.onControllerButtonDown);
+    this.el.sceneEl.removeEventListener('gripdown', this.onControllerButtonDown);
+    this.el.sceneEl.removeEventListener('thumbstickdown', this.onControllerButtonDown);
 
     // Remove animation complete listeners
     this.el.removeEventListener('animationcomplete__up', this.onUpAnimationComplete);
@@ -175,6 +192,24 @@ const JumpControl = {
   },
 
   /**
+   * Handle VR controller button events for jumping
+   * @param {Event} event - The controller button event
+   */
+  onControllerButtonDown: function (event) {
+    // Only process if in VR mode
+    if (!DeviceManager.isVR) return;
+
+    if (window.JumpDebug) {
+      window.JumpDebug.info('JumpControl', `Controller button pressed: ${event.type}`);
+    } else {
+      console.log(`Controller button pressed: ${event.type}`);
+    }
+
+    // Trigger jump on specific buttons (A, B, X, Y, grip, or thumbstick press)
+    this.jump();
+  },
+
+  /**
    * Create a jump button for mobile devices
    */
   createJumpButton: function () {
@@ -187,35 +222,68 @@ const JumpControl = {
     const jumpButton = document.createElement('button');
     jumpButton.id = 'jumpBtn';
     jumpButton.className = 'jump-btn';
-    jumpButton.innerHTML = '↑↑';
+    jumpButton.innerHTML = '↑ JUMP ↑';
 
     // Style the button
     jumpButton.style.position = 'fixed';
     jumpButton.style.bottom = '120px';
     jumpButton.style.right = '20px';
-    jumpButton.style.width = '60px';
-    jumpButton.style.height = '60px';
+    jumpButton.style.width = '80px';
+    jumpButton.style.height = '80px';
     jumpButton.style.borderRadius = '50%';
-    jumpButton.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-    jumpButton.style.color = '#000';
-    jumpButton.style.fontSize = '24px';
-    jumpButton.style.border = 'none';
+    jumpButton.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
+    jumpButton.style.color = 'white';
+    jumpButton.style.fontSize = '16px';
+    jumpButton.style.fontWeight = 'bold';
+    jumpButton.style.border = '3px solid white';
     jumpButton.style.zIndex = '999';
     jumpButton.style.display = 'flex';
     jumpButton.style.alignItems = 'center';
     jumpButton.style.justifyContent = 'center';
+    jumpButton.style.textAlign = 'center';
+    jumpButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    jumpButton.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.5)';
 
-    // Add event listeners
+    // Add active/hover states
+    jumpButton.style.transition = 'transform 0.1s, background-color 0.1s';
+
+    // Add hover effect for non-touch devices
+    jumpButton.addEventListener('mouseenter', () => {
+      jumpButton.style.backgroundColor = 'rgba(0, 220, 120, 0.9)';
+      jumpButton.style.transform = 'scale(1.05)';
+    });
+
+    jumpButton.addEventListener('mouseleave', () => {
+      jumpButton.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
+      jumpButton.style.transform = 'scale(1)';
+    });
+
+    // Add event listeners for jumping
     ['mousedown', 'touchstart'].forEach(eventType => {
       jumpButton.addEventListener(eventType, (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        // Visual feedback
+        jumpButton.style.backgroundColor = 'rgba(0, 240, 140, 1)';
+        jumpButton.style.transform = 'scale(0.95)';
+
+        // Trigger jump
         this.jump();
+
+        // Reset visual state after a short delay
+        setTimeout(() => {
+          jumpButton.style.backgroundColor = 'rgba(0, 200, 100, 0.7)';
+          jumpButton.style.transform = 'scale(1)';
+        }, 200);
       }, { passive: false, capture: true });
     });
 
     // Add to document
     document.body.appendChild(jumpButton);
+
+    // Log creation
+    console.log('Mobile jump button created');
   },
 
   /**
