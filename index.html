@@ -146,7 +146,7 @@
       <!-- Duplicate stew-gltf from Glitch removed to avoid ID collision -->
        <!--original navmesh src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/navmesh.glb?v=1644329586500"-->
       <a-asset-item id="navmesh-glb" src="Assets/navmesh/navmesh.glb"></a-asset-item>
-      <a-asset-item id="building-glb" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/venue.glb?v=1644331843500" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="building-glb" src="Assets/models/venue/venue.glb" crossorigin="anonymous"></a-asset-item>
 
 <!--N/A play with getting the hand models working later
       <a-asset-item id="right-gltf" src="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/models/skeleton-right-hand-webxr/model.gltf"></a-asset-item>
@@ -156,8 +156,8 @@
       <a-asset-item id="stew-gltf" src="Assets/stew.gltf"></a-asset-item>
 
 
-      <a-asset-item id="table-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/small_wooden_table_01_1k-v1.glb?v=1647263187998" crossorigin="anonymous"></a-asset-item>
-      <a-asset-item id="clock-gltf" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/vintage_grandfather_clock_01_1k-v2.glb?v=1647265174189" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="table-gltf" src="Assets/models/furniture/table.glb" crossorigin="anonymous"></a-asset-item>
+      <a-asset-item id="clock-gltf" src="Assets/models/furniture/clock.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="wall" src="Assets/walls/walls1.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="buddy" src="Assets/buddy2.glb" crossorigin="anonymous"></a-asset-item>
       <a-asset-item id="coinmesh" src="Assets/Simple_Coin.glb" crossorigin="anonymous"></a-asset-item>
@@ -218,7 +218,7 @@
     </a-assets>
 
       <!--APPLYING LIGHTMAP TO ENVIROMENT - CHECK THE SCRIPTS. A very interesting way of doing things, I like it -->
-      <img id="bake" src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/Bake(3).webp?v=1644331344700" alt="Lightmap bake texture" crossorigin="anonymous" fetchpriority="high">
+      <img id="bake" src="Assets/textures/bake.webp" alt="Lightmap bake texture" crossorigin="anonymous" fetchpriority="high">
 
     <!--BUILDING, NAVMESH, and COLLIDERS--------------------------------------------------------------------------------------------------->
 
@@ -421,7 +421,7 @@
 
     <!-- A piano model, notice without physx-from-model, you cant put things -->
     <a-gltf-model id="piano"  rotation="0 100 0"  position="-5.466 0 7.979"  shadow="receive:false;cast:true;"
-    src="https://cdn.glitch.global/d29f98b4-ddd1-4589-8b66-e2446690e697/piano.glb?v=1644414775118" crossorigin="anonymous"
+    src="Assets/models/furniture/piano.glb" crossorigin="anonymous"
     >
       <a-plane
         rotation="-90 0 0"
