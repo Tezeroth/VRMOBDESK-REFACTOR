@@ -1,3 +1,12 @@
+/**
+ * ⚠️ WARNING: DEPRECATED FILE ⚠️
+ *
+ * This file is deprecated and should not be used in production.
+ * It has been replaced by js/components/ControlManager.js
+ *
+ * Please use the new modular component instead.
+ */
+
 // Refactored Control Manager using enter/exit VR events
 AFRAME.registerComponent('control-manager', {
   init: function() {

@@ -1,3 +1,12 @@
+/**
+ * ⚠️ WARNING: DEPRECATED FILE ⚠️
+ *
+ * This file is deprecated and should not be used in production.
+ * It has been replaced by js/components/TogglePhysics.js
+ *
+ * Please use the new modular component instead.
+ */
+
 AFRAME.registerComponent("toggle-physics", {
   events: {
     pickup: function() {
@@ -5,7 +14,7 @@ AFRAME.registerComponent("toggle-physics", {
     },
     putdown: function(e) {
       this.el.removeState('grabbed');
-      
+
       if (e.detail.frame && e.detail.inputSource) {
         const referenceSpace = this.el.sceneEl.renderer.xr.getReferenceSpace();
         const pose = e.detail.frame.getPose(e.detail.inputSource.gripSpace, referenceSpace);

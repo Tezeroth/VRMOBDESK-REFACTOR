@@ -10,6 +10,9 @@ flowchart TD
     Navigation[Navigation System]
     UI[User Interface]
     Utils[Utilities]
+    Jump[Jump System]
+    Multiplayer[Multiplayer System]
+    Debug[Debug Utilities]
 
     %% Core Package
     Core --> index.html
@@ -51,6 +54,18 @@ flowchart TD
     Utils --> utils/StateMachine.js
     Utils --> utils/InteractionUtils.js
 
+    %% Jump System Package
+    Jump --> components/JumpControl.js
+    Jump --> components/JumpCollider.js
+    Jump --> components/PlayerCollider.js
+
+    %% Multiplayer System Package
+    Multiplayer --> components/PhysicsSyncManager.js
+    Multiplayer --> managers/MultiplayerManager.js
+
+    %% Debug Utilities Package
+    Debug --> components/MagnetRangeDebug.js
+
     %% Dependencies
     Controls --> Core
     Physics --> Core
@@ -58,6 +73,9 @@ flowchart TD
     Navigation --> Core
     UI --> Core
     Utils --> Core
+    Jump --> Core
+    Multiplayer --> Core
+    Debug --> Core
 
     Navigation --> Physics
     Controls --> Physics
@@ -65,6 +83,12 @@ flowchart TD
     Controls --> UI
     Controls --> Utils
     Physics --> Utils
+    Jump --> Physics
+    Jump --> Controls
+    Jump --> Utils
+    Multiplayer --> Physics
+    Multiplayer --> Utils
+    Debug --> Models
 
     %% External Dependencies
     AFrame[A-Frame]
@@ -81,8 +105,8 @@ flowchart TD
     classDef component fill:#bfb,stroke:#333,stroke-width:1px
     classDef external fill:#ddd,stroke:#333,stroke-width:2px
 
-    class Core,Controls,Physics,Models,Navigation,UI,Utils package
-    class index.html,main.js,styles.css,managers/DeviceManager.js,managers/LookModeManager.js,utils/PhysicsUtils.js,utils/StateMachine.js,utils/InteractionUtils.js module
-    class components/ControlManager.js,components/DesktopMobileControls.js,components/ArrowControls.js,components/TogglePhysics.js,components/PhysicsSleepManager.js,components/PhysicsOptimizer.js,components/lightmap.js,components/depthwrite.js,components/hideparts.js,components/no-tonemapping.js,components/make-transparent.js,components/NavigateOnClick.js,components/simple-navmesh-constraint.js,components/movement-controls.js,components/LoadingScreenManager.js component
+    class Core,Controls,Physics,Models,Navigation,UI,Utils,Jump,Multiplayer,Debug package
+    class index.html,main.js,styles.css,managers/DeviceManager.js,managers/LookModeManager.js,managers/MultiplayerManager.js,utils/PhysicsUtils.js,utils/StateMachine.js,utils/InteractionUtils.js module
+    class components/ControlManager.js,components/DesktopMobileControls.js,components/ArrowControls.js,components/TogglePhysics.js,components/PhysicsSleepManager.js,components/PhysicsOptimizer.js,components/PhysicsSyncManager.js,components/lightmap.js,components/depthwrite.js,components/hideparts.js,components/no-tonemapping.js,components/make-transparent.js,components/NavigateOnClick.js,components/simple-navmesh-constraint.js,components/movement-controls.js,components/LoadingScreenManager.js,components/JumpControl.js,components/JumpCollider.js,components/PlayerCollider.js,components/MagnetRangeDebug.js component
     class AFrame,ThreeJS,PhysXLib external
 ```

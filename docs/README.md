@@ -16,6 +16,10 @@ This folder contains comprehensive documentation for the VRMOBDESK application, 
 - [Interactions](./features/interactions.md) - In-depth documentation of user interaction systems
 - [Jump Functionality](./features/jump-functionality.md) - Details of the jump system implementation
 - [Jump State Machine](./features/jump-state-machine.md) - State machine for jump mechanics
+- **Jump Technical Documentation**
+  - [Jump Technical Implementation](./features/jump/jump-technical-implementation.md) - Technical details of the A-Frame jump implementation
+  - [Jump Mechanics Technical](./features/jump/jump-mechanics-technical.md) - Comprehensive technical breakdown of jump mechanics
+  - [Jump System Upgrade Checklist](./features/jump/jump-system-upgrade-checklist.md) - Checklist for jump system upgrades
 - [Mobile Controls](./features/mobile-controls.md) - Mobile control system documentation
 - [Dynamic Loading](./features/dynamic-loading.md) - Dynamic content loading system
 
@@ -27,6 +31,7 @@ This folder contains comprehensive documentation for the VRMOBDESK application, 
 - [Optimization Opportunities](./performance/optimization-opportunities.md) - Identified areas for code optimization
 - [Optimization Summary](./performance/optimization-summary.md) - Summary of optimization efforts
 - [Performance Notes](./performance/performance-notes.md) - Performance optimization documentation
+- [Performance Notes (Combined)](./performance/performance-notes-combined.md) - Comprehensive performance notes including initial observations and future ideas
 
 ### Technical
 - [Dependencies](./technical/dependencies.md) - External libraries and dependencies

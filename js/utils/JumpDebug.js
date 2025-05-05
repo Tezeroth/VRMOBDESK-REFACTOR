@@ -227,18 +227,29 @@ const JumpDebug = {
         this.levels[level] = false;
       }
     });
+  },
+
+  /**
+   * Initialize the JumpDebug utility
+   * This method is called when the module is imported
+   */
+  initialize: function() {
+    // For backward compatibility, also attach to window object
+    window.JumpDebug = this;
+
+    // Hide stats panel by default when the page loads
+    window.addEventListener('load', () => {
+      // Hide stats panel initially (it will be shown if debug is enabled later)
+      this.hideStats();
+    });
+
+    // Add a helpful console message when the utility is loaded
+    console.info('JumpDebug utility loaded. To enable debug mode and show stats, run: JumpDebug.enabled = true');
   }
 };
 
-// Export as a regular object (not using export/import)
-// This avoids breaking the existing code structure
-window.JumpDebug = JumpDebug;
+// Initialize the utility
+JumpDebug.initialize();
 
-// Hide stats panel by default when the page loads
-window.addEventListener('load', function() {
-  // Hide stats panel initially (it will be shown if debug is enabled later)
-  JumpDebug.hideStats();
-});
-
-// Add a helpful console message when the utility is loaded
-console.info('JumpDebug utility loaded. To enable debug mode and show stats, run: window.JumpDebug.enabled = true');
+// Export the JumpDebug object as the default export
+export default JumpDebug;

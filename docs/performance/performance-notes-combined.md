@@ -2,6 +2,20 @@
 
 This document provides detailed notes on performance optimizations implemented in the VRMOBDESK application.
 
+## Initial Performance Observations [2025-04-24]
+
+- FPS ~50 on 3060. Calls up to 200.
+- Big stutter @ 5s → suspect texture upload or GC
+- Pickup pause → possible physics init + magnet logic overhead
+
+## Performance Optimizations Implemented [2025-04-24]
+
+- Added PhysicsSleepManager to put distant objects to sleep
+- Added PhysicsOptimizer to adjust physics settings based on device
+- Created PerformanceOptimizer to reduce first-interaction lag
+- Optimized look-controls and raycaster settings
+- Improved LoadingScreenManager to hide loading screen at the right time
+
 ## Physics Optimizations
 
 ### PhysicsSleepManager
@@ -103,3 +117,16 @@ Implementing occlusion culling would skip rendering of hidden objects and focus 
 ### Progressive Asset Loading
 
 Implementing progressive loading would prioritize essential assets and improve initial load time.
+
+## Additional Optimization Ideas
+
+- Move to single baked collider mesh for floors/walls, use unity 5 blocking tools to create an MVP for development and easy to understand boilerplate.
+- Bake lighting. Remember CATS for blender for texture atlasing. Investigate possibility of tri-planar mapping PBR, using UDIMS/atlases.
+- Try getting the nipple/joystick controls in from a-frame extras
+- Get some fancy shaders in it if you can, eg https://glitch.com/edit/#!/aluminum-sunny-mapusaurus?path=index.html%3A174%3A7
+- Find a solution to the physx colliders making too many draw calls. Instances copies without (transforms/rotations/scaling) of objects can theoretically keep this down. Perhaps some sort of voxel/chunk system, or LOD, or zones, or mipmapping. Go into a deep dive and look how game engines do it.
+
+## References
+
+- https://www.youtube.com/watch?v=dKo0rWXVAlc - High to low bakes from scan or AI generation. Static meshes to go into one big texture atlas.
+- https://www.youtube.com/watch?v=OfpE9Jy_obE - How to recreate colliders on another scene in blender, using world origin as origin and export.

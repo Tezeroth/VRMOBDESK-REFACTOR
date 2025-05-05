@@ -1,3 +1,15 @@
+/**
+ * ⚠️ WARNING: DEPRECATED FILE ⚠️
+ *
+ * This file is deprecated and should not be used in production.
+ * It has been replaced by the following files:
+ * - js/components/DesktopMobileControls.js
+ * - js/managers/DeviceManager.js
+ * - js/managers/LookModeManager.js
+ *
+ * Please use the new modular components instead.
+ */
+
 // Register PhysX component
 AFRAME.registerComponent('physx', {
   init: function() {

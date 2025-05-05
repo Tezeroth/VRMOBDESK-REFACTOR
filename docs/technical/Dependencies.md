@@ -15,7 +15,7 @@ This document lists all external libraries and dependencies used by the VRMOBDES
 - **URL**: lib/physx.min.js and lib/physx.release.wasm
 - **Purpose**: Physics engine for realistic object behavior
 - **Usage**: Provides physics simulation, collision detection, and object interaction
-- **Configuration**: 
+- **Configuration**:
   ```html
   physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 4; fixedTimeStep: 1/60;"
   physx="autoLoad: true; wasmUrl: lib/physx.release.wasm"
@@ -61,43 +61,96 @@ This document lists all external libraries and dependencies used by the VRMOBDES
 
 ## Custom JavaScript Files
 
-### VR.js
-- **Purpose**: Handles VR-specific functionality
-- **Key Components**: 
-  - `toggle-physics` component for VR object interaction
+### Components
 
-### model-utils.js
-- **Purpose**: Provides utilities for working with 3D models
-- **Key Components**:
-  - `lightmap` component for applying lightmaps to models
-  - `depthwrite` component for controlling depth buffer writing
-  - `hideparts` component for hiding specific parts of models
-  - `no-tonemapping` component for disabling tone mapping on materials
-  - `make-transparent` component for making objects transparent
-  - `simple-navmesh-constraint` component for navigation constraints
-  - `magnet-range-debug` component for visualizing magnet ranges
+- **ControlManager.js**
+  - **Purpose**: Manages control schemes based on device type
+  - **Key Components**: `control-manager` component
 
-### navigate-on-click.js
-- **Purpose**: Provides navigation functionality for clickable objects
-- **Key Components**:
-  - `navigate-on-click` component for URL navigation on object click
+- **DesktopMobileControls.js**
+  - **Purpose**: Handles desktop and mobile interactions
+  - **Key Components**: `desktop-mobile-controls` component
 
-### MOBDESK.js
-- **Purpose**: Main application logic
-- **Key Components**:
-  - `physx` component for PhysX integration
-  - `DeviceManager` for device detection
-  - `LookModeManager` for camera control modes
-  - `desktop-and-mobile-controls` component for non-VR interaction
+- **ArrowControls.js**
+  - **Purpose**: Provides on-screen controls for mobile devices
+  - **Key Components**: `arrow-controls` component
 
-### control-manager.js
-- **Purpose**: Manages control schemes based on device type
-- **Key Components**:
-  - `control-manager` component for switching between VR and non-VR controls
+- **NavigateOnClick.js**
+  - **Purpose**: Provides navigation functionality for clickable objects
+  - **Key Components**: `navigate-on-click` component
+
+- **TogglePhysics.js**
+  - **Purpose**: Handles physics state for VR object interaction
+  - **Key Components**: `toggle-physics` component
+
+- **PhysicsSleepManager.js**
+  - **Purpose**: Optimizes physics by managing sleep states of objects
+  - **Key Components**: `physics-sleep-manager` component
+
+- **PhysicsOptimizer.js**
+  - **Purpose**: Adjusts physics settings based on device capabilities
+  - **Key Components**: `physics-optimizer` component
+
+- **PhysicsSyncManager.js**
+  - **Purpose**: Synchronizes physics across clients in multiplayer
+  - **Key Components**: `physics-sync-manager` component
+
+- **LoadingScreenManager.js**
+  - **Purpose**: Manages the loading screen and initialization sequence
+  - **Key Components**: `loading-screen-manager` component
+
+- **MakeTransparent.js**
+  - **Purpose**: Makes GLTF models transparent for invisible colliders
+  - **Key Components**: `make-transparent` component
+
+- **SimpleNavmeshConstraint.js**
+  - **Purpose**: Constrains movement to a navigation mesh
+  - **Key Components**: `simple-navmesh-constraint` component
+
+- **JumpControl.js**
+  - **Purpose**: Provides jumping functionality for the player
+  - **Key Components**: `jump-control` component
+
+- **JumpCollider.js**
+  - **Purpose**: Adds a collider to detect wall collisions during jumps
+  - **Key Components**: `jump-collider` component
+
+- **PlayerCollider.js**
+  - **Purpose**: Adds a collider to the player to prevent moving through walls
+  - **Key Components**: `player-collider` component
+
+- **MagnetRangeDebug.js**
+  - **Purpose**: Visualizes magnet ranges for debugging
+  - **Key Components**: `magnet-range-debug` component
+
+### Managers
+
+- **DeviceManager.js**
+  - **Purpose**: Handles device detection, permissions, and capabilities
+
+- **LookModeManager.js**
+  - **Purpose**: Handles switching between swipe and gyro modes
+
+- **MultiplayerManager.js**
+  - **Purpose**: Handles multiplayer functionality (in development)
+
+### Utilities
+
+- **PhysicsUtils.js**
+  - **Purpose**: Utility functions for physics operations
+
+- **InteractionUtils.js**
+  - **Purpose**: Utility functions for object interactions
+
+- **StateMachine.js**
+  - **Purpose**: A simple state machine implementation
+
+- **PerformanceOptimizer.js**
+  - **Purpose**: Optimizes performance for first-time interactions
 
 ## CSS Files
 
-### MOBDESK.css
+### styles.css
 - **Purpose**: Provides styling for UI elements
 - **Key Styles**:
   - Mobile control buttons

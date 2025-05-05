@@ -235,9 +235,139 @@ classDiagram
         +hideLoadingScreen()
     }
 
+    class JumpControl {
+        -boolean enabled
+        -number height
+        -number cooldown
+        -number upDuration
+        -number downDuration
+        -boolean respectNavmesh
+        -boolean isJumping
+        -number lastJumpTime
+        -number startY
+        -number maxY
+        -Object animationTemplates
+        -Vector3 jumpMomentum
+        -Vector3 startPosition
+        -Vector3 targetPosition
+        +init()
+        +remove()
+        +onControllerButtonDown(event)
+        +onKeyDown(event)
+        +jump()
+        +canPerformJump()
+        +initializeJumpState()
+        +storePositionsForJump()
+        +checkForNearbyWalls()
+        +calculateJumpMomentum(nearWall)
+        +prepareForJump()
+        +startJumpAnimation()
+        +setupSafetyTimeout()
+        +applyAnimation(type, params)
+        +onAnimationFinish(type, callback)
+        +handleWallCollision()
+        +forceResetJump()
+    }
+
+    class JumpCollider {
+        -boolean enabled
+        -number height
+        -number radius
+        -number opacity
+        -number cacheRefreshInterval
+        -number raycastCacheDuration
+        -boolean adaptiveRaycastEnabled
+        -number proximityThreshold
+        -Element collider
+        -Array cachedWalls
+        -Object raycastCache
+        -number lastCacheRefresh
+        +init()
+        +remove()
+        +recreateCollider()
+        +showCollider()
+        +hideCollider()
+        +checkForNearbyWalls(position, isJumping)
+        +getOptimizedDirections(isJumping)
+        +debugDirections(directions)
+        +isRaycastCacheValid(position)
+        +updateCollider()
+        +update()
+        +tick()
+    }
+
+    class PlayerCollider {
+        -boolean enabled
+        -number height
+        -number radius
+        -Element collider
+        +init()
+        +update()
+        +onCollisionStart(event)
+        +updateCollider()
+    }
+
+    class PhysicsSyncManager {
+        -boolean initialized
+        -number tickRate
+        -number maxInitAttempts
+        -number initAttempts
+        -Object deviceCapabilities
+        -Object peerCapabilities
+        -Object negotiatedSettings
+        -boolean isHost
+        +init()
+        +initializeSync()
+        +detectDeviceCapabilities()
+        +broadcastCapabilities()
+        +negotiateTickRate()
+        +sendMessageToPeer(peerId, message)
+        +broadcastMessage(message)
+        +onPhysicsMessage(event)
+        +handleCapabilitiesMessage(message)
+        +handleTickRateMessage(message)
+        +handlePingMessage(message)
+        +handlePongMessage(message)
+        +measureLatency()
+    }
+
+    class MagnetRangeDebug {
+        -boolean visible
+        -string color
+        -number opacity
+        -number segments
+        -Object3D debugSphere
+        +init()
+        +remove()
+        +updateDebugSphere()
+        +createDebugSphere()
+        +removeDebugSphere()
+    }
+
+    class MultiplayerManager {
+        -boolean isConnected
+        -Array peers
+        -string localId
+        -Object audioContext
+        -boolean audioEnabled
+        -Object peerConnections
+        -Object dataChannels
+        -Object audioNodes
+        +init()
+        +connect()
+        +disconnect()
+        +enablePositionalAudio()
+        +updatePeerPosition(peerId, position, rotation)
+        +broadcastPosition()
+        +handlePeerMessage(message, senderId)
+        +sendToPeer(peerId, message)
+        +broadcast(message)
+    }
+
     %% Relationships
     DeviceManager <-- LookModeManager : uses
     DeviceManager <-- ControlManager : uses
+    DeviceManager <-- JumpControl : uses
     ControlManager --> DesktopMobileControls : manages
     ControlManager --> ArrowControls : manages
     DesktopMobileControls <-- ArrowControls : references
@@ -246,6 +376,10 @@ classDiagram
     DesktopMobileControls --> StateMachine : uses
     PhysicsSleepManager --> TogglePhysics : monitors
     PhysicsOptimizer --> DeviceManager : uses
+    JumpControl --> JumpCollider : uses
+    JumpControl --> PlayerCollider : uses
+    ArrowControls --> JumpControl : triggers
+    PhysicsSyncManager --> MultiplayerManager : uses
 
     %% Inheritance/Implementation
     SimpleNavmeshConstraint --|> AFrameComponent : implements
@@ -262,4 +396,9 @@ classDiagram
     PhysicsSleepManager --|> AFrameComponent : implements
     PhysicsOptimizer --|> AFrameComponent : implements
     LoadingScreenManager --|> AFrameComponent : implements
+    JumpControl --|> AFrameComponent : implements
+    JumpCollider --|> AFrameComponent : implements
+    PlayerCollider --|> AFrameComponent : implements
+    PhysicsSyncManager --|> AFrameComponent : implements
+    MagnetRangeDebug --|> AFrameComponent : implements
 ```

@@ -34,15 +34,10 @@ This document provides detailed documentation for all components in the A-Frame 
 
 ### 4. universal-object-interaction
 **Location**: `main.js`
-**Purpose**: Handles object picking, moving, and dropping in VR and non-VR modes
-**Schema**:
-```javascript
-{
-  pickupDistance: { type: "number", default: 5 },
-  dropDistance: { type: "number", default: 10 },
-  raycastTarget: { type: "selector", default: "#head [raycaster]" }
-}
-```
+**Purpose**: Handles object interaction in both VR and non-VR modes
+**Parameters**:
+- `pickupDistance`: Maximum distance for object pickup
+- `dropDistance`: Maximum distance for object drop
 **Events**:
 - Mouse/Touch events for non-VR:
   - `mousedown`/`touchstart`: Start interaction
@@ -173,29 +168,65 @@ This document provides detailed documentation for all components in the A-Frame 
    handleModeChange(vrQuery);
    ```
 
-2. **Raycaster Configuration**
+2. **Unified Event System**
    ```javascript
-   function setupRaycaster(mode) {
-     if (mode === 'vr') {
-       // VR raycaster setup
+   function setupEventSystem() {
+     const isVR = window.matchMedia('(display-mode: standalone)').matches;
+     
+     if (isVR) {
+       // VR event setup
+       leftHand.addEventListener('triggerdown', handleVRInteractionStart);
+       leftHand.addEventListener('triggerup', handleVRInteractionEnd);
      } else {
-       // Desktop/Mobile raycaster setup
+       // Desktop/Mobile event setup
+       document.addEventListener('mousedown', handleDesktopInteractionStart);
+       document.addEventListener('mouseup', handleDesktopInteractionEnd);
      }
+   }
+   
+   function handleVRInteractionStart(event) {
+     // Common interaction start logic
+     startInteraction(event.detail.intersection.point);
+   }
+   
+   function handleDesktopInteractionStart(event) {
+     // Common interaction start logic
+     const point = getIntersectionPoint(event.clientX, event.clientY);
+     startInteraction(point);
+   }
+   
+   function startInteraction(point) {
+     // Common interaction logic used by both VR and desktop
    }
    ```
 
-3. **Event System**
+3. **Physics Integration**
    ```javascript
-   function setupEventHandlers(mode) {
-     const events = {
-       vr: ['triggerdown', 'triggerup'],
-       desktop: ['mousedown', 'mouseup'],
-       mobile: ['touchstart', 'touchend']
-     };
+   function pickUpObject(object) {
+     // Store original physics state
+     const originalState = object.getAttribute('physx-body');
+     object._originalPhysicsState = originalState;
      
-     events[mode].forEach(event => {
-       element.addEventListener(event, handleInteraction);
-     });
+     // Convert to kinematic during interaction
+     object.setAttribute('physx-body', 'type: kinematic');
+     
+     // Emit common event for both VR and desktop
+     object.emit('pickup', {source: this.id});
+   }
+   
+   function dropObject(object, velocity) {
+     // Restore original physics state
+     const originalState = object._originalPhysicsState;
+     object.setAttribute('physx-body', originalState);
+     
+     // Apply velocity if provided
+     if (velocity) {
+       const physicsBody = object.components['physx-body'];
+       physicsBody.rigidBody.setLinearVelocity(velocity);
+     }
+     
+     // Emit common event for both VR and desktop
+     object.emit('putdown', {source: this.id});
    }
    ```
 
@@ -225,4 +256,4 @@ This document provides detailed documentation for all components in the A-Frame 
 1. The `universal-object-interaction` component will need significant modification to handle FPS-style interactions
 2. The movement system will need to be split into VR and non-VR modes
 3. Physics interactions may need to be adjusted for FPS-style manipulation
-4. Input handling will need to be unified across both interaction styles 
+4. Input handling will need to be unified across both interaction styles

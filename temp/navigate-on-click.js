@@ -1,3 +1,12 @@
+/**
+ * ⚠️ WARNING: DEPRECATED FILE ⚠️
+ *
+ * This file is deprecated and should not be used in production.
+ * It has been replaced by js/components/NavigateOnClick.js
+ *
+ * Please use the new modular component instead.
+ */
+
 AFRAME.registerComponent('navigate-on-click', {
     schema: {
         target: { type: 'string' }, // Target URL
@@ -56,7 +65,7 @@ AFRAME.registerComponent('navigate-on-click', {
         // Handle navigation via VR controller trigger (VR)
         this.el.sceneEl.addEventListener('triggerdown', (event) => {
             const controller = event.target; // The VR controller entity
-            // --- SAFETY CHECK --- 
+            // --- SAFETY CHECK ---
             if (controller && controller.components && controller.components.raycaster) {
                  const intersected = controller.components.raycaster.intersectedEls[0];
                  if (intersected === this.el) {

@@ -5,8 +5,7 @@
  * collisions with walls during jumps and triggers an immediate landing.
  */
 
-// JumpDebug utility is attached to the window object in JumpDebug.js
-// Make sure to include the script in your HTML before this component
+import JumpDebug from '../utils/JumpDebug.js';
 
 // Vector pool for reusing vector objects to reduce garbage collection
 const VectorPool = {
@@ -166,8 +165,8 @@ const JumpCollider = {
       VectorPool._pool.push(new THREE.Vector3());
     }
 
-    if (window.JumpDebug && window.JumpDebug.enabled) {
-      window.JumpDebug.info('JumpCollider', `Pre-populated vector pool with ${VectorPool._pool.length} vectors`);
+    if (JumpDebug.enabled) {
+      JumpDebug.info('JumpCollider', `Pre-populated vector pool with ${VectorPool._pool.length} vectors`);
     }
   },
 
@@ -176,8 +175,8 @@ const JumpCollider = {
    * This is called periodically to avoid querying the DOM on every collision check
    */
   refreshWallCache: function() {
-    if (window.JumpDebug && window.JumpDebug.enabled) {
-      window.JumpDebug.info('JumpCollider', 'Refreshing wall cache');
+    if (JumpDebug.enabled) {
+      JumpDebug.info('JumpCollider', 'Refreshing wall cache');
     }
 
     // Get all static objects (walls, etc.)
@@ -191,8 +190,8 @@ const JumpCollider = {
     // Update the cache timestamp
     this.lastCacheTime = Date.now();
 
-    if (window.JumpDebug && window.JumpDebug.enabled) {
-      window.JumpDebug.info('JumpCollider', `Cached ${this.cachedWalls.length} wall objects`);
+    if (JumpDebug.enabled) {
+      JumpDebug.info('JumpCollider', `Cached ${this.cachedWalls.length} wall objects`);
     }
   },
 
@@ -316,8 +315,8 @@ const JumpCollider = {
           this.adaptiveRaycast.frameCounter % this.data.farRaycastInterval !== 0) {
         shouldDoFullCheck = false;
 
-        if (window.JumpDebug && window.JumpDebug.enabled) {
-          window.JumpDebug.info('JumpCollider', 'Skipping collision check (far from walls)');
+        if (JumpDebug.enabled) {
+          JumpDebug.info('JumpCollider', 'Skipping collision check (far from walls)');
         }
       }
     }
@@ -334,7 +333,7 @@ const JumpCollider = {
     const directions = this.getOptimizedDirections(isJumping);
 
     // Debug the directions being used
-    if (window.JumpDebug && window.JumpDebug.enabled) {
+    if (JumpDebug.enabled) {
       this.debugDirections(directions);
     }
 
@@ -351,8 +350,8 @@ const JumpCollider = {
     if (canUseCache) {
       this.raycastCache.timestamp = Date.now();
 
-      if (window.JumpDebug && window.JumpDebug.enabled) {
-        window.JumpDebug.info('JumpCollider', 'Using raycast cache');
+      if (JumpDebug.enabled) {
+        JumpDebug.info('JumpCollider', 'Using raycast cache');
       }
     } else {
       // Cache is invalid, update it with new position
@@ -360,8 +359,8 @@ const JumpCollider = {
       this.raycastCache.timestamp = Date.now();
       this.raycastCache.playerPosition = position.clone();
 
-      if (window.JumpDebug && window.JumpDebug.enabled && !isJumping) {
-        window.JumpDebug.info('JumpCollider', 'Refreshing raycast cache');
+      if (JumpDebug.enabled && !isJumping) {
+        JumpDebug.info('JumpCollider', 'Refreshing raycast cache');
       }
     }
 
@@ -460,11 +459,11 @@ const JumpCollider = {
    * @param {Array} directions - The array of directions being used
    */
   debugDirections: function(directions) {
-    if (window.JumpDebug && window.JumpDebug.enabled) {
+    if (JumpDebug.enabled) {
       const horizontalCount = directions.filter(dir => Math.abs(dir.y) < 0.01).length;
       const diagonalCount = directions.length - horizontalCount;
 
-      window.JumpDebug.info('JumpCollider',
+      JumpDebug.info('JumpCollider',
         `Using ${directions.length} directions (${horizontalCount} horizontal, ${diagonalCount} diagonal)`);
     }
   },
@@ -472,9 +471,9 @@ const JumpCollider = {
   showCollider: function() {
     if (this.collider) {
       // Only show the collider if debug mode is enabled
-      if (window.JumpDebug && window.JumpDebug.enabled) {
+      if (JumpDebug.enabled) {
         this.collider.setAttribute('visible', true);
-        window.JumpDebug.info('JumpCollider', 'Showing jump collider (debug mode)');
+        JumpDebug.info('JumpCollider', 'Showing jump collider (debug mode)');
 
         // Debug the current directions being used
         const jumpControl = this.el.components['jump-control'];
@@ -486,8 +485,8 @@ const JumpCollider = {
         this.collider.setAttribute('visible', false);
       }
     } else {
-      if (window.JumpDebug) {
-        window.JumpDebug.warn('JumpCollider', 'Cannot show collider - it does not exist');
+      if (JumpDebug) {
+        JumpDebug.warn('JumpCollider', 'Cannot show collider - it does not exist');
       } else {
         console.warn('Cannot show collider - it does not exist');
       }
@@ -500,8 +499,8 @@ const JumpCollider = {
     if (this.collider) {
       this.collider.setAttribute('visible', false);
     } else {
-      if (window.JumpDebug) {
-        window.JumpDebug.warn('JumpCollider', 'Cannot hide collider - it does not exist');
+      if (JumpDebug) {
+        JumpDebug.warn('JumpCollider', 'Cannot hide collider - it does not exist');
       } else {
         console.warn('Cannot hide collider - it does not exist');
       }
@@ -509,8 +508,8 @@ const JumpCollider = {
   },
 
   recreateCollider: function() {
-    if (window.JumpDebug) {
-      window.JumpDebug.info('JumpCollider', 'Recreating jump collider');
+    if (JumpDebug) {
+      JumpDebug.info('JumpCollider', 'Recreating jump collider');
     } else {
       console.log('Recreating jump collider');
     }
@@ -586,7 +585,7 @@ const JumpCollider = {
       });
 
       // Only show the collider if debug mode is enabled
-      const opacity = (window.JumpDebug && window.JumpDebug.enabled) ? 0.2 : 0;
+      const opacity = JumpDebug.enabled ? 0.2 : 0;
 
       this.collider.setAttribute('material', {
         opacity: opacity
@@ -613,8 +612,8 @@ const JumpCollider = {
 
     // Check if collider is still attached to the parent
     if (!this.collider.parentNode || this.collider.parentNode !== this.el) {
-      if (window.JumpDebug) {
-        window.JumpDebug.warn('JumpCollider', 'Jump collider detached, re-attaching');
+      if (JumpDebug) {
+        JumpDebug.warn('JumpCollider', 'Jump collider detached, re-attaching');
       } else {
         console.warn('Jump collider detached, re-attaching');
       }
@@ -636,8 +635,8 @@ const JumpCollider = {
         Math.abs(currentPos.y - expectedY) > tolerance ||
         Math.abs(currentPos.z) > tolerance) {
 
-      if (window.JumpDebug) {
-        window.JumpDebug.position('JumpCollider', 'Correcting jump collider position');
+      if (JumpDebug) {
+        JumpDebug.position('JumpCollider', 'Correcting jump collider position');
       } else {
         console.log('Correcting jump collider position');
       }
@@ -746,8 +745,8 @@ const JumpCollider = {
     this.adaptiveRaycast.lastFullCheckTime = Date.now();
 
     // Debug output
-    if (window.JumpDebug && window.JumpDebug.enabled) {
-      window.JumpDebug.info('JumpCollider',
+    if (JumpDebug.enabled) {
+      JumpDebug.info('JumpCollider',
         `Wall proximity: ${nearestDistance.toFixed(2)}m, Near wall: ${this.adaptiveRaycast.nearWall}`);
     }
 
@@ -767,8 +766,8 @@ const JumpCollider = {
     this.adaptiveRaycast.frameCounter = 0;
     this.adaptiveRaycast.lastProximityDistance = Infinity;
 
-    if (window.JumpDebug && window.JumpDebug.enabled) {
-      window.JumpDebug.info('JumpCollider', 'Reset adaptive raycast system');
+    if (JumpDebug.enabled) {
+      JumpDebug.info('JumpCollider', 'Reset adaptive raycast system');
     }
   },
 
@@ -777,8 +776,8 @@ const JumpCollider = {
    * This can be called when the scene changes (e.g., new walls are added)
    */
   forceRefreshCache: function() {
-    if (window.JumpDebug) {
-      window.JumpDebug.info('JumpCollider', 'Forcing cache refresh');
+    if (JumpDebug) {
+      JumpDebug.info('JumpCollider', 'Forcing cache refresh');
     } else {
       console.log('Forcing cache refresh');
     }

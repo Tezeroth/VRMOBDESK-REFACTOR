@@ -5,6 +5,8 @@
  * to prevent jumping through walls and other objects.
  */
 
+import JumpDebug from '../utils/JumpDebug.js';
+
 const PlayerCollider = {
   schema: {
     enabled: { type: 'boolean', default: true },
@@ -80,8 +82,8 @@ const PlayerCollider = {
     // Get the jump controller component
     const jumpControl = this.el.components['jump-control'];
     if (jumpControl && jumpControl.isJumping) {
-      if (window.JumpDebug) {
-        window.JumpDebug.collision('PlayerCollider', 'Collision detected during jump');
+      if (JumpDebug) {
+        JumpDebug.collision('PlayerCollider', 'Collision detected during jump');
       } else {
         console.log('PlayerCollider: Collision detected during jump');
       }

@@ -1,7 +1,16 @@
 /* global AFRAME, THREE */
 
-
-
+/**
+ * ⚠️ WARNING: DEPRECATED FILE ⚠️
+ *
+ * This file is deprecated and should not be used in production.
+ * It has been replaced by the following files:
+ * - js/components/SimpleNavmeshConstraint.js
+ * - js/components/MakeTransparent.js
+ * - js/components/MagnetRangeDebug.js
+ *
+ * Please use the new modular components instead.
+ */
 
 
 
@@ -16,40 +25,40 @@
 
 
 /**
- * 
+ *
  * THE FUNCTIONS BELOW CAN THROW YOU OFF IF YOU KNOW HOW TO IMPORT GLTFS ALREADY. JUST IMPORT GLASS AS SEPERATE TRANSPARENT MATERIAL - NTS this code wont be required for next project"
- * 
- * 
- * 
+ *
+ *
+ *
  * lightmap component:
- * 
+ *
  * This component allows you to apply a lightmap texture to certain materials on a model.
- * A lightmap is a texture that stores pre-baked lighting information and can be used 
+ * A lightmap is a texture that stores pre-baked lighting information and can be used
  * to add subtle illumination and shading to the model without the need for dynamic lights.
- * 
+ *
  * Schema Fields:
  * - src: The URL or reference to a texture map that will be used as the lightmap.
  * - intensity: A multiplier for controlling how bright the lightmap appears on the model.
- * - filter: A comma-separated string of material name filters. Only materials whose names 
+ * - filter: A comma-separated string of material name filters. Only materials whose names
  *   match one of these filters will get the lightmap applied.
- * - basis: (Not fully used in the provided code) A boolean that might indicate if the 
- *   texture should be considered a Basis compressed texture. Here it's defaulted to false 
+ * - basis: (Not fully used in the provided code) A boolean that might indicate if the
+ *   texture should be considered a Basis compressed texture. Here it's defaulted to false
  *   and not referenced in code.
- * - channel: An integer indicating which channel (UV set or texture channel) to use for 
- *   the lightmap. The code sets `texture.channel = this.data.channel` as a custom property, 
+ * - channel: An integer indicating which channel (UV set or texture channel) to use for
+ *   the lightmap. The code sets `texture.channel = this.data.channel` as a custom property,
  *   but the default is channel 1.
- * 
+ *
  * How it works:
  * - On component initialization, the texture is loaded and flipped vertically (Y flipped).
- *   The flipping is disabled (texture.flipY = false) likely because of how the model's 
+ *   The flipping is disabled (texture.flipY = false) likely because of how the model's
  *   UV coordinates are set up or how the texture was baked.
- * - Once the object3D is set on the entity (i.e., the model has loaded), it traverses 
+ * - Once the object3D is set on the entity (i.e., the model has loaded), it traverses
  *   the scene graph starting from `this.el.object3D`, looking for meshes that have materials.
- * - If a material's name matches any of the provided filters, a new MeshPhongMaterial is 
- *   created to replace the original material, incorporating the loaded lightMap texture 
+ * - If a material's name matches any of the provided filters, a new MeshPhongMaterial is
+ *   created to replace the original material, incorporating the loaded lightMap texture
  *   and adjusting parameters to mimic the original material's properties where possible.
- * 
- * This approach creates a "cache" of replaced materials so that if the same original material 
+ *
+ * This approach creates a "cache" of replaced materials so that if the same original material
  * is encountered again, it reuses the same replacement material, improving performance.
  */
 AFRAME.registerComponent('lightmap', {
@@ -89,11 +98,11 @@ AFRAME.registerComponent('lightmap', {
     this.materials = new Map();
   },
   update() {
-    // Split filters by comma and trim spaces. 
+    // Split filters by comma and trim spaces.
     // Each filter should be a substring of the material name that triggers a replacement.
     const filters = this.data.filter.trim().split(',');
 
-    // Traverse the entire object3D hierarchy 
+    // Traverse the entire object3D hierarchy
     // to find meshes that match the material name filters
     this.el.object3D.traverse(function (o) {
       if (o.material) {
@@ -132,15 +141,15 @@ AFRAME.registerComponent('lightmap', {
 
 /**
  * depthwrite component:
- * 
+ *
  * This component allows you to toggle whether the material should write to the depth buffer.
  * Writing to the depth buffer controls whether objects properly occlude each other.
- * For example, you might want to disable depth writing for certain transparent objects 
+ * For example, you might want to disable depth writing for certain transparent objects
  * so they don't appear as solid or to create special visual effects.
- * 
+ *
  * Schema:
  * - A boolean (default true) that determines if the material should write to the depth buffer.
- * 
+ *
  * On update, it traverses the entity's 3D object and applies the depthWrite setting to all materials.
  */
 AFRAME.registerComponent('depthwrite', {
@@ -164,16 +173,16 @@ AFRAME.registerComponent('depthwrite', {
 
 /**
  * hideparts component:
- * 
+ *
  * This component allows you to hide specific named meshes within a model.
- * 
+ *
  * Schema:
  * - A comma-separated list of mesh names that should be hidden.
- * 
+ *
  * How it works:
  * - When the model is loaded, it traverses the entity's object3D.
  * - If a mesh's name is included in the filter list, that mesh is set to invisible (visible = false).
- * 
+ *
  * This is useful for removing certain parts of a model without editing the model itself.
  */
 AFRAME.registerComponent('hideparts', {
@@ -202,18 +211,18 @@ AFRAME.registerComponent('hideparts', {
 
 /**
  * no-tonemapping component:
- * 
- * This component sets toneMapped = false on certain materials. 
- * Tone mapping is a process that adjusts the brightness of the scene to fit into 
+ *
+ * This component sets toneMapped = false on certain materials.
+ * Tone mapping is a process that adjusts the brightness of the scene to fit into
  * the display range. Sometimes you don't want certain objects to be affected by tone mapping,
  * for example, UI elements or special effects.
- * 
+ *
  * Schema:
- * - A comma-separated string of material name filters. If a material's name matches 
+ * - A comma-separated string of material name filters. If a material's name matches
  *   one of these filters, that material's toneMapped property is set to false.
- * 
+ *
  * How it works:
- * - On object load, it checks all materials and, if they match the filters, 
+ * - On object load, it checks all materials and, if they match the filters,
  *   sets toneMapped to false.
  */
 AFRAME.registerComponent('no-tonemapping', {
@@ -362,7 +371,7 @@ AFRAME.registerComponent('simple-navmesh-constraint', {
     const results = [];
     let yVel = 0;
     let firstTry = true;
-    
+
     return function tick(time, delta) {
       if (this.data.enabled === false) return;
       if (this.entitiesChanged) {
@@ -374,14 +383,14 @@ AFRAME.registerComponent('simple-navmesh-constraint', {
         this.xzOrigin.object3D.getWorldPosition(this.lastPosition);
         if (this.data.xzOrigin) this.lastPosition.y -= this.xzOrigin.object3D.position.y;
       }
-      
+
       const el = this.el;
       if (this.objects.length === 0) return;
 
       this.xzOrigin.object3D.getWorldPosition(nextPosition);
       if (this.data.xzOrigin) nextPosition.y -= this.xzOrigin.object3D.position.y;
       if (nextPosition.distanceTo(this.lastPosition) <= 0.01) return;
-      
+
       let didHit = false;
       // So that it does not get stuck it takes as few samples around the user and finds the most appropriate
       scanPatternLoop:
@@ -395,7 +404,7 @@ AFRAME.registerComponent('simple-navmesh-constraint', {
         raycaster.set(tempVec, down);
         raycaster.far = this.data.fall > 0 ? this.data.fall + maxYVelocity : Infinity;
         raycaster.intersectObjects(this.objects, true, results);
-        
+
         if (results.length) {
           // If it hit something we want to avoid then ignore it and stop looking
           for (const result of results) {
@@ -418,18 +427,18 @@ AFRAME.registerComponent('simple-navmesh-constraint', {
           tempVec.sub(this.xzOrigin.object3D.position);
           if (this.data.xzOrigin) tempVec.y += this.xzOrigin.object3D.position.y;
           this.el.object3D.position.add(tempVec);
-          
+
           this.lastPosition.copy(hitPos);
           didHit = true;
           break;
         }
-        
+
       }
-      
+
       if (didHit) {
         firstTry = false;
       }
-      
+
       if (!firstTry && !didHit) {
         this.el.object3D.position.copy(this.lastPosition);
         this.el.object3D.parent.worldToLocal(this.el.object3D.position);
@@ -458,7 +467,7 @@ AFRAME.registerComponent('magnet-range-debug', {
     // radius = rangeX, height = rangeY*2
     const geometryStr = `primitive: cylinder; radius: ${rangeX}; height: ${rangeY * 2}; segmentsRadial: 32;`;
     const materialStr = `color: #00ff00; wireframe: true; transparent: true; opacity: 0.5;`;
-    
+
     // Set up the guide entity
     this.guideEl.setAttribute('geometry', geometryStr);
     this.guideEl.setAttribute('material', materialStr);

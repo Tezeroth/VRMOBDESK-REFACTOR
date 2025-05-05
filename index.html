@@ -32,7 +32,16 @@
     <script src="https://cdn.jsdelivr.net/npm/handy-work@3.1.11/build/magnet-helpers.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-htmlmesh@2.2.0/build/aframe-html.min.js"></script>
 
-    <!-- Legacy scripts for backward compatibility -->
+    <!--
+      Legacy scripts for backward compatibility - IMPORTANT NOTE:
+      model-utils.js in the root directory is still needed because the background A-Frame scene
+      was from a boilerplate repository that didn't import 3D models and colliders correctly.
+      This is a temporary measure until a full refactoring can be completed.
+      Some components from model-utils.js have been moved to separate files:
+      - MakeTransparent -> js/components/MakeTransparent.js
+      - MagnetRangeDebug -> js/components/MagnetRangeDebug.js
+      - SimpleNavmeshConstraint -> js/components/SimpleNavmeshConstraint.js
+    -->
     <script src="model-utils.js"></script>
 
     <!-- Optimized modular code structure -->
@@ -109,6 +118,7 @@
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
     physics-sleep-manager="enabled: true; distanceThreshold: 25; sleepVelocityThreshold: 0.2; inactivityTimeout: 10000; checkInterval: 2000; debug: false;"
     physics-optimizer="enabled: true; mobileFixedTimeStep: 0.033; desktopFixedTimeStep: 0.016; mobileMaxSubSteps: 1; desktopMaxSubSteps: 2; debug: false;"
+    physics-sync-manager="enabled: true; minTickRate: 20; maxTickRate: 60; adaptiveSync: true; interpolation: true; debug: true;"
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
     renderer="alpha:true;physicallyCorrectLights:True;colorManagement:true;exposure:2;toneMapping:ACESFilmic;"

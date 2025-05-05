@@ -9,28 +9,14 @@
 import DeviceManager from './managers/DeviceManager.js';
 import LookModeManager from './managers/LookModeManager.js';
 
-// Check if components are already registered to avoid conflicts
-const registeredComponents = {};
-
-// Helper function to safely register components
-function safeRegisterComponent(name, implementation) {
-  if (!AFRAME.components[name]) {
-    AFRAME.registerComponent(name, implementation);
-    registeredComponents[name] = true;
-    console.log(`Registered component: ${name}`);
-    return true;
-  } else {
-    console.log(`Component ${name} already registered, skipping.`);
-    return false;
-  }
-}
-
 // Import utilities
 import PhysicsUtils from './utils/PhysicsUtils.js';
 import InteractionUtils from './utils/InteractionUtils.js';
 import StateMachine from './utils/StateMachine.js';
+import ComponentRegistry from './utils/ComponentRegistry.js';
+import PerformanceOptimizer from './utils/PerformanceOptimizer.js';
 
-// Import components from index file
+// Import components and component map from index file
 import {
   ControlManager,
   DesktopMobileControls,
@@ -39,32 +25,40 @@ import {
   TogglePhysics,
   PhysicsSleepManager,
   PhysicsOptimizer,
+  PhysicsSyncManager,
   LoadingScreenManager,
   MakeTransparent,
   SimpleNavmeshConstraint,
-  MagnetRangeDebug
+  MagnetRangeDebug,
+  JumpControl,
+  JumpCollider,
+  PlayerCollider,
+  componentMap
 } from './components/index.js';
-import PerformanceOptimizer from './utils/PerformanceOptimizer.js';
 
-// Register components safely
+// Register components using the ComponentRegistry
 function registerComponents() {
-  console.log('Registering components...');
+  console.log('Registering components using ComponentRegistry...');
 
-  // Import and register all components from index.js
-  // This is handled by the index.js file itself
+  // Register all components from the component map
+  const results = ComponentRegistry.registerAll(componentMap);
 
-  // For debugging purposes, we'll still log each component registration
-  safeRegisterComponent('control-manager', ControlManager);
-  safeRegisterComponent('desktop-mobile-controls', DesktopMobileControls);
-  safeRegisterComponent('arrow-controls', ArrowControls);
-  safeRegisterComponent('navigate-on-click', NavigateOnClick);
-  safeRegisterComponent('toggle-physics', TogglePhysics);
-  safeRegisterComponent('physics-sleep-manager', PhysicsSleepManager);
-  safeRegisterComponent('physics-optimizer', PhysicsOptimizer);
-  safeRegisterComponent('loading-screen-manager', LoadingScreenManager);
-  safeRegisterComponent('make-transparent', MakeTransparent);
-  safeRegisterComponent('simple-navmesh-constraint', SimpleNavmeshConstraint);
-  safeRegisterComponent('magnet-range-debug', MagnetRangeDebug);
+  // Log registration results
+  const registered = Object.entries(results)
+    .filter(([_, success]) => success)
+    .map(([name]) => name);
+
+  const skipped = Object.entries(results)
+    .filter(([_, success]) => !success)
+    .map(([name]) => name);
+
+  if (registered.length > 0) {
+    console.log(`Successfully registered components: ${registered.join(', ')}`);
+  }
+
+  if (skipped.length > 0) {
+    console.log(`Skipped already registered components: ${skipped.join(', ')}`);
+  }
 
   console.log('Component registration complete');
 }
@@ -245,11 +239,18 @@ const MultiplayerManager = {
 
 // Export for module system
 export {
+  // Managers
   DeviceManager,
   LookModeManager,
+  MultiplayerManager,
+
+  // Utilities
   PhysicsUtils,
   InteractionUtils,
   StateMachine,
+  ComponentRegistry,
+
+  // Components
   ControlManager,
   DesktopMobileControls,
   ArrowControls,
@@ -257,10 +258,12 @@ export {
   TogglePhysics,
   PhysicsSleepManager,
   PhysicsOptimizer,
+  PhysicsSyncManager,
   LoadingScreenManager,
-  MultiplayerManager,
-  // New modular components
   MakeTransparent,
   SimpleNavmeshConstraint,
-  MagnetRangeDebug
+  MagnetRangeDebug,
+  JumpControl,
+  JumpCollider,
+  PlayerCollider
 };
