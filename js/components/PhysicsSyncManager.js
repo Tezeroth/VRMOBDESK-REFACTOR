@@ -22,16 +22,19 @@ const PhysicsSyncManager = {
 
   init: function() {
     this.isInitialized = false;
-    this.connectedPeers = new Map(); // Map of connected peers with their capabilities
-    this.negotiatedTickRate = null; // The agreed-upon tick rate
-    this.localCapabilities = {}; // Local device capabilities
-    this.syncedObjects = new Map(); // Objects being synced
+    this.physicsSystemReady = false;
+    this.physXEventFired = false;
+    this.physxSystemInspected = false;
+    this.connectedPeers = new Map();
+    this.negotiatedTickRate = null;
+    this.localCapabilities = {};
+    this.syncedObjects = new Map();
     this.lastSyncTime = 0;
     this.lastLatencyCheckTime = 0;
-    this.networkLatencies = new Map(); // Track network latency to each peer
-    this.isHost = false; // Whether this client is the host
-    this.initAttempts = 0; // Track initialization attempts
-    this.maxInitAttempts = 5; // Maximum number of initialization attempts
+    this.networkLatencies = new Map();
+    this.isHost = false;
+    this.initAttempts = 0; 
+    this.maxInitAttempts = 10; // Increased attempts, will be controlled by tick
 
     // Bind methods
     this.detectDeviceCapabilities = this.detectDeviceCapabilities.bind(this);
@@ -42,161 +45,196 @@ const PhysicsSyncManager = {
     this.onPeerDisconnect = this.onPeerDisconnect.bind(this);
     this.onPhysicsMessage = this.onPhysicsMessage.bind(this);
     this.initializeSync = this.initializeSync.bind(this);
-    this.onPhysXStarted = this.onPhysXStarted.bind(this);
+    this.onPhysXCustomStarted = this.onPhysXCustomStarted.bind(this); // Bind new handler
 
-    console.log('PhysicsSyncManager: Component initialized, waiting for scene and physics to be ready');
+    console.log('PhysicsSyncManager: Component instance created. Waiting for physics system in tick and physx-started event.');
 
-    // Listen for physx-started event (this is what LoadingScreenManager uses)
-    this.el.sceneEl.addEventListener('physx-started', this.onPhysXStarted, { once: true });
+    // Listen for the physx-started event (emitted by LoadingScreenManager or potentially the physics system itself)
+    this.el.sceneEl.addEventListener('physx-started', this.onPhysXCustomStarted, { once: true });
 
-    // Set up console.info interceptor to catch "Starting PhysX scene" message
-    this.originalConsoleInfo = console.info;
-    console.info = (...args) => {
-      this.originalConsoleInfo.apply(console, args);
-      if (args[0] === "Starting PhysX scene") {
-        console.log('PhysicsSyncManager: "Starting PhysX scene" message detected');
-
-        // Emit the physx-started event that LoadingScreenManager listens for
-        // This ensures our component and LoadingScreenManager are in sync
-        setTimeout(() => {
-          this.el.sceneEl.emit('physx-started');
-        }, 100);
-      }
-    };
-
-    // Listen for multiplayer events
+    // Listen for multiplayer events - these are fine
     this.el.sceneEl.addEventListener('peer-connected', this.onPeerConnect);
     this.el.sceneEl.addEventListener('peer-disconnected', this.onPeerDisconnect);
     this.el.sceneEl.addEventListener('physics-message', this.onPhysicsMessage);
   },
 
-  /**
-   * Handle PhysX started event
-   */
-  onPhysXStarted: function() {
-    console.log('PhysicsSyncManager: "physx-started" event received');
+  tick: function(time, timeDelta) {
+    if (!this.data.enabled) return;
 
-    // Wait a moment for the physics system to be fully initialized
-    setTimeout(() => {
-      // Initialize device capabilities first
-      this.detectDeviceCapabilities().then(() => {
-        // Then try to initialize physics sync
-        setTimeout(this.initializeSync, 1000);
-      });
-    }, 1000);
+    if (!this.physicsSystemReady) {
+      const sceneEl = this.el.sceneEl;
+      const physicsSystem = sceneEl.systems.physx;
+      const scenePhysicsComponent = sceneEl.components.physx;
+
+      // Only do intensive checks and logging after physx-started event might have occurred
+      if (this.physXEventFired && !this.physxSystemInspected && physicsSystem) {
+        console.log('PhysicsSyncManager: systems.physx object is defined AND physx-started event received. Inspecting:', physicsSystem);
+        console.log('PhysicsSyncManager: Keys of systems.physx:', Object.keys(physicsSystem));
+        if (typeof physicsSystem.init === 'function') console.log('PhysicsSyncManager: systems.physx has an init() method (called by A-Frame).');
+        if (typeof physicsSystem.play === 'function') console.log('PhysicsSyncManager: systems.physx has a play() method (called by A-Frame).');
+        
+        // Check for new candidate properties
+        if (physicsSystem.hasOwnProperty('PhysX')) {
+            console.log('PhysicsSyncManager: Found systems.physx.PhysX:', physicsSystem.PhysX);
+        } else {
+            console.log('PhysicsSyncManager: systems.physx.PhysX NOT found.');
+        }
+        if (physicsSystem.hasOwnProperty('scene')) {
+            console.log('PhysicsSyncManager: Found systems.physx.scene:', physicsSystem.scene);
+        } else {
+            console.log('PhysicsSyncManager: systems.physx.scene NOT found.');
+        }
+        if (physicsSystem.hasOwnProperty('physXInitialized')) {
+            console.log('PhysicsSyncManager: Found systems.physx.physXInitialized:', physicsSystem.physXInitialized);
+        } else {
+            console.log('PhysicsSyncManager: systems.physx.physXInitialized NOT found.');
+        }
+        // Keep the original driver/world check for completeness of the inspection log, though we expect them to be undefined
+        if (physicsSystem.driver) {
+            console.log('PhysicsSyncManager: systems.physx.driver found upon inspection after physx-started (LEGACY CHECK):', physicsSystem.driver);
+            if (physicsSystem.driver.world) {
+                console.log('PhysicsSyncManager: systems.physx.driver.world also found upon inspection (LEGACY CHECK).');
+            }
+        } else {
+            console.log('PhysicsSyncManager: systems.physx.driver NOT found upon inspection (LEGACY CHECK).');
+        }
+        this.physxSystemInspected = true; // Mark as inspected
+      }
+
+      if (this.initAttempts % 60 === 0) { // Log details periodically
+        console.log('PhysicsSyncManager (Tick Check V5 - checking new properties): Waiting for PhysX. Current state:', 
+                    'physXEventFired:', this.physXEventFired,
+                    'sceneEl.hasLoaded:', sceneEl.hasLoaded,
+                    'physicsSystem defined:', !!physicsSystem, 
+                    'physicsSystem.PhysX defined:', !!(physicsSystem && physicsSystem.PhysX),
+                    'physicsSystem.scene defined:', !!(physicsSystem && physicsSystem.scene),
+                    'physicsSystem.physXInitialized:', (physicsSystem ? physicsSystem.physXInitialized : 'N/A'),
+                    'scenePhysicsComponent defined:', !!scenePhysicsComponent,
+                    'scenePhysicsComponent data:', scenePhysicsComponent ? scenePhysicsComponent.data : sceneEl.getAttribute('physx') 
+                    );
+        if (sceneEl.hasLoaded && !physicsSystem) {
+            console.log('PhysicsSyncManager: Available scene systems (still no systems.physx yet?): ', Object.keys(sceneEl.systems));
+        }
+      }
+
+      // Main readiness check: Focus on state *after* physx-started has fired, using new property names.
+      if (this.physXEventFired && sceneEl.hasLoaded && physicsSystem && 
+          physicsSystem.PhysX && physicsSystem.scene && physicsSystem.physXInitialized === true) {
+
+        if (scenePhysicsComponent) {
+          console.log('PhysicsSyncManager: All conditions met (physx-started, scene loaded, system.PhysX, system.scene, system.physXInitialized=true, sceneComponent). Ready!');
+          this.physicsSystemReady = true; 
+          this.detectDeviceCapabilities().then(() => {
+            this.initializeSync();
+          }).catch(error => {
+            console.error('PhysicsSyncManager: Error detecting device capabilities during tick-based init:', error);
+          });
+        } else {
+          // PhysX system itself is ready, but the A-Frame component instance on the scene might still be initializing.
+          // Let's try to proceed if this is the only thing missing, as our core functions use systems.physx.
+          if (this.initAttempts % 60 === 0) { // Log this state periodically if it persists
+            console.warn('PhysicsSyncManager: PhysX SYSTEM is ready (PhysX, scene, physXInitialized=true), but scene.components.physx instance is not yet defined. Attempting to proceed as core logic uses systems.physx.');
+          }
+          // TEMPORARILY PROCEEDING - If errors occur in initializeSync or setPhysicsTickRate, this might be why.
+          this.physicsSystemReady = true; 
+          this.detectDeviceCapabilities().then(() => {
+            this.initializeSync();
+          }).catch(error => {
+            console.error('PhysicsSyncManager: Error detecting device capabilities (scene component was pending):', error);
+          });
+        }
+      } else {
+        // Optional: Log a less frequent message if physics is still not ready
+        // if (this.initAttempts % 60 === 0) { // Log once per second approx if still waiting
+        //      console.log('PhysicsSyncManager: Waiting for PhysX system in tick...');
+        // }
+        this.initAttempts++; // Use initAttempts to avoid immediate, constant re-checks if needed
+      }
+      return; // Don't proceed further in tick until physics is ready
+    }
+
+    if (!this.isInitialized) {
+      // If physicsSystemReady is true, but not fully initialized (e.g. initializeSync is retrying)
+      // initializeSync has its own retry logic, so we don't call it directly here repeatedly
+      // unless initializeSync itself needs to be re-triggered based on some condition.
+      // For now, rely on initializeSync's internal retries if it was called from the block above.
+      return;
+    }
+
+    // Measure network latency periodically
+    if (time - this.lastLatencyCheckTime > 2000) {
+      this.measureNetworkLatency();
+      this.lastLatencyCheckTime = time;
+
+      // Adjust tick rate if using adaptive sync
+      if (this.data.adaptiveSync && this.connectedPeers.size > 0) {
+        this.adaptTickRate();
+      }
+    }
+
+    // Sync physics states
+    if (time - this.lastSyncTime > this.data.syncInterval) {
+      this.syncAllObjects();
+      this.lastSyncTime = time;
+    }
+
+    // Interpolate physics states
+    if (this.data.interpolation) {
+      this.interpolatePhysicsStates(timeDelta);
+    }
   },
 
-  /**
-   * Initialize the physics synchronization
-   */
   initializeSync: function() {
-    if (!this.data.enabled || this.isInitialized) return;
+    // Removed the check for this.isInitialized at the very start, as tick handler controls flow
+    if (!this.data.enabled) return;
 
-    // Increment attempt counter
-    this.initAttempts++;
+    console.log('PhysicsSyncManager: Entering initializeSync after capabilities detected.');
 
-    console.log(`PhysicsSyncManager: Attempting to initialize... (attempt ${this.initAttempts}/${this.maxInitAttempts})`);
+    const physicsSystem = this.el.sceneEl.systems.physx; // Renamed for clarity, consistent with tick()
 
-    // Check if we've exceeded the maximum number of attempts
-    if (this.initAttempts > this.maxInitAttempts) {
-      console.warn(`PhysicsSyncManager: Maximum initialization attempts (${this.maxInitAttempts}) reached. Giving up.`);
-
-      // Force initialization with default values to prevent infinite retries
-      this.localCapabilities = this.localCapabilities || {
-        isMobile: AFRAME.utils.device.isMobile(),
-        refreshRate: 60,
-        recommendedTickRate: 30,
-        maxTickRate: this.data.maxTickRate,
-        minTickRate: this.data.minTickRate,
-        devicePerformanceScore: 1.0
-      };
-
-      this.isInitialized = true;
-      console.log('PhysicsSyncManager: Forced initialization with default values');
+    // Updated check to use correct property names and physXInitialized flag
+    if (!physicsSystem || !physicsSystem.PhysX || !physicsSystem.scene || physicsSystem.physXInitialized !== true) { 
+      console.warn('PhysicsSyncManager: PhysX system (.PhysX, .scene, or .physXInitialized) not fully available in initializeSync. This might indicate a deeper issue if tick() thought it was ready.');
+      this.localCapabilities = this.localCapabilities || { recommendedTickRate: 30 }; // Ensure defaults, e.g., 30Hz
+      this.isInitialized = true; 
+      console.error('PhysicsSyncManager: Forced initialization with defaults due to unexpected physics system unavailability in initializeSync.');
       this.el.emit('physics-sync-ready', { capabilities: this.localCapabilities });
       return;
     }
 
-    // Access the PhysX system
-    const physics = this.el.sceneEl.systems.physics;
-
-    if (!physics) {
-      console.log('PhysicsSyncManager: PhysX system not found, will retry later...');
-
-      // Schedule a retry with increasing delay
-      const delay = Math.min(1000 * this.initAttempts, 5000);
-      setTimeout(() => {
-        if (!this.isInitialized) {
-          this.initializeSync();
-        }
-      }, delay);
-      return;
-    }
-
+    console.log('PhysicsSyncManager: Successfully accessed PhysX system (systems.physx.PhysX and .scene) in initializeSync.');
     // Log what we found
-    console.log('PhysicsSyncManager: Found PhysX system:', {
-      hasDriver: !!physics.driver,
-      hasWorld: !!(physics.driver && physics.driver.world),
-      hasSetFixedTimeStep: typeof physics.setFixedTimeStep === 'function'
-    });
+    // ... (rest of the logging and capability handling) ...
 
-    // If we already have device capabilities, use them
+    // If we already have device capabilities (they should be set by now from the tick handler)
     if (Object.keys(this.localCapabilities).length > 0) {
-      // Initialize physics with default settings until negotiation
       this.setPhysicsTickRate(this.localCapabilities.recommendedTickRate);
-
-      // Mark as initialized
       this.isInitialized = true;
-
-      console.log('PhysicsSyncManager: Initialized with local capabilities:', this.localCapabilities);
-
-      // Emit initialized event
+      console.log('PhysicsSyncManager: Fully initialized with local capabilities:', this.localCapabilities);
       this.el.emit('physics-sync-ready', { capabilities: this.localCapabilities });
     } else {
-      // Detect local device capabilities
-      this.detectDeviceCapabilities().then(() => {
-        // Initialize physics with default settings until negotiation
-        this.setPhysicsTickRate(this.localCapabilities.recommendedTickRate);
-
-        // Mark as initialized
-        this.isInitialized = true;
-
-        console.log('PhysicsSyncManager: Initialized with local capabilities:', this.localCapabilities);
-
-        // Emit initialized event
-        this.el.emit('physics-sync-ready', { capabilities: this.localCapabilities });
-      }).catch(error => {
-        console.error('PhysicsSyncManager: Error detecting device capabilities:', error);
-
-        // Retry or use defaults
-        if (this.initAttempts < this.maxInitAttempts) {
-          setTimeout(() => this.initializeSync(), 1000);
-        } else {
-          // Use default values
-          this.localCapabilities = {
-            isMobile: AFRAME.utils.device.isMobile(),
-            refreshRate: 60,
-            recommendedTickRate: 30,
-            maxTickRate: this.data.maxTickRate,
-            minTickRate: this.data.minTickRate,
-            devicePerformanceScore: 1.0
-          };
-
+      // This case should ideally not be hit if detectDeviceCapabilities in tick() succeeded.
+      console.error('PhysicsSyncManager: localCapabilities not set before initializeSync. This is unexpected.');
+      // Fallback to default detection or error
+      this.detectDeviceCapabilities().then(() => { // Try one more time
+          this.setPhysicsTickRate(this.localCapabilities.recommendedTickRate);
           this.isInitialized = true;
-          console.log('PhysicsSyncManager: Initialized with default capabilities due to error');
+          console.log('PhysicsSyncManager: Re-detected and initialized capabilities:', this.localCapabilities);
           this.el.emit('physics-sync-ready', { capabilities: this.localCapabilities });
-        }
+      }).catch(finalError => {
+          console.error('PhysicsSyncManager: Final attempt to detect capabilities failed.', finalError);
+          this.localCapabilities = { /* ... hardcoded default values ... */ };
+          this.isInitialized = true; // Initialize with failsafe defaults
+          console.log('PhysicsSyncManager: Initialized with HARDCODED default capabilities due to final error.');
+          this.el.emit('physics-sync-ready', { capabilities: this.localCapabilities });
       });
     }
   },
 
-  /**
-   * Detect device capabilities including refresh rate and performance
-   */
   detectDeviceCapabilities: async function() {
     // Get device information
-    const isMobile = AFRAME.utils.device.isMobile() ||
-                    (window.DeviceManager && window.DeviceManager.isMobile);
+    const isMobileVal = AFRAME.utils.device.isMobile() ||
+                    (window.DeviceManager && typeof window.DeviceManager.isMobile === 'boolean' ? window.DeviceManager.isMobile : AFRAME.utils.device.isMobile()); // More robust check for DeviceManager
 
     // Detect screen refresh rate
     let refreshRate = 60; // Default assumption
@@ -212,7 +250,7 @@ const PhysicsSyncManager = {
     // Determine recommended physics tick rate based on device capabilities
     // For stability, we use a tick rate that's a divisor of the refresh rate
     let recommendedTickRate;
-    if (isMobile) {
+    if (isMobileVal) {
       // Mobile devices should use lower tick rates for better performance
       recommendedTickRate = refreshRate >= 90 ? 30 : 20;
     } else {
@@ -221,12 +259,15 @@ const PhysicsSyncManager = {
     }
 
     // Ensure tick rate is within acceptable bounds
-    recommendedTickRate = Math.max(this.data.minTickRate,
-                          Math.min(recommendedTickRate, this.data.maxTickRate));
+    const effectiveMinTickRate = this.data.minTickRate || 20; // Default if schema not ready
+    const effectiveMaxTickRate = this.data.maxTickRate || 60; // Default if schema not ready
+
+    recommendedTickRate = Math.max(effectiveMinTickRate,
+                          Math.min(recommendedTickRate, effectiveMaxTickRate));
 
     // Store capabilities
     this.localCapabilities = {
-      isMobile,
+      isMobile: isMobileVal,
       refreshRate,
       recommendedTickRate,
       maxTickRate: this.data.maxTickRate,
@@ -234,11 +275,11 @@ const PhysicsSyncManager = {
       devicePerformanceScore: await this.measureDevicePerformance()
     };
 
-    if (this.data.debug) {
+    if (this.data.debug || !this.isInitialized) { // Log if debug or first time
       console.log(`PhysicsSyncManager: Detected capabilities -
         refreshRate: ${refreshRate}Hz,
         recommendedTickRate: ${recommendedTickRate}Hz,
-        isMobile: ${isMobile}`);
+        isMobile: ${isMobileVal}`);
     }
 
     return this.localCapabilities;
@@ -359,63 +400,44 @@ const PhysicsSyncManager = {
    * @param {number} tickRate - The tick rate in Hz
    */
   setPhysicsTickRate: function(tickRate) {
+    const physicsSystem = this.el.sceneEl.systems.physx;
     const fixedTimeStep = 1 / tickRate;
 
-    // Get PhysX system
-    const physics = this.el.sceneEl.systems.physics;
-    if (!physics) {
-      console.warn('PhysicsSyncManager: PhysX system not found, will retry later');
-
-      // Schedule a retry with a limit
-      if (this.initAttempts < this.maxInitAttempts) {
-        setTimeout(() => {
-          if (this.isInitialized) {
-            console.log('PhysicsSyncManager: Retrying setPhysicsTickRate...');
-            this.setPhysicsTickRate(tickRate);
+    if (physicsSystem && typeof physicsSystem.setFixedTimeStep === 'function') {
+      // Ideal case: direct method on the system
+      physicsSystem.setFixedTimeStep(fixedTimeStep);
+      console.log(`PhysicsSyncManager: Physics fixedTimeStep set to ${fixedTimeStep} (for ${tickRate}Hz via direct system call).`);
+    } else {
+      // Fallback: Attempt to set it via the scene component's attribute
+      // This relies on the aframe-physx component to listen to its data changes and apply them.
+      console.log(`PhysicsSyncManager: No direct setFixedTimeStep method on system. Attempting to set via scene attribute 'physx.fixedTimeStep'.`);
+      try {
+        // Ensure the scene has the physx component initialized enough to update its data
+        if (this.el.sceneEl.components.physx) {
+          this.el.sceneEl.setAttribute('physx', 'fixedTimeStep', fixedTimeStep);
+          console.log(`PhysicsSyncManager: Successfully called setAttribute('physx', 'fixedTimeStep', ${fixedTimeStep}) (for ${tickRate}Hz). PhysX component should update.`);
+        } else {
+          // If scene.components.physx isn't ready, we might need to update the system's data directly, if possible,
+          // or accept that we can only set it initially.
+          // For now, log that the component wasn't ready for setAttribute.
+          console.warn(`PhysicsSyncManager: scene.components.physx not available to set fixedTimeStep via setAttribute. Tick rate might not be dynamically applied if not supported by system's direct update via attribute change.`);
+          // As a last resort, if the system data object is directly modifiable and respected:
+          if (physicsSystem && physicsSystem.data && physicsSystem.data.hasOwnProperty('fixedTimeStep')) {
+            console.log(`PhysicsSyncManager: Attempting to set fixedTimeStep directly on system.data (current: ${physicsSystem.data.fixedTimeStep}).`);
+            physicsSystem.data.fixedTimeStep = fixedTimeStep;
+            // This might require the system to have an update() method that reacts to changes in its own this.data
+            if(typeof physicsSystem.update === 'function'){
+                // physicsSystem.update(oldData); // We don't have oldData here easily
+                console.log('PhysicsSyncManager: Underlying physx system might need its update() method called if it does not react to data changes automatically.');
+            }
+            console.log(`PhysicsSyncManager: Set fixedTimeStep directly on system.data to ${fixedTimeStep}. System needs to process this change.`);
+          } else {
+            console.warn('PhysicsSyncManager: Cannot set fixedTimeStep directly on system.data either.');
           }
-        }, 1000);
-      } else {
-        console.warn('PhysicsSyncManager: Maximum retry attempts reached for setPhysicsTickRate');
+        }
+      } catch (e) {
+        console.error(`PhysicsSyncManager: Error attempting to set fixedTimeStep via setAttribute or directly on system data for ${tickRate}Hz.`, e);
       }
-      return;
-    }
-
-    try {
-      // Apply settings - try different methods
-      let success = false;
-
-      // Method 1: Direct method on physics system
-      if (physics.setFixedTimeStep) {
-        physics.setFixedTimeStep(fixedTimeStep);
-        console.log('PhysicsSyncManager: Successfully set tick rate using physics.setFixedTimeStep');
-        success = true;
-      }
-      // Method 2: Through the driver
-      else if (physics.driver && physics.driver.setFixedTimeStep) {
-        physics.driver.setFixedTimeStep(fixedTimeStep);
-        console.log('PhysicsSyncManager: Successfully set tick rate using physics.driver.setFixedTimeStep');
-        success = true;
-      }
-      // Method 3: Through the PhysX world
-      else if (physics.driver && physics.driver.world && physics.driver.world.setFixedTimeStep) {
-        physics.driver.world.setFixedTimeStep(fixedTimeStep);
-        console.log('PhysicsSyncManager: Successfully set tick rate using physics.driver.world.setFixedTimeStep');
-        success = true;
-      }
-
-      // Method 4: Fallback to scene attribute
-      if (!success) {
-        // Update scene attributes
-        const currentPhysicsAttr = this.el.sceneEl.getAttribute('physics') || {};
-        const updatedPhysicsAttr = Object.assign({}, currentPhysicsAttr, { fixedTimeStep: fixedTimeStep });
-
-        this.el.sceneEl.setAttribute('physics', updatedPhysicsAttr);
-        console.log('PhysicsSyncManager: Set tick rate using scene.setAttribute for physics');
-      }
-
-      console.log(`PhysicsSyncManager: Set PhysX tick rate to ${tickRate}Hz (${fixedTimeStep}s)`);
-    } catch (error) {
-      console.error('PhysicsSyncManager: Error setting PhysX tick rate:', error);
     }
   },
 
@@ -1012,35 +1034,6 @@ const PhysicsSyncManager = {
   },
 
   /**
-   * Tick function called by A-Frame on every frame
-   */
-  tick: function(time, deltaTime) {
-    if (!this.isInitialized || !this.data.enabled) return;
-
-    // Measure network latency periodically
-    if (time - this.lastLatencyCheckTime > 2000) {
-      this.measureNetworkLatency();
-      this.lastLatencyCheckTime = time;
-
-      // Adjust tick rate if using adaptive sync
-      if (this.data.adaptiveSync && this.connectedPeers.size > 0) {
-        this.adaptTickRate();
-      }
-    }
-
-    // Sync physics states
-    if (time - this.lastSyncTime > this.data.syncInterval) {
-      this.syncAllObjects();
-      this.lastSyncTime = time;
-    }
-
-    // Interpolate physics states
-    if (this.data.interpolation) {
-      this.interpolatePhysicsStates(deltaTime);
-    }
-  },
-
-  /**
    * Remove function called when component is removed
    */
   remove: function() {
@@ -1049,13 +1042,8 @@ const PhysicsSyncManager = {
     this.el.sceneEl.removeEventListener('peer-disconnected', this.onPeerDisconnect);
     this.el.sceneEl.removeEventListener('physics-message', this.onPhysicsMessage);
 
-    // Restore original console.info if we modified it
-    if (this.originalConsoleInfo) {
-      console.info = this.originalConsoleInfo;
-    }
-
     // Reset physics settings to defaults
-    const physics = this.el.sceneEl.systems.physics;
+    const physics = this.el.sceneEl.systems.physx;
     if (physics && physics.setFixedTimeStep) {
       // Use a reasonable default
       physics.setFixedTimeStep(1/60);
@@ -1064,6 +1052,13 @@ const PhysicsSyncManager = {
     if (this.data.debug) {
       console.log('PhysicsSyncManager: Component removed, reset physics to defaults');
     }
+  },
+
+  onPhysXCustomStarted: function() {
+    console.log('PhysicsSyncManager: Received physx-started event.');
+    this.physXEventFired = true;
+    // We don't immediately try to initialize here; 
+    // tick() will pick it up along with other readiness checks.
   }
 };
 

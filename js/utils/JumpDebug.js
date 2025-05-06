@@ -21,9 +21,11 @@ const JumpDebug = {
     if (value) {
       console.info('Debug mode enabled. Stats panel is now visible.');
       this.showStats();
+      this.showPhysicsProperties();
     } else {
       console.info('Debug mode disabled. Stats panel is now hidden.');
       this.hideStats();
+      this.hidePhysicsProperties();
     }
   },
 
@@ -230,17 +232,73 @@ const JumpDebug = {
   },
 
   /**
+   * Display current physics properties from a-scene
+   */
+  showPhysicsProperties: function() {
+    const sceneEl = document.querySelector('a-scene');
+    if (!sceneEl) {
+      console.warn('[JumpDebug] Could not find a-scene to get physics properties.');
+      return;
+    }
+    const physicsAttrs = sceneEl.getAttribute('physics');
+    if (physicsAttrs) {
+      console.info('[JumpDebug] A-Scene Physics Properties:', physicsAttrs);
+      
+      let displayEl = document.getElementById('jumpdebug-physics-props');
+      if (!displayEl) {
+        displayEl = document.createElement('div');
+        displayEl.id = 'jumpdebug-physics-props';
+        displayEl.style.position = 'fixed';
+        displayEl.style.bottom = '10px';
+        displayEl.style.left = '10px';
+        displayEl.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        displayEl.style.color = 'white';
+        displayEl.style.padding = '10px';
+        displayEl.style.fontFamily = 'monospace';
+        displayEl.style.fontSize = '10px';
+        displayEl.style.zIndex = '10001'; // Above stats
+        displayEl.style.maxWidth = '300px';
+        displayEl.style.overflowWrap = 'break-word';
+        document.body.appendChild(displayEl);
+      }
+      
+      let content = '<strong>Physics Properties:</strong><br>';
+      for (const key in physicsAttrs) {
+        if (physicsAttrs.hasOwnProperty(key)) {
+          content += `${key}: ${JSON.stringify(physicsAttrs[key])}<br>`;
+        }
+      }
+      displayEl.innerHTML = content;
+      displayEl.style.display = 'block';
+
+    } else {
+      console.warn('[JumpDebug] No physics attribute found on a-scene.');
+    }
+  },
+
+  /**
+   * Hide the physics properties display
+   */
+  hidePhysicsProperties: function() {
+    const displayEl = document.getElementById('jumpdebug-physics-props');
+    if (displayEl) {
+      displayEl.style.display = 'none';
+    }
+  },
+
+  /**
    * Initialize the JumpDebug utility
    * This method is called when the module is imported
    */
   initialize: function() {
     // For backward compatibility, also attach to window object
-    window.JumpDebug = this;
+    // window.JumpDebug = this; // Let's remove this for a cleaner module pattern
 
     // Hide stats panel by default when the page loads
     window.addEventListener('load', () => {
       // Hide stats panel initially (it will be shown if debug is enabled later)
       this.hideStats();
+      this.hidePhysicsProperties();
     });
 
     // Add a helpful console message when the utility is loaded
@@ -248,8 +306,7 @@ const JumpDebug = {
   }
 };
 
-// Initialize the utility
+// Call initialize
 JumpDebug.initialize();
 
-// Export the JumpDebug object as the default export
 export default JumpDebug;
