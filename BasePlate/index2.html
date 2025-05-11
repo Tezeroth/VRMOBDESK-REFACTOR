@@ -55,47 +55,123 @@
     </div>
   </div>
 
+  <!-- 
+    A-Frame Scene Setup for VRMOBDESK Bare Bones Example
+
+    Key Architectural Points for New Developers:
+    1. Physics Engine: PhysX is used for realistic physics interactions.
+       - `physx="useDefaultScene: false;"` is important to prevent PhysX from creating its own
+         default physical ground, allowing us to define it explicitly.
+    2. Ground & Navigation Strategy:
+       - Visual Ground: Provided by the `aframe-environment-component` (`environment="preset: default;"`).
+       - Player Navigation Mesh: An invisible GLTF model (`<a-gltf-model class="navmesh">`) is used by the
+         `simple-navmesh-constraint` component on the cameraRig. This dictates where the player can walk and jump.
+         It does NOT have a physx-body.
+       - Physical Ground for Objects: A separate, invisible `<a-box id="physical-ground">` with a static
+         `physx-body` provides a solid surface for dynamic objects (like the cubes) to rest on and interact with.
+         This ensures objects don't fall through the visual-only or navmesh-only surfaces.
+    3. Player (`cameraRig`):
+       - The `cameraRig` entity is the core of player presence and movement.
+       - `simple-navmesh-constraint`: Keeps the player on the GLTF navmesh.
+       - `jump-control`: Manages jump mechanics, relying on `simple-navmesh-constraint` for ground detection.
+       - Colliders (`player-collider`, `jump-collider`): Define the player's physical volume for interactions.
+    4. Interaction (`handy-controls`):
+       - Enables direct hand interactions in VR and fallback controls.
+       - Magnet handles (`data-magnet-range`, `data-pick-up`) on objects allow for grabbing.
+       - Finger-tip kinematic spheres provide a sense of physical touch, allowing fingers to push dynamic objects.
+  -->
+
+  <!-- Scene Attributes Details: -->
+  <!-- control-manager: Custom component, likely manages different control schemes. -->
+  <!-- inspector: Enables the A-Frame Inspector (Ctrl+Alt+I). -->
+  <!-- stats: Displays performance statistics (FPS, etc.). -->
+  
+  <!-- Core Physics Configuration for <a-scene>: -->
+  <!-- physics: General physics settings: uses PhysX driver, sets gravity, timesteps, etc. -->
+  <!-- renderer: Renderer settings for quality and appearance. Note: 'physicallyCorrectLights' might be for a newer/different A-Frame or a component. -->
+  <!-- physx: PhysX specific: loads WASM, crucial: `useDefaultScene: false` prevents PhysX from making its own invisible ground. -->
+  <!-- gltf-model: Path for Draco compressed GLTF models. -->
+  
+  <!-- Physics Optimization & Management Components for <a-scene>: -->
+  <!-- physics-sleep-manager: Manages when physics bodies can "sleep" to save performance. -->
+  <!-- physics-optimizer: Adjusts physics simulation for different device capabilities. -->
+  <!-- physics-sync-manager: Helps synchronize physics and rendering, important for smooth visuals. -->
+  
+  <!-- Other <a-scene> Attributes: -->
+  <!-- webxr: Configures WebXR, e.g., for AR/VR UI overlays. -->
+  <!-- reflection: Enables reflections, referencing a directional light. -->
+  <!-- shadow: Sets soft shadows for better realism. -->
+  <!-- xr-mode-ui: UI for entering VR mode. -->
+  <!-- environment: Provides a quick visual environment. Does NOT provide physical ground here. -->
+  <!-- highRefreshRate: Attempts to use higher refresh rates on supported devices. -->
+  <!-- loading-screen-manager: Custom component, manages the loading overlay. -->
   <a-scene
     control-manager
     inspector="url: https://cdn.jsdelivr.net/gh/c-frame/aframe-editor@1.7.0/dist/aframe-editor.min.js"
     stats
+    
     physics="driver: physx; gravity: 0 -9.8 0; maxSubSteps: 5; fixedTimeStep: 1/72; iterations: 10;"
-    renderer="antialias: true; precision: mediump; alpha:true; physicallyCorrectLights:True; colorManagement:true; exposure:2; toneMapping:ACESFilmic;"
-    physx="autoLoad: true; wasmUrl: ../lib/physx.release.wasm"
+    renderer="antialias: true; precision: mediump; alpha:true; physicallyCorrectLights:True; colorManagement:true; exposure:2; toneMapping:ACESFilmic;" 
+    physx="autoLoad: true; wasmUrl: ../lib/physx.release.wasm; useDefaultScene: false;"
     gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/;"
+    
     physics-sleep-manager="enabled: true; distanceThreshold: 25; sleepVelocityThreshold: 0.2; inactivityTimeout: 10000; checkInterval: 2000; debug: false;"
     physics-optimizer="enabled: true; mobileFixedTimeStep: 0.033; desktopFixedTimeStep: 0.016; mobileMaxSubSteps: 1; desktopMaxSubSteps: 2; debug: false;"
     physics-sync-manager="enabled: true; minTickRate: 20; maxTickRate: 60; adaptiveSync: true; interpolation: true; debug: true;"
+    
     webxr="overlayElement:#dom-overlay;"
     reflection="directionalLight:#dirlight;"
     shadow="type: pcfsoft"
     xr-mode-ui="XRMode:vr"
-    environment="preset: osiris; default-scene: true;" 
+    environment="preset: default;"
     highRefreshRate="true"
     loading-screen-manager
   >
     <a-assets timeout="30000">
-      <!-- Bare bones: Assets for cubes might not be needed if using primitives -->
+      <!-- Preload assets here for better performance -->
       <!-- Example: <a-asset-item id="cube-model" src="../Assets/models/cube.glb"></a-asset-item> -->
     </a-assets>
 
-    <!-- Camera Rig and Controls -->
+    <!-- 
+      Player Representation and Controls 
+      The cameraRig is the parent entity for the player's viewpoint and interaction controls.
+      It handles movement constraints and jump mechanics.
+    -->
+    <!-- Camera Rig Attributes: -->
+    <!-- JumpControl: Manages the jump animation, height, and duration. Needs SimpleNavmeshConstraint for ground detection. -->
+    <!-- JumpCollider: Defines a collision volume used during jumps, possibly for head collision or specific jump interactions. -->
+    <!-- PlayerCollider: Main physical collision volume for the player rig against static world geometry. -->
+    <!-- 
+      SimpleNavmeshConstraint: Crucial for player movement. Constrains the cameraRig to entities with class="navmesh". 
+      `navmesh:.navmesh` : CSS selector for navmesh entities.
+      `fall:0.5` : Max distance player can fall and still snap back to navmesh.
+      `height:1.65` : Player's height above navmesh origin for calculations (eye level is this + camera Y offset).
+    -->
     <a-entity
       id="cameraRig"
       jump-control="height: 2.5; upDuration: 500; downDuration: 500; cooldown: 500"
-      jump-collider="height: 1.6; radius: 0.5; opacity: 0.2" 
+      jump-collider="height: 1.6; radius: 0.5; opacity: 0.2"
       player-collider="height: 1.6; radius: 0.5"
+      simple-navmesh-constraint="navmesh:.navmesh;fall:0.5;height:1.65;"
       position="0 0 0" 
       rotation="0 180 0"
     >
-      <!-- Camera -->
+      <!-- Camera: The player's viewpoint. look-controls enable mouse/touch/VR head rotation. -->
+      <!-- Camera Entity Attributes: -->
+      <!-- camera: near clipping plane to prevent seeing inside oneself -->
+      <!-- look-controls: Note - smoothingFactor might be an unknown property for A-Frame 1.7.0 default look-controls -->
+      <!-- position: Player's eye height -->
       <a-entity
         id="camera"
         camera="near:0.01;"
         look-controls="pointerLockEnabled: true; magicWindowTrackingEnabled: false; reverseMouseDrag: false; touchEnabled: true; smoothingFactor: 0.1"
         position="0 1.65 0"
       >
-        <!-- Cursor -->
+        <!-- Cursor: Visual indicator for raycasting interactions (pointing at objects). -->
+        <!-- Cursor Entity Attributes: -->
+        <!-- position: In front of the camera -->
+        <!-- raycaster: Defines what the cursor can interact with -->
+        <!-- cursor: Fuse cursor (auto-click on gaze) is disabled -->
         <a-entity id="cursor"
            position="0 0 -1"
            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
@@ -106,22 +182,31 @@
         </a-entity>
       </a-entity>
 
-      <!-- Handy Controls -->
+      <!-- 
+        Handy Controls: Manages hand tracking, gestures, and magnet-based grabbing.
+        Also includes finger-tip colliders for physical touch interactions.
+      -->
+      <!-- Handy Controls Entity Attributes: -->
+      <!-- material: Default material for hand models if not overridden by handy-controls -->
+      <!-- handy-controls: Enables handy-controls system, might apply material to right hand model -->
       <a-entity
         material="color:gold;metalness:1;roughness:0;"
         handy-controls="materialOverride:right;"
       >
-        <!-- Screen space inputs -->
+        <!-- Screen space inputs: Fallback UI elements for non-VR/non-tracked-hand interactions. -->
         <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:blue" data-none="screen-0"></a-torus>
         <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:green" data-none="screen-1"></a-torus>
         <a-torus radius="0.008" radius-tubular="0.001" material="shader:flat;color:red" data-none="screen-2"></a-torus>
 
-        <!-- Magnets -->
+        <!-- Magnet entities: Define points on the hands that can attract pickupable objects. -->
+         <!-- grip:Associates with the left hand's grip pose/point -->
+          <!-- Magnet-leftIdentifies this as a left-hand magnet -->
+           <!-- Configures grab events and associates with a no-magnet point -->
         <a-entity
           id="left-magnet"
-          data-left="grip"
-          data-magnet="magnet-left"
-          grab-magnet-target="startEvents:squeezestart;stopEvents:squeezeend;noMagnetEl:#left-no-magnet;"
+          data-left="grip" 
+          data-magnet="magnet-left" 
+          grab-magnet-target="startEvents:squeezestart;stopEvents:squeezeend;noMagnetEl:#left-no-magnet;" 
         ></a-entity>
         <a-entity
           id="right-magnet"
@@ -130,8 +215,9 @@
           grab-magnet-target="startEvents:squeezestart;stopEvents:squeezeend;noMagnetEl:#right-no-magnet;"
         ></a-entity>
 
-        <!-- No-magnet entities (for HTML interface attachment, etc.) -->
+        <!-- No-magnet entities: Reference points on hands, e.g., for attaching UI or defining interaction zones not meant for direct grabbing. -->
         <a-entity id="left-no-magnet" data-left="grip" data-no-magnet>
+          <!-- Example of attaching an HTML interface to the hand (currently no #my-interface div defined in body) -->
           <a-entity
             html="html:#my-interface;cursor:#cursor" 
             position="-0.142 -0.0166 -0.02928"
@@ -141,7 +227,12 @@
         </a-entity>
         <a-entity id="right-no-magnet" data-right="grip" data-no-magnet></a-entity>
 
-        <!-- Finger tip colliders -->
+        <!-- 
+          Finger Tip Kinematic Colliders: These give the virtual fingers physical presence.
+          - `physx-body="type: kinematic;"`: They follow hand tracking precisely and can push dynamic objects,
+            but are not affected by physics forces themselves (gravity, collisions from other objects).
+          - This allows for more realistic interactions like poking or nudging objects.
+        -->
         <a-sphere data-right="index-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
         <a-sphere data-right="middle-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
         <a-sphere data-right="ring-finger-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
@@ -154,7 +245,7 @@
         <a-sphere data-left="thumb-tip" radius="0.004" visible="false" physx-body="type: kinematic;"></a-sphere>
       </a-entity>
 
-      <!-- Hand Controllers -->
+      <!-- Hand Controllers: Specific controllers for VR input (e.g., Oculus Touch). -->
       <a-entity id="leftHand"
           oculus-touch-controls="hand: left;"
           >
@@ -164,13 +255,38 @@
           >
       </a-entity>
 
-    </a-entity>
+    </a-entity> <!-- Closing cameraRig -->
+
+    <!-- 
+      Navmesh for Player Movement Constraint:
+      This invisible GLTF model defines the walkable areas for the player.
+      The `simple-navmesh-constraint` component on the cameraRig raycasts against this mesh.
+      It does NOT have a physx-body itself; its geometry is used directly by the constraint script.
+    -->
+    <a-gltf-model class="navmesh" src="../Assets/navmesh/navmesh.glb" visible="false"></a-gltf-model>
+
+    <!-- 
+      Physical Ground for Dynamic Objects:
+      This invisible box provides a solid, flat surface for PhysX dynamic bodies (e.g., the pickupable cubes).
+      Its top surface is at y=0, intended to align with the visual ground from the environment component.
+      This is crucial because the GLTF navmesh above does not provide physical collision for other objects.
+      `physx-body="type: static;"` makes it an immovable part of the physics world.
+    -->
+    <a-box id="physical-ground" position="0 -0.05 0" width="50" height="0.1" depth="50" visible="false" physx-body="type: static;"></a-box>
 
     <!-- Lighting -->
+    <!-- Ambient light provides overall baseline illumination. -->
     <a-light type="ambient" color="#BBB" intensity="0.5"></a-light>
+    <!-- Directional light provides primary lighting and casts shadows. Referenced by reflection component. -->
     <a-light id="dirlight" light="type: directional; castShadow: true;" position="1 3 2" intensity="0.8" shadow-camera-automatic="#cube1,#cube2,#cube3"></a-light>
 
-    <!-- Pickupable Cubes -->
+    <!-- 
+      Pickupable Cubes: Example dynamic objects.
+      - `class="pickupable"`: Allows the cursor/raycaster to target them for interaction.
+      - `toggle-physics`: Custom component, likely handles toggling physics state on grab/release.
+      - `physx-body="type:dynamic; mass:2;"`: Makes them movable physics objects.
+      - Handles (`<a-entity data-magnet-range...>`): Define grab points for the handy-controls magnet system.
+    -->
     <a-box
       id="cube1"
       class="pickupable"
@@ -259,3 +375,5 @@
 
 </body>
 </html>
+<!--https://glitch.com/~aspiring-raspy-bubbler-->
+<!--to fix the issue with things flying into the air when you pick up a cube from underneath another cube, look at the above glitch link-->

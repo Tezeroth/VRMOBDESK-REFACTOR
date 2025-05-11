@@ -88,3 +88,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *   `PhysicsSyncManager.js` now successfully initializes by correctly identifying the PhysX system's ready state and its relevant API objects.
 *   The component proceeds through its `detectDeviceCapabilities()` and `initializeSync()` methods without fatal errors related to physics system access.
 *   The groundwork for implementing a fixed timestep strategy (Priority 2) and ensuring proper interpolation (Priority 3) is now much more solid.
+
+## [Date - e.g., YYYY-MM-DD] - Ground Collider Update for PhysX Reliability
+
+### Fixed
+- **Reliable Ground Collider for PhysX**: Investigated an issue in `BasePlate/index2.html` where dynamic physics objects (cubes) were floating or not interacting correctly with an `<a-plane>` intended as a static ground collider.
+  - **Observation**: Despite `useDefaultScene: false;` in the PhysX scene configuration and no `aframe-environment-component`, objects did not rest on an `<a-plane physx-body="type: static;">` at `y=0`.
+  - **Solution**: Replaced the `<a-plane>` ground with an `<a-box physx-body="type: static; shape: box;">` (e.g., `<a-box class="navmesh" position="0 -0.05 0" width="50" height="0.1" depth="50" visible="false" physx-body="type: static; shape: box;">`). The top surface of this box is at `y=0`.
+  - **Outcome**: Dynamic objects now correctly rest on this `<a-box>` ground collider. This indicates that for the current A-Frame/PhysX setup, using an `<a-box>` with an explicit `shape: box` provides a more robust and predictable static ground surface for physics interactions compared to an `<a-plane>`.
+  - **Recommendation**: When a simple, flat, static physical ground is needed with PhysX, prefer using a thin `<a-box>` with `shape: box` over an `<a-plane>` for better reliability.

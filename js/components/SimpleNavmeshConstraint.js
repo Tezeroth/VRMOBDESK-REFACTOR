@@ -48,8 +48,30 @@ const SimpleNavmeshConstraint = {
     // We already have an update on the way
     if (this.entitiesChanged) { return; }
 
+    // GUARD CLAUSE: Ensure navmesh and exclude selectors are valid before using them
+    const navmeshSelector = this.data.navmesh;
+    const excludeSelector = this.data.exclude;
+
+    if (!navmeshSelector || navmeshSelector.trim() === '') {
+      // If navmesh selector is empty, we can't match against it for relevance.
+      // Depending on logic, you might also check excludeSelector here or assume if navmesh is empty, it's too early.
+      // console.warn('SimpleNavmeshConstraint: onSceneUpdated called with no valid navmesh selector yet.');
+      return;
+    }
+
+    // Check if the event target element exists and has the 'matches' method
+    if (!evt || !evt.detail || !evt.detail.el || typeof evt.detail.el.matches !== 'function') {
+      // console.warn('SimpleNavmeshConstraint: onSceneUpdated called with invalid event target.');
+      return;
+    }
+
     // Don't bother updating if the entity is not relevant to us
-    if (evt.detail.el.matches(this.data.navmesh) || evt.detail.el.matches(this.data.exclude)) {
+    let isRelevant = evt.detail.el.matches(navmeshSelector);
+    if (excludeSelector && excludeSelector.trim() !== '') {
+      isRelevant = isRelevant || evt.detail.el.matches(excludeSelector);
+    }
+
+    if (isRelevant) {
       this.entitiesChanged = true;
     }
   },
